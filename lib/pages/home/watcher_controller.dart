@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:device_apps/device_apps.dart';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_archive/flutter_archive.dart';
@@ -16,6 +17,7 @@ class WatcherController extends GetxController {
   static WatcherController get to => Get.find();
   final records = <Record>[].obs;
   late Box<Record> recordsBox;
+  final deviceApps = <ApplicationWithIcon>[].obs;
 
   /// This records2 is used for the HomeScreen, it will pop
   /// and push record when out of limit.
@@ -67,6 +69,14 @@ class WatcherController extends GetxController {
     await recordsBox.clear();
   }
 
+  initDeviceApps() async {
+    var apps = (await DeviceApps.getInstalledApplications(
+      includeAppIcons: true,
+    ));
+
+    deviceApps.addAll(apps.map((e) => e as ApplicationWithIcon));
+  }
+
   @override
   void onInit() async {
     super.onInit();
@@ -74,6 +84,7 @@ class WatcherController extends GetxController {
     records.addAll(recordsBox.values);
 
     await _permissionDialog();
+    await initDeviceApps();
   }
 
   _permissionDialog() async {

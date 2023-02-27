@@ -16,16 +16,16 @@ class IndexPage extends GetView<IndexController> {
           initialRoute: '/home',
           onGenerateRoute: controller.onGenerateRoute,
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // RuleF.selectedApp.value = null;
-            Get.toNamed('/add_rules', parameters: {"action": "create"});
-          },
-          tooltip: 'Add match rules',
-          child: const Icon(
-            UniconsLine.plus,
-          ),
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () {
+        //     // RuleF.selectedApp.value = null;
+        //     Get.toNamed('/add_rules', parameters: {"action": "create"});
+        //   },
+        //   tooltip: 'Add match rules',
+        //   child: const Icon(
+        //     UniconsLine.plus,
+        //   ),
+        // ),
         bottomNavigationBar: Obx(
           () => NavigationBar(
             destinations: [

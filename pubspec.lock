@@ -140,10 +140,9 @@ packages:
   chat_gpt_sdk:
     dependency: "direct main"
     description:
-      name: chat_gpt_sdk
-      sha256: "7c43dd508d3e70ea4bbf237721992c631b094d2ea5744b2d8b56c7cb5003e455"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "plugins/Flutter-ChatGPT"
+      relative: true
+    source: path
     version: "2.0.0"
   checked_yaml:
     dependency: transitive
@@ -233,6 +232,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "4.0.6"
+  dio_proxy_adapter:
+    dependency: transitive
+    description:
+      name: dio_proxy_adapter
+      sha256: "00aca9e9445ddb422c4bb14abee0c17eaf58fe09017da42f9ed1c1b7c740cdc5"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
   disable_battery_optimization:
     dependency: "direct main"
     description:

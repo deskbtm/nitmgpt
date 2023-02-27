@@ -1,73 +1,89 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:nitmgpt/models/rule.dart';
-import 'package:nitmgpt/pages/add_rules/add_rules_controller.dart';
+import 'package:hive/hive.dart';
+import 'package:nitmgpt/pages/home/watcher_controller.dart';
 
-import '../../constants.dart';
+class CustomField {
+  final String field;
+  final String name;
+  final String means;
+  final TextEditingController textEditingController;
+  double? width;
 
-enum HttpMethods { GET, POST, PUT }
+  CustomField({
+    required this.field,
+    required this.name,
+    required this.means,
+    required this.textEditingController,
+    this.width = 200,
+  });
+}
 
 class RuleFormController extends GetxController {
   static RuleFormController get to => Get.find();
 
   final formKey = GlobalKey<FormState>();
-  final callbackController = TextEditingController();
-  final matchPatternController = TextEditingController();
-  final selectedApp = Rxn<ApplicationWithIcon>();
-  final deviceApps = <ApplicationWithIcon>[].obs;
+  final selectedApp = <ApplicationWithIcon>[].obs;
+  late Box ignoredAppsBox;
+  late Box questionFieldsBox;
 
-  final httpMethod = HttpMethods.POST.obs;
+  final _watcherController = WatcherController.to;
+
+  final fieldsMap = {
+    'is_ad': CustomField(
+      field: '`is_ad` ',
+      name: 'is_ad',
+      means: ' means whether it is an advertisement ',
+      textEditingController: TextEditingController(),
+    ),
+    'ad_probability': CustomField(
+      field: '`ad_probability` ',
+      name: 'ad_probability',
+      means:
+          ' means the probability that this sentence is classified as an advertisement ',
+      textEditingController: TextEditingController(),
+    ),
+    'is_spam': CustomField(
+      field: '`is_spam` ',
+      name: 'is_spam',
+      means: ' means whether it is spam ',
+      textEditingController: TextEditingController(),
+    ),
+    'sentence': CustomField(
+      field: '`sentence` ',
+      name: 'sentence',
+      means: ' means the input sentence ',
+      textEditingController: TextEditingController(),
+    ),
+  };
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    ever(selectedApp, (callback) {
-      if (matchPatternController.text == '') {
-        switch (callback?.packageName) {
-          case APLIPAY_PACKAGENAME:
-            matchPatternController.text = APLIPAY_MATCH_RULE;
-            break;
-          case WECHAT_PAY_PACKAGENAME:
-            matchPatternController.text = WECHAT_PAY_MATCH_RULE;
-            break;
-          default:
-        }
-      }
-    });
-  }
 
-  @override
-  void onReady() async {
-    super.onReady();
+    ignoredAppsBox = await Hive.openBox('ignored_apps');
+    questionFieldsBox = await Hive.openBox('question_fields');
 
-    String? packageName = Get.parameters["packageName"];
-
-    var apps = (await DeviceApps.getInstalledApplications(
-      includeAppIcons: true,
-    ));
-
-    deviceApps.addAll(apps.map((e) => e as ApplicationWithIcon));
-
-    if (packageName != null) {
-      Rule? rule = RulesController.to.findRule(packageName);
-      if (rule != null) {
-        callbackController.text = rule.callbackUrl;
-        matchPatternController.text = rule.matchPattern;
-        selectedApp.value = deviceApps
-            .firstWhereOrNull((element) => element.packageName == packageName);
-        httpMethod.value = HttpMethods.values
-            .firstWhere((e) => e.name == rule.callbackHttpMethod);
-      }
-    }
+    setupIgnoredApps();
+    setupQuestionFields();
   }
 
   @override
   void onClose() {
-    matchPatternController.dispose();
-    callbackController.dispose();
+    for (var e in fieldsMap.values) {
+      if (e.textEditingController.text == '') {
+        e.textEditingController.dispose();
+      }
+    }
     super.onClose();
+  }
+
+  addSelectedApp(ApplicationWithIcon app) {
+    if (!selectedApp.contains(app)) {
+      ignoredAppsBox.add(app.packageName);
+      selectedApp.add(app);
+    }
   }
 
   String? validator(String? value) {
@@ -77,31 +93,26 @@ class RuleFormController extends GetxController {
     return null;
   }
 
-  void selectCallbackHttpMethod(HttpMethods? value) {
-    httpMethod.value = value ?? HttpMethods.POST;
+  setupQuestionFields() {
+    for (var e in fieldsMap.values) {
+      e.textEditingController.text =
+          questionFieldsBox.get(e.name, defaultValue: e.means);
+    }
   }
 
-  Rule? submit() {
-    if (selectedApp.value == null) {
-      Fluttertoast.showToast(msg: "Please select target app");
-      return null;
+  setupIgnoredApps() {
+    for (var packageName in ignoredAppsBox.values) {
+      var r = _watcherController.deviceApps
+          .firstWhereOrNull((ele) => ele.packageName == packageName);
+      if (r != null) {
+        selectedApp.add(r);
+      }
     }
-
-    if (formKey.currentState != null && formKey.currentState!.validate()) {
-      return Rule()
-        ..appName = selectedApp.value!.appName
-        ..packageName = selectedApp.value!.packageName
-        ..callbackUrl = callbackController.text
-        ..matchPattern = matchPatternController.text
-        ..callbackHttpMethod = httpMethod.value.name
-        ..icon = selectedApp.value!.icon;
-    }
-    return null;
   }
 
-  clearTextField() {
-    matchPatternController.clear();
-    callbackController.clear();
-    httpMethod.value = HttpMethods.POST;
+  submit() async {
+    for (var e in fieldsMap.values) {
+      await questionFieldsBox.put(e.name, e.textEditingController.text);
+    }
   }
 }

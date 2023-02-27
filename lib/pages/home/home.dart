@@ -1,9 +1,11 @@
+import 'dart:developer';
+
+import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:nitmgpt/notification_utils.dart';
 import 'package:unicons/unicons.dart';
+import '../../theme.dart';
 import 'watcher_controller.dart';
 
 class HomePage extends StatelessWidget {
@@ -45,20 +47,40 @@ class HomePage extends StatelessWidget {
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
-                    FilledButton.tonalIcon(
-                      onPressed: () async {
-                        var box = await Hive.openBox('box');
-                        print(box.get('key'));
-                        // .resolvePlatformSpecificImplementation<
-                        //     AndroidFlutterLocalNotificationsPlugin>()
-                        // ?.getActiveNotifications();
-                      },
-                      icon: const Icon(UniconsLine.history),
-                      label: Text(
-                        "demo",
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
+                    // FilledButton.tonalIcon(
+                    //   onPressed: () async {
+                    //     final openAI = OpenAI.instance.build(
+                    //       token:
+                    //           "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",
+                    //       baseOption: HttpSetup(
+                    //         receiveTimeout: 100000,
+                    //         proxyUrl: '127.0.0.1:7890',
+                    //       ),
+                    //       isLogger: true,
+                    //     );
+                    //     final request = CompleteText(
+                    //       prompt: '怎么评价chatgpt',
+                    //       model: kTranslateModelV3,
+                    //       maxTokens: 200,
+                    //     );
+
+                    //     var demo =
+                    //         await openAI.onCompleteText(request: request);
+
+                    //     print("$demo =======================");
+                    //     log(demo!.choices[0].text);
+                    //     // var box = await Hive.openBox('box');
+                    //     // print(box.get('key'));
+                    //     // .resolvePlatformSpecificImplementation<
+                    //     //     AndroidFlutterLocalNotificationsPlugin>()
+                    //     // ?.getActiveNotifications();
+                    //   },
+                    //   icon: const Icon(UniconsLine.history),
+                    //   label: Text(
+                    //     "demo",
+                    //     style: const TextStyle(fontSize: 16),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -71,8 +93,7 @@ class HomePage extends StatelessWidget {
                       const SizedBox(width: 10),
                       Text(
                         '${element.amount}￥',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.green),
+                        style: TextStyle(fontSize: 14, color: primaryColor),
                       )
                     ],
                   ),
@@ -91,14 +112,14 @@ class HomePage extends StatelessWidget {
                           Icon(
                             UniconsLine.square_full,
                             size: 30,
-                            color: Colors.green.shade800,
+                            color: primaryColor,
                           ),
                           const SizedBox(width: 5),
                           Text(
                             'Empty',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.green.shade400,
+                              color: primaryColor,
                             ),
                           )
                         ],

@@ -7,6 +7,7 @@ import 'package:nitmgpt/pages/add_rules/add_rules_controller.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
 import 'package:unicons/unicons.dart';
 
+import '../../theme.dart';
 import '../home/watcher_controller.dart';
 
 class SettingsPage extends GetView<SettingsController> {
@@ -60,12 +61,12 @@ class SettingsPage extends GetView<SettingsController> {
               children: [
                 _rulesController.rules.isEmpty
                     ? Container()
-                    : const SizedBox(
+                    : SizedBox(
                         height: 40,
                         child: ListTile(
                           title: Text(
                             "listening apps",
-                            style: TextStyle(fontSize: 14, color: Colors.green),
+                            style: TextStyle(fontSize: 14, color: primaryColor),
                           ),
                         ),
                       ),
@@ -82,10 +83,8 @@ class SettingsPage extends GetView<SettingsController> {
                           onTap: () {
                             _rulesController.deleteRule(element);
                           },
-                          child: Icon(
-                            UniconsLine.times,
-                            color: Colors.green[900],
-                          ),
+                          child: const Icon(UniconsLine.times,
+                              color: Color(0x0074aa9c)),
                         ),
                         leading: SizedBox(
                           width: 45,
@@ -111,8 +110,28 @@ class SettingsPage extends GetView<SettingsController> {
                 height: 40,
                 child: ListTile(
                   title: Text(
+                    "app",
+                    style: TextStyle(fontSize: 14, color: primaryColor),
+                  ),
+                ),
+              ),
+              ListTile(
+                onTap: () => {Get.toNamed('/add_rules')},
+                title: const Text("Custom rules"),
+              ),
+              ListTile(
+                title: const Text("Chatgpt login"),
+              ),
+            ],
+          ),
+          Column(
+            children: [
+              SizedBox(
+                height: 40,
+                child: ListTile(
+                  title: Text(
                     "system".tr,
-                    style: const TextStyle(fontSize: 14, color: Colors.green),
+                    style: TextStyle(fontSize: 14, color: primaryColor),
                   ),
                 ),
               ),
@@ -125,6 +144,13 @@ class SettingsPage extends GetView<SettingsController> {
                 onTap: watcher.clearRecords,
                 title: Text("Clear records".tr),
               ),
+              Obx(
+                () => ListTile(
+                  onTap: controller.setupProxy,
+                  title: const Text("Proxy"),
+                  trailing: Text(controller.proxyUrl.value),
+                ),
+              ),
               updateTile,
             ],
           ),
@@ -135,7 +161,7 @@ class SettingsPage extends GetView<SettingsController> {
                 child: ListTile(
                   title: Text(
                     "permission".tr,
-                    style: const TextStyle(fontSize: 14, color: Colors.green),
+                    style: TextStyle(fontSize: 14, color: primaryColor),
                   ),
                 ),
               ),

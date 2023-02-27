@@ -41,7 +41,8 @@ dependencies:
   flutter_markdown: ^0.6.14
   markdown: ^7.0.1
   flutter_inappwebview: ^5.7.2+3
-  chat_gpt_sdk: ^2.0.0
+  chat_gpt_sdk:
+    path: plugins/Flutter-ChatGPT
   flutter_background_service: ^2.4.6
   flutter_background_service_android: ^3.0.3
 

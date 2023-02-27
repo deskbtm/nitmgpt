@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:hive/hive.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -33,8 +34,11 @@ class SettingsController extends GetxController {
 
   late final PackageInfo? packageInfo;
   late final release = Rxn<GithubRelease>();
+  final proxyUrl = ''.obs;
   final currentVersion = Rxn<Version>();
   final latestVersion = Rxn<Version>();
+  final proxyUrlController = TextEditingController();
+  late Box settingsBox;
 
   _getArch(String name) {
     switch (name) {
@@ -169,6 +173,43 @@ class SettingsController extends GetxController {
     }
   }
 
+  setupProxy() async {
+    Get.defaultDialog(
+      titlePadding: const EdgeInsets.only(top: 20),
+      titleStyle: const TextStyle(fontSize: 22),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      title: "Setup proxy",
+      content: FractionallySizedBox(
+        widthFactor: 0.8,
+        child: TextField(
+          controller: proxyUrlController,
+        ),
+      ),
+      cancel: TextButton(
+        child: const Text(
+          "Reset",
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () {
+          proxyUrl.value = '';
+          proxyUrlController.text = '';
+          settingsBox.put('proxyUrl', proxyUrlController.text);
+        },
+      ),
+      confirm: TextButton(
+        child: const Text(
+          "Ok",
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () {
+          proxyUrl.value = proxyUrlController.text;
+          settingsBox.put('proxyUrl', proxyUrlController.text);
+          Get.back();
+        },
+      ),
+    );
+  }
+
   initGithubRelease() async {
     GithubRelease? res = await fetchGithubRelease("deskbtm", "nitmgpt");
 
@@ -192,6 +233,9 @@ class SettingsController extends GetxController {
 
   @override
   void onInit() async {
+    settingsBox = await Hive.openBox('settings');
+    proxyUrlController.text = settingsBox.get('proxyUrl');
+
     packageInfo = await PackageInfo.fromPlatform();
     currentVersion.value = Version.parse(packageInfo?.version ?? '');
 

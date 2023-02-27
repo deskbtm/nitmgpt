@@ -1,20 +1,16 @@
 <a href="#" target="_blank" rel="noopener noreferrer">
 <!-- <img width="85" src="https://github.com/deskbtm/nitmgpt/blob/dev/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png?raw=true" alt="abyss" /></a> -->
 
-<p align="center">
-  <a href="#" target="_blank" rel="noopener noreferrer">
-    <h1 align="center">NITM (Notification-in-the-middle) gpt</h1>
-  </a>
-</p>
-
 It's a watcher client for Android that auto-hide ads, spam, etc notifications via chatgpt.
 
 ## Features
 
 - Notification listener.
+- Permanent background service.
+- Smart notification filtering power by chatgpt.
 - Custom match rules.
 - Local export history(xlsx).
-- Material You.
+- Beautiful ui (Material You).
 
 ## Getting Started
 

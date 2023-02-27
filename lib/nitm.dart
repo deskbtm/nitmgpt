@@ -41,21 +41,6 @@ class _PITMState extends State<NITM> {
     send?.send(event);
   }
 
-  static _requestCallback(Rule rule, Record record) async {
-    var r = record.toMap();
-    switch (rule.callbackHttpMethod) {
-      case "GET":
-        await GetConnect().get(rule.callbackUrl, query: r);
-        break;
-      case "POST":
-        await GetConnect().post(rule.callbackUrl, r);
-        break;
-      case "PUT":
-        await GetConnect().put(rule.callbackUrl, r);
-        break;
-    }
-  }
-
   // Note Bene:
   // In some distros will trigger twice.
   // Here it runs in a separate service, it's not shared memory, class need to re-instantiate.
