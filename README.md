@@ -1,9 +1,9 @@
 <a href="#" target="_blank" rel="noopener noreferrer">
-<img width="85" src="https://github.com/deskbtm-letscollab/PTIM/blob/dev/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png?raw=true" alt="abyss" /></a>
+<!-- <img width="85" src="https://github.com/deskbtm/nitmgpt/blob/dev/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png?raw=true" alt="abyss" /></a> -->
 
 <p align="center">
   <a href="#" target="_blank" rel="noopener noreferrer">
-    <h1 align="center">NITM (Notification-in-the-middle)</h1>
+    <h1 align="center">NITM (Notification-in-the-middle) gpt</h1>
   </a>
 </p>
 

@@ -61,7 +61,7 @@ class SettingsController extends GetxController {
 
       if (body["tag_name"] != null && body["assets"] != null) {
         for (Map<dynamic, dynamic> asset in body["assets"]) {
-          String filename = "pitm-release-${body["tag_name"]}-$arch";
+          String filename = "nitm-release-${body["tag_name"]}-$arch";
           if (asset["content_type"] ==
                   "application/vnd.android.package-archive" &&
               asset["name"] == "$filename.apk") {
@@ -170,7 +170,7 @@ class SettingsController extends GetxController {
   }
 
   initGithubRelease() async {
-    GithubRelease? res = await fetchGithubRelease("deskbtm-letscollab", "NITM");
+    GithubRelease? res = await fetchGithubRelease("deskbtm", "nitmgpt");
 
     if (res != null) {
       release.value = res;

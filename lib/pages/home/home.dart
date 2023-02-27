@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:nitmgpt/notification_utils.dart';
 import 'package:unicons/unicons.dart';
 import 'watcher_controller.dart';
 
@@ -39,6 +42,20 @@ class HomePage extends StatelessWidget {
                       icon: const Icon(UniconsLine.history),
                       label: Text(
                         "Export History".tr,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () async {
+                        var box = await Hive.openBox('box');
+                        print(box.get('key'));
+                        // .resolvePlatformSpecificImplementation<
+                        //     AndroidFlutterLocalNotificationsPlugin>()
+                        // ?.getActiveNotifications();
+                      },
+                      icon: const Icon(UniconsLine.history),
+                      label: Text(
+                        "demo",
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),

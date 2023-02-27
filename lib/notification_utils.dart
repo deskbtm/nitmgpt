@@ -3,13 +3,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class LocalNotification {
-  static late FlutterLocalNotificationsPlugin? plugin;
+  static late FlutterLocalNotificationsPlugin plugin;
+  static late NotificationDetails androidDetails;
 
   static Future<void> init() async {
     plugin = FlutterLocalNotificationsPlugin();
     var android = const AndroidInitializationSettings('notification');
     var initSettings = InitializationSettings(android: android);
-    await plugin?.initialize(initSettings);
+    await plugin.initialize(initSettings);
   }
 
   static Future<void> showNotification({
@@ -47,7 +48,7 @@ class LocalNotification {
       color: const Color(0xFF007AFF),
       progress: progress,
     );
-    var platform = NotificationDetails(android: android);
-    await plugin?.show(index, title, subTitle, platform, payload: payload);
+    androidDetails = NotificationDetails(android: android);
+    await plugin.show(index, title, subTitle, androidDetails, payload: payload);
   }
 }

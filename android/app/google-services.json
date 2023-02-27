@@ -1,41 +1,34 @@
 {
   "project_info": {
-    "project_number": "547950952657",
-    "project_id": "pitm-e8eea",
-    "storage_bucket": "pitm-e8eea.appspot.com"
+    "project_number": "762419633906",
+    "project_id": "nitmgpt-b764e",
+    "storage_bucket": "nitmgpt-b764e.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:547950952657:android:e149e74f3a2f815fabc5f0",
+        "mobilesdk_app_id": "1:762419633906:android:17aa4c07ea8a6ac2553a6b",
         "android_client_info": {
-          "package_name": "com.deskbtm.letscollab.pitm"
+          "package_name": "com.deskbtm.nitmgpt"
         }
       },
       "oauth_client": [
         {
-          "client_id": "547950952657-f46gnvmknemnu8npb47vo5qu3t1bn7hq.apps.googleusercontent.com",
+          "client_id": "762419633906-l1inuvtagcbaii5iua630afl39jqu3ks.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDi64RIFGdx0MjtRBhMyJ2QOE1aFulwBFY"
+          "current_key": "AIzaSyALkqmYRmw2J9KMxOZBv_PMx3MuN35nuTg"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "547950952657-f46gnvmknemnu8npb47vo5qu3t1bn7hq.apps.googleusercontent.com",
+              "client_id": "762419633906-l1inuvtagcbaii5iua630afl39jqu3ks.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "547950952657-p70dhp4c3j8l5kem1v42mul6beefcmsr.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.pitm"
-              }
             }
           ]
         }

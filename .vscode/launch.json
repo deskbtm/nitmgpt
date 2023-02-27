@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "pitm",
+            "name": "nitmgpt",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "pitm (profile mode)",
+            "name": "nitmgpt (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "pitm (release mode)",
+            "name": "nitmgpt (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

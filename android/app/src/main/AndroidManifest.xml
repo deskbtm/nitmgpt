@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
-  package="com.deskbtm.letscollab.pitm">
+  package="com.deskbtm.nitmgpt">
 
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -74,6 +74,13 @@
       <intent-filter>
         <action android:name="android.service.notification.NotificationListenerService" />
       </intent-filter>
+    </service>
+
+    <service
+      android:name="de.julianassmann.flutter_background.IsolateHolderService"
+      android:exported="true"
+      android:process=":background" 
+    >
     </service>
 
     <provider

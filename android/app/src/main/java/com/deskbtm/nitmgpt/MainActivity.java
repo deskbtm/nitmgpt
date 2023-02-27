@@ -1,4 +1,4 @@
-package com.deskbtm.letscollab.pitm;
+package com.deskbtm.nitmgpt;
 
 import io.flutter.embedding.android.FlutterActivity;
 
