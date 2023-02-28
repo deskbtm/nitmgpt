@@ -3,16 +3,16 @@ import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nitmgpt/components/back_button.dart';
-import 'package:nitmgpt/pages/add_rules/rule_form_controller.dart';
+import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
+import 'package:nitmgpt/pages/add_rules/rules_controller.dart';
 import 'package:unicons/unicons.dart';
-import 'add_rules_controller.dart';
 import '../../theme.dart';
 import '../home/watcher_controller.dart';
 
 class AddRulesPage extends GetView<RulesController> {
   AddRulesPage({super.key});
 
-  final _ruleFormController = RuleFormController.to;
+  final _rulesController = RulesController.to;
   final _watcherController = WatcherController.to;
 
   _showDeviceApps(BuildContext context) {
@@ -32,7 +32,7 @@ class AddRulesPage extends GetView<RulesController> {
 
                 return ListTile(
                   onTap: () {
-                    _ruleFormController.addSelectedApp(app);
+                    _rulesController.addSelectedApp(app);
                     Get.back();
                   },
                   leading: SizedBox(
@@ -63,7 +63,7 @@ class AddRulesPage extends GetView<RulesController> {
       color: Colors.white,
     );
 
-    var fieldsBlock = _ruleFormController.fieldsMap.values.map((e) {
+    var fieldsBlock = ruleFieldsMap.values.map((e) {
       return TextSpan(
         children: [
           const TextSpan(text: " , \nthe field "),
@@ -104,7 +104,7 @@ class AddRulesPage extends GetView<RulesController> {
             Container(
               padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
               child: Form(
-                key: _ruleFormController.formKey,
+                key: _rulesController.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -148,7 +148,7 @@ class AddRulesPage extends GetView<RulesController> {
                               ),
                             ),
                             // const SizedBox(width: 15),
-                            ..._ruleFormController.selectedApp.map((element) {
+                            ..._rulesController.selectedApp.map((element) {
                               return Chip(
                                 label: Text(element.appName),
                                 avatar: CircleAvatar(
@@ -161,8 +161,7 @@ class AddRulesPage extends GetView<RulesController> {
                                   ),
                                 ),
                                 onDeleted: () {
-                                  _ruleFormController.selectedApp
-                                      .remove(element);
+                                  controller.removeSelectedApp(element);
                                 },
                                 deleteIcon:
                                     const Icon(UniconsLine.multiply, size: 14),
@@ -210,7 +209,7 @@ class AddRulesPage extends GetView<RulesController> {
         // floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
-            await _ruleFormController.submit();
+            await _rulesController.submit();
 
             Get.back();
           },

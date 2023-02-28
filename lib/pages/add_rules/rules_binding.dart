@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
-import 'add_rules_controller.dart';
+import 'rules_controller.dart';
 
-class AddRulesBinding extends Bindings {
+class RulesBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut(() => RulesController());

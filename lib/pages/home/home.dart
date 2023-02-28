@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 import 'package:unicons/unicons.dart';
 import '../../theme.dart';
 import 'watcher_controller.dart';
@@ -84,25 +83,25 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              ..._watcherController.records.reversed.map(
-                (element) => ListTile(
-                  title: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(element.appName),
-                      const SizedBox(width: 10),
-                      Text(
-                        '${element.amount}￥',
-                        style: TextStyle(fontSize: 14, color: primaryColor),
-                      )
-                    ],
-                  ),
-                  subtitle: Text(
-                    element.createTime.toString(),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ),
-              ),
+              // ..._watcherController.records.reversed.map(
+              //   (element) => ListTile(
+              //     title: Row(
+              //       crossAxisAlignment: CrossAxisAlignment.end,
+              //       children: [
+              //         Text(element.appName),
+              //         const SizedBox(width: 10),
+              //         Text(
+              //           '${element.amount}￥',
+              //           style: TextStyle(fontSize: 14, color: primaryColor),
+              //         )
+              //       ],
+              //     ),
+              //     subtitle: Text(
+              //       element.createTime.toString(),
+              //       style: const TextStyle(fontSize: 12, color: Colors.grey),
+              //     ),
+              //   ),
+              // ),
               _watcherController.records.isEmpty
                   ? SizedBox(
                       height: Get.height - 300,

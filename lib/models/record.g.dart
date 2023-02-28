@@ -17,36 +17,51 @@ class RecordAdapter extends TypeAdapter<Record> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Record()
-      ..amount = fields[1] as String
-      ..timestamp = fields[2] as int
-      ..createTime = fields[3] as DateTime
-      ..packageName = fields[4] as String
-      ..appName = fields[5] as String
-      ..notificationText = fields[6] as String
-      ..notificationTitle = fields[7] as String
-      ..uid = fields[8] as String;
+      ..isAd = fields[1] as bool
+      ..adProbability = fields[2] as double
+      ..isSpam = fields[3] as bool
+      ..spamProbability = fields[4] as double
+      ..timestamp = fields[5] as int
+      ..createTime = fields[6] as DateTime
+      ..packageName = fields[7] as String
+      ..appName = fields[8] as String
+      ..notificationText = fields[9] as String
+      ..notificationTitle = fields[10] as String
+      ..uid = fields[11] as String
+      ..notificationKey = fields[12] as String
+      ..removed = fields[13] as bool;
   }
 
   @override
   void write(BinaryWriter writer, Record obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(13)
       ..writeByte(1)
-      ..write(obj.amount)
+      ..write(obj.isAd)
       ..writeByte(2)
-      ..write(obj.timestamp)
+      ..write(obj.adProbability)
       ..writeByte(3)
-      ..write(obj.createTime)
+      ..write(obj.isSpam)
       ..writeByte(4)
-      ..write(obj.packageName)
+      ..write(obj.spamProbability)
       ..writeByte(5)
-      ..write(obj.appName)
+      ..write(obj.timestamp)
       ..writeByte(6)
-      ..write(obj.notificationText)
+      ..write(obj.createTime)
       ..writeByte(7)
-      ..write(obj.notificationTitle)
+      ..write(obj.packageName)
       ..writeByte(8)
-      ..write(obj.uid);
+      ..write(obj.appName)
+      ..writeByte(9)
+      ..write(obj.notificationText)
+      ..writeByte(10)
+      ..write(obj.notificationTitle)
+      ..writeByte(11)
+      ..write(obj.uid)
+      ..writeByte(12)
+      ..write(obj.notificationKey)
+      ..writeByte(13)
+      ..write(obj.removed);
   }
 
   @override

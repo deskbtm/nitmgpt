@@ -188,7 +188,7 @@ class WatcherController extends GetxController {
                 range.setText(record.packageName);
                 break;
               case 3:
-                range.setText(record.amount);
+                // range.set(record.isAd);
                 break;
               case 4:
                 range.setDateTime(record.createTime);

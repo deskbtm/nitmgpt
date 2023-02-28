@@ -1,19 +1,14 @@
-import 'package:cached_memory_image/cached_memory_image.dart';
-import 'package:disable_battery_optimization/disable_battery_optimization.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:get/get.dart';
-import 'package:nitmgpt/pages/add_rules/add_rules_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
+import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
-import 'package:unicons/unicons.dart';
-
-import '../../theme.dart';
 import '../home/watcher_controller.dart';
+import '../../theme.dart';
 
 class SettingsPage extends GetView<SettingsController> {
   SettingsPage({super.key});
 
-  final RulesController _rulesController = RulesController.to;
   final watcher = WatcherController.to;
 
   @override
@@ -21,28 +16,31 @@ class SettingsPage extends GetView<SettingsController> {
     ListTile updateTile = ListTile(
       onTap: controller.checkUpdate,
       title: Text("Update".tr),
-      trailing: controller.hasNewVersion()
-          ? Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              alignment: WrapAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.only(
-                      top: 2, bottom: 2, left: 5, right: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.amber[300],
-                    borderRadius: const BorderRadius.all(Radius.circular(1000)),
+      trailing: Obx(
+        () => controller.hasNewVersion()
+            ? Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(
+                        top: 2, bottom: 2, left: 5, right: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.amber[300],
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(1000)),
+                    ),
+                    child: const Text(
+                      'New',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
                   ),
-                  child: const Text(
-                    'New',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text('v${controller.latestVersion.string}')
-              ],
-            )
-          : Text('v${controller.currentVersion.string}'),
+                  const SizedBox(width: 8),
+                  Text('v${controller.latestVersion.string}')
+                ],
+              )
+            : Text('v${controller.currentVersion.string}'),
+      ),
     );
 
     return Scaffold(
@@ -56,54 +54,6 @@ class SettingsPage extends GetView<SettingsController> {
             ),
           ),
           const SizedBox(height: 10),
-          Obx(
-            () => Column(
-              children: [
-                _rulesController.rules.isEmpty
-                    ? Container()
-                    : SizedBox(
-                        height: 40,
-                        child: ListTile(
-                          title: Text(
-                            "listening apps",
-                            style: TextStyle(fontSize: 14, color: primaryColor),
-                          ),
-                        ),
-                      ),
-                ..._rulesController.rules
-                    .map(
-                      (element) => ListTile(
-                        onTap: () {
-                          Get.toNamed('/add_rules', parameters: {
-                            "action": "update",
-                            "packageName": element.packageName
-                          });
-                        },
-                        trailing: InkWell(
-                          onTap: () {
-                            _rulesController.deleteRule(element);
-                          },
-                          child: const Icon(UniconsLine.times,
-                              color: Color(0x0074aa9c)),
-                        ),
-                        leading: SizedBox(
-                          width: 45,
-                          height: 45,
-                          child: CachedMemoryImage(
-                            bytes: element.icon,
-                            width: 45,
-                            height: 45,
-                            uniqueKey: element.packageName,
-                          ),
-                        ),
-                        title: Text(element.appName),
-                        subtitle: Text(element.packageName),
-                      ),
-                    )
-                    .toList(),
-              ],
-            ),
-          ),
           Column(
             children: [
               SizedBox(
@@ -116,11 +66,16 @@ class SettingsPage extends GetView<SettingsController> {
                 ),
               ),
               ListTile(
-                onTap: () => {Get.toNamed('/add_rules')},
-                title: const Text("Custom rules"),
+                onTap: controller.setupOpenaiApiKey,
+                title: const Text("Chatgpt API Key"),
+                trailing: Obx(
+                  () => Text(
+                      controller.openaiApiKey.value.isEmpty ? "" : "******"),
+                ),
               ),
               ListTile(
-                title: const Text("Chatgpt login"),
+                onTap: () => {Get.toNamed('/add_rules')},
+                title: const Text("Custom Rules"),
               ),
             ],
           ),
@@ -144,11 +99,11 @@ class SettingsPage extends GetView<SettingsController> {
                 onTap: watcher.clearRecords,
                 title: Text("Clear records".tr),
               ),
-              Obx(
-                () => ListTile(
-                  onTap: controller.setupProxy,
-                  title: const Text("Proxy"),
-                  trailing: Text(controller.proxyUrl.value),
+              ListTile(
+                onTap: controller.setupProxy,
+                title: const Text("Proxy"),
+                trailing: Obx(
+                  () => Text(controller.proxyUrl.value),
                 ),
               ),
               updateTile,

@@ -14,3 +14,4 @@ const String readFollowersOnlyToken =
 // !!!!!!!!!!!!!!!Only could follow and unfollow users!!!!!!!!!!!!!!!!!!!!!!!!!
 
 const String documentsDirectory = '/storage/emulated/0/Documents/NITM';
+const String openAiKeysUrl = "https://platform.openai.com/account/api-keys";

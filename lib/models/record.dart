@@ -3,43 +3,57 @@ part 'record.g.dart';
 
 @HiveType(typeId: 0)
 class Record extends HiveObject {
+  ///whether it is an advertisement
   @HiveField(1)
-  late String amount;
+  late bool isAd;
 
+  ///the probability that this sentence is classified as an advertisement
   @HiveField(2)
-  late int timestamp;
+  late double adProbability;
 
   @HiveField(3)
-  late DateTime createTime;
+  late bool isSpam;
 
   @HiveField(4)
-  late String packageName;
+  late double spamProbability;
 
   @HiveField(5)
-  late String appName;
+  late int timestamp;
 
   @HiveField(6)
-  late String notificationText;
+  late DateTime createTime;
 
   @HiveField(7)
-  late String notificationTitle;
+  late String packageName;
 
   @HiveField(8)
+  late String appName;
+
+  @HiveField(9)
+  late String notificationText;
+
+  @HiveField(10)
+  late String notificationTitle;
+
+  @HiveField(11)
   late String uid;
 
-  // @HiveField(9)
-  // late String requestStatus;
+  @HiveField(12)
+  late String notificationKey;
 
-  Map<String, dynamic> toMap() {
-    return {
-      "amount": amount,
-      "timestamp": timestamp,
-      "createTime": createTime.toIso8601String(),
-      "packageName": packageName,
-      "appName": appName,
-      "notificationText": notificationText,
-      "notificationTitle": notificationTitle,
-      "uid": uid,
-    };
-  }
+  @HiveField(13)
+  late bool removed;
+
+  // Map<String, dynamic> toMap() {
+  //   return {
+  //     "amount": amount,
+  //     "timestamp": timestamp,
+  //     "createTime": createTime.toIso8601String(),
+  //     "packageName": packageName,
+  //     "appName": appName,
+  //     "notificationText": notificationText,
+  //     "notificationTitle": notificationTitle,
+  //     "uid": uid,
+  //   };
+  // }
 }

@@ -1,16 +1,19 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:hive/hive.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:nitmgpt/hive_fields_mgmt.dart';
 import 'package:ota_update/ota_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:nitmgpt/notification_utils.dart';
 import 'package:system_info2/system_info2.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:version/version.dart';
 
+import '../../constants.dart';
 import '../../i18n/i18n.dart';
 
 class GithubRelease {
@@ -35,9 +38,11 @@ class SettingsController extends GetxController {
   late final PackageInfo? packageInfo;
   late final release = Rxn<GithubRelease>();
   final proxyUrl = ''.obs;
+  final openaiApiKey = ''.obs;
   final currentVersion = Rxn<Version>();
   final latestVersion = Rxn<Version>();
   final proxyUrlController = TextEditingController();
+  final openaiApiKeyController = TextEditingController();
   late Box settingsBox;
 
   _getArch(String name) {
@@ -65,7 +70,7 @@ class SettingsController extends GetxController {
 
       if (body["tag_name"] != null && body["assets"] != null) {
         for (Map<dynamic, dynamic> asset in body["assets"]) {
-          String filename = "nitm-release-${body["tag_name"]}-$arch";
+          String filename = "nitmgpt-release-${body["tag_name"]}-$arch";
           if (asset["content_type"] ==
                   "application/vnd.android.package-archive" &&
               asset["name"] == "$filename.apk") {
@@ -193,7 +198,7 @@ class SettingsController extends GetxController {
         onPressed: () {
           proxyUrl.value = '';
           proxyUrlController.text = '';
-          settingsBox.put('proxyUrl', proxyUrlController.text);
+          settingsBox.put(HiveFieldsMgmt.proxyUrl, '');
         },
       ),
       confirm: TextButton(
@@ -203,7 +208,71 @@ class SettingsController extends GetxController {
         ),
         onPressed: () {
           proxyUrl.value = proxyUrlController.text;
-          settingsBox.put('proxyUrl', proxyUrlController.text);
+          settingsBox.put(HiveFieldsMgmt.proxyUrl, proxyUrlController.text);
+          Get.back();
+        },
+      ),
+    );
+  }
+
+  setupOpenaiApiKey() async {
+    Get.defaultDialog(
+      titlePadding: const EdgeInsets.only(top: 20),
+      titleStyle: const TextStyle(fontSize: 22),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      title: "Setup openai api key",
+      content: Column(
+        children: [
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: const TextStyle(color: Colors.black),
+              children: [
+                const TextSpan(
+                  text: "You could get openai keys from ",
+                ),
+                TextSpan(
+                  text: openAiKeysUrl,
+                  style: const TextStyle(color: Colors.blue),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () async {
+                      Uri uri = Uri.parse(openAiKeysUrl);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      }
+                    },
+                ),
+              ],
+            ),
+          ),
+          FractionallySizedBox(
+            widthFactor: 0.8,
+            child: TextField(
+              controller: openaiApiKeyController,
+            ),
+          ),
+        ],
+      ),
+      cancel: TextButton(
+        child: const Text(
+          "Reset",
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () {
+          openaiApiKey.value = '';
+          openaiApiKeyController.text = '';
+          settingsBox.put(HiveFieldsMgmt.openaiApiKey, '');
+        },
+      ),
+      confirm: TextButton(
+        child: const Text(
+          "Ok",
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () {
+          openaiApiKey.value = openaiApiKeyController.text;
+          settingsBox.put(
+              HiveFieldsMgmt.openaiApiKey, openaiApiKeyController.text);
           Get.back();
         },
       ),
@@ -233,8 +302,17 @@ class SettingsController extends GetxController {
 
   @override
   void onInit() async {
-    settingsBox = await Hive.openBox('settings');
-    proxyUrlController.text = settingsBox.get('proxyUrl');
+    settingsBox = await Hive.openBox(SETTINGS);
+    var proxyUrlTmp = settingsBox.get(HiveFieldsMgmt.proxyUrl);
+    var openaiApiKeyTmp = settingsBox.get(HiveFieldsMgmt.openaiApiKey);
+
+    if (proxyUrlTmp != null) {
+      proxyUrl.value = proxyUrlController.text = proxyUrlTmp;
+    }
+
+    if (openaiApiKeyTmp != null) {
+      openaiApiKey.value = openaiApiKeyController.text = openaiApiKeyTmp;
+    }
 
     packageInfo = await PackageInfo.fromPlatform();
     currentVersion.value = Version.parse(packageInfo?.version ?? '');
