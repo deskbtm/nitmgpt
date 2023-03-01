@@ -1,59 +1,33 @@
-import 'package:hive/hive.dart';
+import 'package:realm/realm.dart';
 part 'record.g.dart';
 
-@HiveType(typeId: 0)
-class Record extends HiveObject {
-  ///whether it is an advertisement
-  @HiveField(1)
-  late bool isAd;
+@RealmModel()
+class _Record {
+  @PrimaryKey()
+  late ObjectId id;
+
+  bool? isAd;
 
   ///the probability that this sentence is classified as an advertisement
-  @HiveField(2)
-  late double adProbability;
+  double? adProbability;
 
-  @HiveField(3)
-  late bool isSpam;
+  bool? isSpam;
 
-  @HiveField(4)
-  late double spamProbability;
+  double? spamProbability;
 
-  @HiveField(5)
-  late int timestamp;
+  int? timestamp;
 
-  @HiveField(6)
-  late DateTime createTime;
+  DateTime? createTime;
 
-  @HiveField(7)
-  late String packageName;
+  String? packageName;
 
-  @HiveField(8)
-  late String appName;
+  String? appName;
 
-  @HiveField(9)
-  late String notificationText;
+  String? notificationText;
 
-  @HiveField(10)
-  late String notificationTitle;
+  String? notificationTitle;
 
-  @HiveField(11)
-  late String uid;
+  String? uid;
 
-  @HiveField(12)
-  late String notificationKey;
-
-  @HiveField(13)
-  late bool removed;
-
-  // Map<String, dynamic> toMap() {
-  //   return {
-  //     "amount": amount,
-  //     "timestamp": timestamp,
-  //     "createTime": createTime.toIso8601String(),
-  //     "packageName": packageName,
-  //     "appName": appName,
-  //     "notificationText": notificationText,
-  //     "notificationTitle": notificationTitle,
-  //     "uid": uid,
-  //   };
-  // }
+  String? notificationKey;
 }

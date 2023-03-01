@@ -1,11 +1,11 @@
-import 'dart:developer';
+import 'dart:core';
 
-import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:unicons/unicons.dart';
-import '../../theme.dart';
 import 'watcher_controller.dart';
+import 'package:unicons/unicons.dart';
+import '../../models/record.dart';
+import '../../theme.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -46,63 +46,10 @@ class HomePage extends StatelessWidget {
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
-                    // FilledButton.tonalIcon(
-                    //   onPressed: () async {
-                    //     final openAI = OpenAI.instance.build(
-                    //       token:
-                    //           "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",
-                    //       baseOption: HttpSetup(
-                    //         receiveTimeout: 100000,
-                    //         proxyUrl: '127.0.0.1:7890',
-                    //       ),
-                    //       isLogger: true,
-                    //     );
-                    //     final request = CompleteText(
-                    //       prompt: '怎么评价chatgpt',
-                    //       model: kTranslateModelV3,
-                    //       maxTokens: 200,
-                    //     );
-
-                    //     var demo =
-                    //         await openAI.onCompleteText(request: request);
-
-                    //     print("$demo =======================");
-                    //     log(demo!.choices[0].text);
-                    //     // var box = await Hive.openBox('box');
-                    //     // print(box.get('key'));
-                    //     // .resolvePlatformSpecificImplementation<
-                    //     //     AndroidFlutterLocalNotificationsPlugin>()
-                    //     // ?.getActiveNotifications();
-                    //   },
-                    //   icon: const Icon(UniconsLine.history),
-                    //   label: Text(
-                    //     "demo",
-                    //     style: const TextStyle(fontSize: 16),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
-              // ..._watcherController.records.reversed.map(
-              //   (element) => ListTile(
-              //     title: Row(
-              //       crossAxisAlignment: CrossAxisAlignment.end,
-              //       children: [
-              //         Text(element.appName),
-              //         const SizedBox(width: 10),
-              //         Text(
-              //           '${element.amount}￥',
-              //           style: TextStyle(fontSize: 14, color: primaryColor),
-              //         )
-              //       ],
-              //     ),
-              //     subtitle: Text(
-              //       element.createTime.toString(),
-              //       style: const TextStyle(fontSize: 12, color: Colors.grey),
-              //     ),
-              //   ),
-              // ),
-              _watcherController.records.isEmpty
+              _watcherController.records.value!.isEmpty
                   ? SizedBox(
                       height: Get.height - 300,
                       child: Row(
@@ -124,7 +71,56 @@ class HomePage extends StatelessWidget {
                         ],
                       ),
                     )
-                  : Container(),
+                  : Obx(
+                      () => ListView.builder(
+                        shrinkWrap: true,
+                        padding:
+                            const EdgeInsets.only(top: 20, left: 10, right: 10),
+                        itemCount: _watcherController.records.value!.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          Record r = _watcherController.records.value![index];
+                          return Card(
+                            elevation: 0,
+                            // color: Theme.of(context).colorScheme.surfaceVariant,
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                color: primaryColor,
+                              ),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(r.appName ?? ''),
+                                Text(r.notificationTitle ?? ''),
+                                Text(r.notificationText ?? ''),
+                              ],
+                            ),
+                          );
+                          // return ListTile(
+                          //   onTap: () {
+                          //     // _ruleFormController.clearTextField();
+                          //     // _ruleFormController.selectedApp.value = app;
+                          //     Get.back();
+                          //   },
+                          //   leading: Container(
+                          //     width: 50,
+                          //     height: 50,
+
+                          //     // child: CachedMemoryImage(
+                          //     //   bytes: app.icon,
+                          //     //   width: 50,
+                          //     //   height: 50,
+                          //     //   uniqueKey: app.packageName,
+                          //     // ),
+                          //   ),
+
+                          //   trailing: Text(r.appName ?? ''),
+                          //   // subtitle: Text(app.packageName),
+                          // );
+                        },
+                      ),
+                    ),
             ],
           );
         }),

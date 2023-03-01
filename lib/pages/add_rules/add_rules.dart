@@ -9,6 +9,68 @@ import 'package:unicons/unicons.dart';
 import '../../theme.dart';
 import '../home/watcher_controller.dart';
 
+class ProbabilityTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final TextEditingController controller;
+  final FormFieldValidator<String>? validator;
+
+  const ProbabilityTile({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.controller,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // "Advertisement probability",
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: TextStyle(
+                backgroundColor: primaryColor,
+                color: Colors.white,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 10),
+        const Text('>', style: TextStyle(fontSize: 18)),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 50,
+          child: TextFormField(
+            controller: controller,
+            validator: validator,
+            style: const TextStyle(fontSize: 13),
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 10,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class AddRulesPage extends GetView<RulesController> {
   AddRulesPage({super.key});
 
@@ -70,7 +132,7 @@ class AddRulesPage extends GetView<RulesController> {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Text(
-              e.field,
+              '`${e.field}` ',
               style: blockTextStyle,
             ),
           ),
@@ -78,7 +140,8 @@ class AddRulesPage extends GetView<RulesController> {
             alignment: PlaceholderAlignment.middle,
             child: SizedBox(
               width: e.width,
-              child: TextField(
+              child: TextFormField(
+                validator: controller.validator,
                 controller: e.textEditingController,
                 style: const TextStyle(fontSize: 13),
                 decoration: const InputDecoration(
@@ -147,7 +210,6 @@ class AddRulesPage extends GetView<RulesController> {
                                 style: const TextStyle(fontSize: 16),
                               ),
                             ),
-                            // const SizedBox(width: 15),
                             ..._rulesController.selectedApp.map((element) {
                               return Chip(
                                 label: Text(element.appName),
@@ -182,23 +244,52 @@ class AddRulesPage extends GetView<RulesController> {
                     RichText(
                       text: TextSpan(children: [
                         TextSpan(
-                            text: "Determine ",
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              height: 3.5,
-                            ),
-                            children: [
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: Text(
-                                  "{{template}}",
-                                  style: blockTextStyle,
-                                ),
+                          text: "Determine ",
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            height: 3.5,
+                          ),
+                          children: [
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Text(
+                                "{{template}}",
+                                style: blockTextStyle,
                               ),
-                              ...fieldsBlock,
-                              const TextSpan(text: " , return json."),
-                            ]),
+                            ),
+                            ...fieldsBlock,
+                            const TextSpan(text: " , return json."),
+                          ],
+                        ),
                       ]),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Custom probability(0~1.0)",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: primaryColor,
+                      ),
+                    ),
+                    const Text(
+                      "If set, remove the notification should be more than the probability set here",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    ProbabilityTile(
+                      validator: controller.validatorPercent,
+                      title: 'Advertisement probability',
+                      subtitle: '`ad_probability`',
+                      controller: controller.adProbabilityController,
+                    ),
+                    const SizedBox(height: 10),
+                    ProbabilityTile(
+                      validator: controller.validatorPercent,
+                      title: 'Spam probability',
+                      subtitle: '`spam_probability`',
+                      controller: controller.spamProbabilityController,
                     ),
                   ],
                 ),
@@ -206,7 +297,6 @@ class AddRulesPage extends GetView<RulesController> {
             ),
           ],
         ),
-        // floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             await _rulesController.submit();

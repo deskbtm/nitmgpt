@@ -103,7 +103,7 @@ class SettingsPage extends GetView<SettingsController> {
                 onTap: controller.setupProxy,
                 title: const Text("Proxy"),
                 trailing: Obx(
-                  () => Text(controller.proxyUrl.value),
+                  () => Text(controller.proxyUri.value),
                 ),
               ),
               updateTile,

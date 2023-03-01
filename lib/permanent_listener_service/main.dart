@@ -1,35 +1,39 @@
 import 'dart:developer';
-import 'package:get/get.dart';
-import 'package:nitmgpt/utils.dart';
-import 'package:flutter/foundation.dart';
-import 'package:device_apps/device_apps.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:get/get.dart';
+import 'package:device_apps/device_apps.dart';
+import 'package:nitmgpt/models/realm.dart';
+import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
 import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
-
-import '../hive_fields_mgmt.dart';
+import 'package:realm/realm.dart';
 import '../models/record.dart';
+import '../utils.dart';
 
-getFieldsMeans(Box box) {
+_getFieldsMeans(Settings? settings) {
   return ruleFieldsMap.values
       .map((element) {
-        var mean = box.get(element.name, defaultValue: element.means);
-        return "the field `${element.name}`: $mean";
+        var mean = settings?.ruleFields != null
+            ? settings!.ruleFields!.toMap()[element.name]
+            : element.means;
+        return "the field `${element.field}`: $mean";
       })
       .toList()
       .join(',');
 }
 
-Future<GPTResponse?> inquireChatgpt(String question, Box settingsBox) async {
-  String openaiApiKey = settingsBox.get(HiveFieldsMgmt.openaiApiKey);
-  String proxyUrl = settingsBox.get(HiveFieldsMgmt.proxyUrl);
+Future<GPTResponse?> inquireChatgpt(String question, Settings? settings) async {
   final openAI = OpenAI.instance.build(
-    token: openaiApiKey,
+    token: settings?.openaiApiKey,
     baseOption: HttpSetup(
       receiveTimeout: 100000,
-      proxyUrl: proxyUrl != '' ? proxyUrl : null,
+      proxyUrl: settings != null && settings.proxyUri != ''
+          ? settings.proxyUri
+          : null,
     ),
     isLogger: kDebugMode,
   );
@@ -47,8 +51,8 @@ Future<GPTResponse?> inquireChatgpt(String question, Box settingsBox) async {
           .toSet()
           .toList() ??
       [];
-  String anwser = choicesTexts.join(' ');
-  Map<String, dynamic>? json = looseJSONParse(anwser);
+  String answer = choicesTexts.join(' ');
+  Map<String, dynamic>? json = looseJSONParse(answer);
   if (json != null) {
     return GPTResponse.fromJson(json);
   }
@@ -56,49 +60,95 @@ Future<GPTResponse?> inquireChatgpt(String question, Box settingsBox) async {
   return null;
 }
 
-saveRecords() {}
+bool determineRemove(GPTResponse answer, Settings? settings) {
+  bool adRemoved = false, spamRemoved = false;
+  double? adProbability = settings?.presetAdProbability;
+  double? spamProbability = settings?.presetSpamProbability;
 
-handleNotificationListener(
-    NotificationEvent event, List<Application> deviceApps) async {
-  Box<String> ignoredAppsBox = await Hive.openBox(IGNORED_APPS);
-  if (ignoredAppsBox.values.contains(event.packageName)) {
+  if (answer.isAd != null && answer.isAd!) {
+    if (adProbability != null &&
+        answer.adProbability != null &&
+        answer.adProbability! > adProbability) {
+      adRemoved = false;
+    }
+
+    adRemoved = true;
+  }
+
+  if (answer.isSpam != null && answer.isSpam!) {
+    if (spamProbability != null &&
+        answer.spamProbability != null &&
+        answer.spamProbability! > spamProbability) {
+      spamRemoved = false;
+    }
+
+    spamRemoved = true;
+  }
+
+  bool isRemove = adRemoved || spamRemoved;
+  return isRemove;
+}
+
+bool _isUnsetApiKey = true;
+
+handleNotificationListener(NotificationEvent event, ServiceInstance service,
+    List<Application> deviceApps) async {
+  Settings settings = getSettingInstance();
+
+  if (settings.openaiApiKey == null) {
+    if (_isUnsetApiKey) {
+      _isUnsetApiKey = false;
+      service.invoke("set_api_key");
+    }
     return;
   }
 
-  Box settingsBox = await Hive.openBox(SETTINGS);
-  String fieldsMeans = getFieldsMeans(settingsBox);
+  if (settings.ignoredApps.contains(event.packageName)) {
+    return;
+  }
+
+  String fieldsMeans = _getFieldsMeans(settings);
   String question =
       'Determine "${event.title} ${event.text}", $fieldsMeans, return json';
   log(question);
 
-  var answer = await inquireChatgpt(question, settingsBox);
+  var answer = await inquireChatgpt(question, settings);
 
   if (answer != null) {
     Application? app = deviceApps.firstWhereOrNull(
         (element) => element.packageName == event.packageName);
-    // NotificationsListener.cancelNotification(event.key ?? '');
 
-    Record record = Record()
-      ..isAd = answer.isAd ?? false
-      ..adProbability = answer.adProbability ?? .0
-      ..isSpam = answer.isSpam ?? false
-      ..spamProbability = answer.spamProbability ?? .0
-      ..appName = app != null ? app.appName : ''
-      ..packageName = event.packageName ?? ''
-      ..notificationText = event.text ?? ''
-      ..notificationTitle = event.title ?? ''
-      ..timestamp = event.timestamp ?? 0
-      ..createTime = event.createAt!
-      ..uid = event.uniqueId ?? '';
+    bool isRemove = determineRemove(answer, settings);
+
+    if (isRemove) {
+      NotificationsListener.cancelNotification(event.key ?? '');
+      Record record = Record(
+        ObjectId(),
+        isAd: answer.isAd,
+        adProbability: answer.adProbability,
+        isSpam: answer.isSpam,
+        spamProbability: answer.spamProbability,
+        appName: app?.appName,
+        packageName: event.packageName,
+        notificationKey: event.key,
+        notificationText: event.text,
+        notificationTitle: event.title,
+        timestamp: event.timestamp,
+        createTime: event.createAt,
+        uid: event.uniqueId,
+      );
+      realm.write(() {
+        realm.add(record);
+      });
+      service.invoke('update_records');
+    }
   }
 }
 
-permanentListenerServiceMain() async {
-  await Hive.initFlutter();
-  Hive.registerAdapter(RecordAdapter());
+permanentListenerServiceMain(ServiceInstance service) async {
   await NotificationsListener.initialize();
   var deviceApps = await DeviceApps.getInstalledApplications();
 
-  NotificationsListener.receivePort
-      ?.listen((message) => handleNotificationListener(message, deviceApps));
+  NotificationsListener.receivePort?.listen(
+      (message) => handleNotificationListener(message, service, deviceApps));
 }

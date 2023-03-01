@@ -1,22 +1,21 @@
 import 'dart:developer';
-import 'dart:io';
+import 'dart:ui';
 import 'package:device_apps/device_apps.dart';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_archive/flutter_archive.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart';
-import '../../constants.dart';
-import '../../models/record.dart';
+import 'package:nitmgpt/models/record.dart';
+import '../../models/realm.dart';
+import '../../permanent_listener_service/main.dart';
 
 class WatcherController extends GetxController {
   static WatcherController get to => Get.find();
-  final records = <Record>[].obs;
-  late Box<Record> recordsBox;
+  // final records = <Record>[].obs;
+  final records = Rxn<List<Record>>([]);
+  // late Box<Record> recordsBox;
   final deviceApps = <ApplicationWithIcon>[].obs;
 
   /// This records2 is used for the HomeScreen, it will pop
@@ -52,21 +51,20 @@ class WatcherController extends GetxController {
   }
 
   addRecord(Record record) async {
-    records.add(record);
+    // records.add(record);
     if (records2.length > 2000) {
       records2.insert(0, record);
       records2.removeLast();
     } else {
       records2.add(record);
     }
-
-    await recordsBox.add(record);
   }
 
   Future<void> clearRecords() async {
     records.value = [];
-    records2.value = [];
-    await recordsBox.clear();
+    realm.write(() {
+      realm.deleteAll<Record>();
+    });
   }
 
   initDeviceApps() async {
@@ -80,11 +78,53 @@ class WatcherController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    recordsBox = await Hive.openBox<Record>('records');
-    records.addAll(recordsBox.values);
+
+    records.value = realm.all<Record>().toList();
 
     await _permissionDialog();
     await initDeviceApps();
+    await _startPermanentService();
+  }
+
+  _startPermanentService() async {
+    final service = FlutterBackgroundService();
+
+    await service.configure(
+      androidConfiguration: AndroidConfiguration(
+        onStart: onStartService,
+        autoStart: true,
+        isForegroundMode: true,
+        initialNotificationTitle: 'NITMGPT SERVICE',
+        initialNotificationContent: 'running...',
+      ),
+      iosConfiguration: IosConfiguration(),
+    );
+
+    service.on('update_records').listen((event) async {
+      records.value = realm.all<Record>().toList();
+    });
+  }
+
+  @pragma('vm:entry-point')
+  static onStartService(ServiceInstance service) async {
+    DartPluginRegistrant.ensureInitialized();
+    WidgetsFlutterBinding.ensureInitialized();
+
+    if (service is AndroidServiceInstance) {
+      service.on('setAsForeground').listen((event) {
+        service.setAsForegroundService();
+      });
+
+      service.on('setAsBackground').listen((event) {
+        service.setAsBackgroundService();
+      });
+    }
+
+    service.on('stopService').listen((event) {
+      service.stopSelf();
+    });
+
+    await permanentListenerServiceMain(service);
   }
 
   _permissionDialog() async {
@@ -129,88 +169,88 @@ class WatcherController extends GetxController {
   }
 
   exportXlsx() async {
-    var exportRecords = records.reversed.toList();
-    int c = 100;
-    int n = (records.length / c).ceil();
-    var now = DateTime.now();
-    String nowString =
-        '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}_${UniqueKey().toString()}';
-    Directory tmp = await getTemporaryDirectory();
-    String tmpPath = '${tmp.path}/$nowString';
+    // var exportRecords = records.reversed.toList();
+    // int c = 100;
+    // int n = (records.length / c).ceil();
+    // var now = DateTime.now();
+    // String nowString =
+    //     '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}_${UniqueKey().toString()}';
+    // Directory tmp = await getTemporaryDirectory();
+    // String tmpPath = '${tmp.path}/$nowString';
 
-    List<String> columeNames = [
-      "uid",
-      "App Name",
-      "Package Name",
-      "Amount",
-      "Create Time"
-    ];
+    // List<String> columeNames = [
+    //   "uid",
+    //   "App Name",
+    //   "Package Name",
+    //   "Amount",
+    //   "Create Time"
+    // ];
 
-    try {
-      if (!Directory(tmpPath).existsSync()) {
-        Directory(tmpPath).createSync();
-      }
+    // try {
+    //   if (!Directory(tmpPath).existsSync()) {
+    //     Directory(tmpPath).createSync();
+    //   }
 
-      if (!Directory(documentsDirectory).existsSync()) {
-        Directory(documentsDirectory).createSync();
-      }
+    //   if (!Directory(documentsDirectory).existsSync()) {
+    //     Directory(documentsDirectory).createSync();
+    //   }
 
-      for (var i = 0; i < n; i++) {
-        final Workbook workbook = Workbook();
-        final Worksheet sheet = workbook.worksheets[0];
-        sheet.showGridlines = true;
-        sheet.enableSheetCalculations();
-        var e = (i + 1) * c;
-        var start = i * c, end = records.length < e ? (records.length % c) : e;
-        var recordList = exportRecords.getRange(start, end);
+    //   for (var i = 0; i < n; i++) {
+    //     final Workbook workbook = Workbook();
+    //     final Worksheet sheet = workbook.worksheets[0];
+    //     sheet.showGridlines = true;
+    //     sheet.enableSheetCalculations();
+    //     var e = (i + 1) * c;
+    //     var start = i * c, end = records.length < e ? (records.length % c) : e;
+    //     var recordList = exportRecords.getRange(start, end);
 
-        for (var k = 0; k < columeNames.length; k++) {
-          final Range range =
-              sheet.getRangeByName('${String.fromCharCode(65 + k)}1');
-          range.setText(columeNames[k]);
-          range.autoFit();
-        }
+    //     for (var k = 0; k < columeNames.length; k++) {
+    //       final Range range =
+    //           sheet.getRangeByName('${String.fromCharCode(65 + k)}1');
+    //       range.setText(columeNames[k]);
+    //       range.autoFit();
+    //     }
 
-        for (var r = 0; r < recordList.length; r++) {
-          Record record = recordList.elementAt(r);
+    //     for (var r = 0; r < recordList.length; r++) {
+    //       Record record = recordList.elementAt(r);
 
-          for (var j = 0; j < columeNames.length; j++) {
-            final Range range =
-                sheet.getRangeByName('${String.fromCharCode(65 + j)}${2 + r}');
-            switch (j) {
-              case 0:
-                range.setText(record.uid);
-                break;
-              case 1:
-                range.setText(record.appName);
-                break;
-              case 2:
-                range.setText(record.packageName);
-                break;
-              case 3:
-                // range.set(record.isAd);
-                break;
-              case 4:
-                range.setDateTime(record.createTime);
-                break;
-              default:
-            }
-            range.autoFit();
-          }
-        }
+    //       for (var j = 0; j < columeNames.length; j++) {
+    //         final Range range =
+    //             sheet.getRangeByName('${String.fromCharCode(65 + j)}${2 + r}');
+    //         switch (j) {
+    //           case 0:
+    //             range.setText(record.uid);
+    //             break;
+    //           case 1:
+    //             range.setText(record.appName);
+    //             break;
+    //           case 2:
+    //             range.setText(record.packageName);
+    //             break;
+    //           case 3:
+    //             // range.set(record.isAd);
+    //             break;
+    //           case 4:
+    //             range.setDateTime(record.createTime);
+    //             break;
+    //           default:
+    //         }
+    //         range.autoFit();
+    //       }
+    //     }
 
-        final List<int> bytes = workbook.saveAsStream();
-        File("$tmpPath/$start~$end.xlsx").writeAsBytes(bytes);
-        workbook.dispose();
-      }
+    //     final List<int> bytes = workbook.saveAsStream();
+    //     File("$tmpPath/$start~$end.xlsx").writeAsBytes(bytes);
+    //     workbook.dispose();
+    //   }
 
-      await ZipFile.createFromDirectory(
-          sourceDir: Directory(tmpPath),
-          zipFile: File('$documentsDirectory/$nowString.zip'),
-          recurseSubDirs: true);
-      Fluttertoast.showToast(msg: 'Save to the $documentsDirectory');
-    } catch (e) {
-      Fluttertoast.showToast(msg: e.toString());
-    }
+    //   await ZipFile.createFromDirectory(
+    //       sourceDir: Directory(tmpPath),
+    //       zipFile: File('$documentsDirectory/$nowString.zip'),
+    //       recurseSubDirs: true);
+    //   Fluttertoast.showToast(msg: 'Save to the $documentsDirectory');
+    // } catch (e) {
+    //   Fluttertoast.showToast(msg: e.toString());
+    // }
   }
 }

@@ -65,6 +65,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.3.1"
+  build_cli_annotations:
+    dependency: transitive
+    description:
+      name: build_cli_annotations
+      sha256: b59d2769769efd6c9ff6d4c4cede0be115a566afc591705c2040b707534b1172
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.1.0"
   build_config:
     dependency: transitive
     description:
@@ -129,6 +137,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.3.1"
+  cancellation_token:
+    dependency: transitive
+    description:
+      name: cancellation_token
+      sha256: "44891ef71d605bc59ef7974c403630d8e8506fcd897a29c3e38466ef69e5c4eb"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.6.1"
   characters:
     dependency: transitive
     description:
@@ -518,30 +534,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.2.0"
-  hive:
-    dependency: "direct main"
-    description:
-      name: hive
-      sha256: "8dcf6db979d7933da8217edcec84e9df1bdb4e4edc7fc77dbd5aa74356d6d941"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.2.3"
-  hive_flutter:
-    dependency: "direct main"
-    description:
-      name: hive_flutter
-      sha256: dca1da446b1d808a51689fb5d0c6c9510c0a2ba01e22805d492c73b68e33eecc
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.1.0"
-  hive_generator:
-    dependency: "direct dev"
-    description:
-      name: hive_generator
-      sha256: "65998cc4d2cd9680a3d9709d893d2f6bb15e6c1f92626c3f1fa650b4b3281521"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.0.0"
   http:
     dependency: transitive
     description:
@@ -662,6 +654,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.4"
+  objectid:
+    dependency: transitive
+    description:
+      name: objectid
+      sha256: "22fa972000d3256f10d06323a9dcbf4b564fb03fdb9024399e3a6c1d9902f914"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.1.0"
   ota_update:
     dependency: "direct main"
     description:
@@ -863,6 +863,30 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.1"
+  realm:
+    dependency: "direct main"
+    description:
+      name: realm
+      sha256: ba8e23b1577450c20c9b11fd1fd7a4f94eb35ca1bbd6c154f731bf43bc3f5dbc
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.2"
+  realm_common:
+    dependency: transitive
+    description:
+      name: realm_common
+      sha256: "5e6bc3771fe16151f175ab7ae5134715488056a6ab81638074f856d6bb28cc02"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.2"
+  realm_generator:
+    dependency: transitive
+    description:
+      name: realm_generator
+      sha256: "9e11fc2736a8af9c4da9f7e2ff1409e7772d1a928d1e3d4aa3ab8e0df15ed75e"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.2"
   rxdart:
     dependency: transitive
     description:
@@ -871,6 +895,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.27.7"
+  sane_uuid:
+    dependency: transitive
+    description:
+      name: sane_uuid
+      sha256: "615f6d25e6d7e0c59ea0fb5ce0cdf043ce110af15b19b3c35ca1441e5bb06972"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.0-alpha.4"
   sentry:
     dependency: transitive
     description:
@@ -972,14 +1004,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.7"
-  source_helper:
-    dependency: transitive
-    description:
-      name: source_helper
-      sha256: "3b67aade1d52416149c633ba1bb36df44d97c6b51830c2198e934e3fca87ca1f"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.3.3"
   source_span:
     dependency: transitive
     description:
@@ -1076,6 +1100,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.1"
+  tar:
+    dependency: transitive
+    description:
+      name: tar
+      sha256: "85ffd53e277f2bac8afa2885e6b195e26937e9c402424c3d88d92fd920b56de9"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.5.6"
   term_glyph:
     dependency: transitive
     description:

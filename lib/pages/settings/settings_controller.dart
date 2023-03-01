@@ -1,11 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:hive/hive.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:nitmgpt/hive_fields_mgmt.dart';
+import 'package:nitmgpt/models/realm.dart';
+import 'package:nitmgpt/models/settings.dart';
+import 'package:nitmgpt/utils.dart';
 import 'package:ota_update/ota_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:nitmgpt/notification_utils.dart';
@@ -37,13 +38,14 @@ class SettingsController extends GetxController {
 
   late final PackageInfo? packageInfo;
   late final release = Rxn<GithubRelease>();
-  final proxyUrl = ''.obs;
+  final proxyUri = ''.obs;
   final openaiApiKey = ''.obs;
   final currentVersion = Rxn<Version>();
   final latestVersion = Rxn<Version>();
-  final proxyUrlController = TextEditingController();
+  final proxyUriController = TextEditingController();
   final openaiApiKeyController = TextEditingController();
-  late Box settingsBox;
+
+  late Settings settings;
 
   _getArch(String name) {
     switch (name) {
@@ -107,10 +109,7 @@ class SettingsController extends GetxController {
 
   downloadArchive() {
     OtaUpdate()
-        .execute(
-      release.value!.url,
-      sha256checksum: release.value!.sha256sum,
-    )
+        .execute(release.value!.url, sha256checksum: release.value!.sha256sum)
         .listen(
       (OtaEvent event) async {
         switch (event.status) {
@@ -187,7 +186,7 @@ class SettingsController extends GetxController {
       content: FractionallySizedBox(
         widthFactor: 0.8,
         child: TextField(
-          controller: proxyUrlController,
+          controller: proxyUriController,
         ),
       ),
       cancel: TextButton(
@@ -196,9 +195,11 @@ class SettingsController extends GetxController {
           style: TextStyle(fontSize: 20),
         ),
         onPressed: () {
-          proxyUrl.value = '';
-          proxyUrlController.text = '';
-          settingsBox.put(HiveFieldsMgmt.proxyUrl, '');
+          proxyUri.value = '';
+          proxyUriController.text = '';
+          realm.write(() {
+            settings.proxyUri = null;
+          });
         },
       ),
       confirm: TextButton(
@@ -207,8 +208,10 @@ class SettingsController extends GetxController {
           style: TextStyle(fontSize: 20),
         ),
         onPressed: () {
-          proxyUrl.value = proxyUrlController.text;
-          settingsBox.put(HiveFieldsMgmt.proxyUrl, proxyUrlController.text);
+          proxyUri.value = proxyUriController.text;
+          realm.write(() {
+            settings.proxyUri = proxyUriController.text;
+          });
           Get.back();
         },
       ),
@@ -261,7 +264,9 @@ class SettingsController extends GetxController {
         onPressed: () {
           openaiApiKey.value = '';
           openaiApiKeyController.text = '';
-          settingsBox.put(HiveFieldsMgmt.openaiApiKey, '');
+          realm.write(() {
+            settings.openaiApiKey = null;
+          });
         },
       ),
       confirm: TextButton(
@@ -271,8 +276,9 @@ class SettingsController extends GetxController {
         ),
         onPressed: () {
           openaiApiKey.value = openaiApiKeyController.text;
-          settingsBox.put(
-              HiveFieldsMgmt.openaiApiKey, openaiApiKeyController.text);
+          realm.write(() {
+            settings.openaiApiKey = openaiApiKeyController.text;
+          });
           Get.back();
         },
       ),
@@ -302,16 +308,14 @@ class SettingsController extends GetxController {
 
   @override
   void onInit() async {
-    settingsBox = await Hive.openBox(SETTINGS);
-    var proxyUrlTmp = settingsBox.get(HiveFieldsMgmt.proxyUrl);
-    var openaiApiKeyTmp = settingsBox.get(HiveFieldsMgmt.openaiApiKey);
+    settings = getSettingInstance();
 
-    if (proxyUrlTmp != null) {
-      proxyUrl.value = proxyUrlController.text = proxyUrlTmp;
+    if (settings.proxyUri != null) {
+      proxyUri.value = proxyUriController.text = settings.proxyUri!;
     }
 
-    if (openaiApiKeyTmp != null) {
-      openaiApiKey.value = openaiApiKeyController.text = openaiApiKeyTmp;
+    if (settings.openaiApiKey != null) {
+      openaiApiKey.value = openaiApiKeyController.text = settings.openaiApiKey!;
     }
 
     packageInfo = await PackageInfo.fromPlatform();
