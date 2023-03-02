@@ -8,7 +8,6 @@ environment:
 dependencies:
   firebase_analytics: ^10.0.4
   firebase_core: ^2.1.1
-  cupertino_icons: ^1.0.2
   url_launcher: ^6.1.8
   flutter_local_notifications: ^13.0.0
   permission_handler: ^10.2.0
