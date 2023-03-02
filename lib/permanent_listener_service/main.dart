@@ -101,7 +101,7 @@ _handleNotificationListener(NotificationEvent event, ServiceInstance service,
   try {
     Settings settings = getSettingInstance();
 
-    if (settings.openAiKey == null) {
+    if (settings.openAiKey == null || settings.openAiKey == '') {
       if (_isUnsetApiKey) {
         _isUnsetApiKey = false;
         service.invoke("set_api_key");
@@ -123,7 +123,6 @@ _handleNotificationListener(NotificationEvent event, ServiceInstance service,
     if (answer != null) {
       Application? app = deviceApps.firstWhereOrNull(
           (element) => element.packageName == event.packageName);
-
       bool isRemove = _determineRemove(answer, settings);
 
       log("Notification removed: $isRemove");
@@ -145,7 +144,7 @@ _handleNotificationListener(NotificationEvent event, ServiceInstance service,
           createTime: event.createAt,
           uid: event.uniqueId,
         );
-        realm.write(() {
+        await realm.writeAsync(() {
           realm.add(record);
         });
         service.invoke('update_records');
@@ -157,7 +156,6 @@ _handleNotificationListener(NotificationEvent event, ServiceInstance service,
   }
 }
 
-@pragma('vm:entry-point')
 permanentListenerServiceMain(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();

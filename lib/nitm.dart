@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:nitmgpt/pages/settings/settings_controller.dart';
 import 'i18n/i18n.dart';
 import 'notification_utils.dart';
 import 'pages/home/watcher_controller.dart';
@@ -22,6 +24,7 @@ class _NITMState extends State<NITM> {
   @override
   void initState() {
     super.initState();
+    Get.put(SettingsController(), permanent: true);
     Get.put(WatcherController(), permanent: true);
   }
 

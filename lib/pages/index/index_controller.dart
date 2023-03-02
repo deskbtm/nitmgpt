@@ -26,7 +26,6 @@ class IndexController extends GetxController {
           settings: settings,
           transition: Transition.leftToRight,
           page: () => HomePage(),
-          binding: SettingsBinding(),
         );
       case '/settings':
         return GetPageRoute(

@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
 import 'watcher_controller.dart';
 import 'package:unicons/unicons.dart';
@@ -12,6 +13,7 @@ class HomePage extends StatelessWidget {
   HomePage({super.key});
 
   final _watcherController = WatcherController.to;
+  final DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm:ss');
 
   @override
   Widget build(BuildContext context) {
@@ -84,11 +86,14 @@ class HomePage extends StatelessWidget {
                               .deviceAppsMap.value[r.packageName]?.icon;
 
                           return NotificationTitle(
-                            title: r.notificationTitle,
+                            title: '的巴萨你顿巴斯的啊实打实的啊似乎大师',
                             subtitle: r.notificationText,
                             appName: r.appName,
                             icon: icon,
                             tileKey: r.packageName,
+                            dateTime: r.createTime != null
+                                ? formatter.format(r.createTime!)
+                                : '',
                           );
                         },
                       ),

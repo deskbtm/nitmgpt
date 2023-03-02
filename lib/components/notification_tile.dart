@@ -7,6 +7,7 @@ class NotificationTitle extends StatelessWidget {
   final String? subtitle;
   final String? appName;
   final String? tileKey;
+  final String? dateTime;
   final Uint8List? icon;
 
   const NotificationTitle({
@@ -16,6 +17,7 @@ class NotificationTitle extends StatelessWidget {
     this.subtitle,
     this.tileKey,
     this.appName,
+    this.dateTime,
   });
 
   @override
@@ -32,9 +34,9 @@ class NotificationTitle extends StatelessWidget {
             splashFactory: NoSplash.splashFactory),
         child: ExpansionTile(
           tilePadding:
-              const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 15),
+              const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 7),
           title: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
                 SizedBox(
@@ -74,9 +76,22 @@ class NotificationTitle extends StatelessWidget {
               ],
             ),
           ),
-          subtitle: Text(
-            subtitle ?? '',
-            style: const TextStyle(fontSize: 12),
+          subtitle: RichText(
+            maxLines: 2,
+            text: TextSpan(
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              children: [
+                TextSpan(
+                  text: dateTime ?? '',
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 0, 53, 2),
+                  ),
+                ),
+                const TextSpan(text: ' : '),
+                TextSpan(
+                    text: subtitle ?? '', style: const TextStyle(fontSize: 12))
+              ],
+            ),
           ),
           children: <Widget>[
             Container(

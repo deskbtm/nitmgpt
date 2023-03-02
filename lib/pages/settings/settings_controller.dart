@@ -178,7 +178,7 @@ class SettingsController extends GetxController {
   }
 
   setupProxy() async {
-    Get.defaultDialog(
+    return Get.defaultDialog(
       titlePadding: const EdgeInsets.only(top: 20),
       titleStyle: const TextStyle(fontSize: 22),
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -190,10 +190,7 @@ class SettingsController extends GetxController {
         ),
       ),
       cancel: TextButton(
-        child: const Text(
-          "Reset",
-          style: TextStyle(fontSize: 20),
-        ),
+        child: const Text("Reset", style: TextStyle(fontSize: 20)),
         onPressed: () {
           proxyUri.value = '';
           proxyUriController.text = '';
@@ -203,10 +200,7 @@ class SettingsController extends GetxController {
         },
       ),
       confirm: TextButton(
-        child: const Text(
-          "Ok",
-          style: TextStyle(fontSize: 20),
-        ),
+        child: const Text("Ok", style: TextStyle(fontSize: 20)),
         onPressed: () {
           proxyUri.value = proxyUriController.text;
           realm.write(() {
@@ -218,8 +212,8 @@ class SettingsController extends GetxController {
     );
   }
 
-  setupOpenaiApiKey() async {
-    Get.defaultDialog(
+  setupOpenAiKey() async {
+    return Get.defaultDialog(
       titlePadding: const EdgeInsets.only(top: 20),
       titleStyle: const TextStyle(fontSize: 22),
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -232,7 +226,7 @@ class SettingsController extends GetxController {
               style: const TextStyle(color: Colors.black),
               children: [
                 const TextSpan(
-                  text: "You could get openai keys from ",
+                  text: "You could get open ai keys from ",
                 ),
                 TextSpan(
                   text: openAiKeysUrl,
