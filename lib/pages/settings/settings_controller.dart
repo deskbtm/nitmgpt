@@ -39,11 +39,11 @@ class SettingsController extends GetxController {
   late final PackageInfo? packageInfo;
   late final release = Rxn<GithubRelease>();
   final proxyUri = ''.obs;
-  final openaiApiKey = ''.obs;
+  final openAiKey = ''.obs;
   final currentVersion = Rxn<Version>();
   final latestVersion = Rxn<Version>();
   final proxyUriController = TextEditingController();
-  final openaiApiKeyController = TextEditingController();
+  final openAiKeyController = TextEditingController();
 
   late Settings settings;
 
@@ -251,7 +251,7 @@ class SettingsController extends GetxController {
           FractionallySizedBox(
             widthFactor: 0.8,
             child: TextField(
-              controller: openaiApiKeyController,
+              controller: openAiKeyController,
             ),
           ),
         ],
@@ -262,10 +262,10 @@ class SettingsController extends GetxController {
           style: TextStyle(fontSize: 20),
         ),
         onPressed: () {
-          openaiApiKey.value = '';
-          openaiApiKeyController.text = '';
+          openAiKey.value = '';
+          openAiKeyController.text = '';
           realm.write(() {
-            settings.openaiApiKey = null;
+            settings.openAiKey = null;
           });
         },
       ),
@@ -275,9 +275,9 @@ class SettingsController extends GetxController {
           style: TextStyle(fontSize: 20),
         ),
         onPressed: () {
-          openaiApiKey.value = openaiApiKeyController.text;
+          openAiKey.value = openAiKeyController.text;
           realm.write(() {
-            settings.openaiApiKey = openaiApiKeyController.text;
+            settings.openAiKey = openAiKeyController.text;
           });
           Get.back();
         },
@@ -314,8 +314,8 @@ class SettingsController extends GetxController {
       proxyUri.value = proxyUriController.text = settings.proxyUri!;
     }
 
-    if (settings.openaiApiKey != null) {
-      openaiApiKey.value = openaiApiKeyController.text = settings.openaiApiKey!;
+    if (settings.openAiKey != null) {
+      openAiKey.value = openAiKeyController.text = settings.openAiKey!;
     }
 
     packageInfo = await PackageInfo.fromPlatform();

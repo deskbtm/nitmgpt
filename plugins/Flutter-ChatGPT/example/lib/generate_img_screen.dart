@@ -20,7 +20,8 @@ class _GenImgScreenState extends State<GenImgScreen> {
   void initState() {
     openAI = OpenAI.instance.build(
         token: token,
-        baseOption: HttpSetup(receiveTimeout: 6000),isLogger: true);
+        baseOption: HttpSetup(receiveTimeout: 6000),
+        isLogger: true);
     super.initState();
   }
 
@@ -31,18 +32,16 @@ class _GenImgScreenState extends State<GenImgScreen> {
     super.dispose();
   }
 
-  void _generateImage() async{
+  void _generateImage() async {
     const prompt = "King Snake.";
 
-    final request = GenerateImage(prompt,1);
-    subscription = openAI.generateImageStream(request)
-    .asBroadcastStream()
-    .listen((it) {
+    final request = GenerateImage(prompt, 1);
+    subscription =
+        openAI.generateImageStream(request).asBroadcastStream().listen((it) {
       setState(() {
         img = "${it.data?.last?.url}";
       });
     });
-
   }
 
   @override

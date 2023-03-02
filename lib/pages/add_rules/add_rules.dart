@@ -258,7 +258,7 @@ class AddRulesPage extends GetView<RulesController> {
                               ),
                             ),
                             ...fieldsBlock,
-                            const TextSpan(text: " , return json."),
+                            const TextSpan(text: " , only return json."),
                           ],
                         ),
                       ]),

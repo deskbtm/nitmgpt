@@ -25,12 +25,11 @@ class Logger extends ILogger {
 
   @override
   void errorLog({int? code, String? error}) {
-   if(isLogging) debugPrint("status code :$code\nerror message :$error");
+    if (isLogging) debugPrint("status code :$code\nerror message :$error");
   }
 
   @override
   void debugString(String? error) {
-    if(isLogging) debugPrint("$error");
+    if (isLogging) debugPrint("$error");
   }
-
 }

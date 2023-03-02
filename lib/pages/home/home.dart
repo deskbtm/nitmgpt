@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:nitmgpt/components/notification_tile.dart';
 import 'watcher_controller.dart';
 import 'package:unicons/unicons.dart';
 import '../../models/record.dart';
@@ -79,45 +80,16 @@ class HomePage extends StatelessWidget {
                         itemCount: _watcherController.records.value!.length,
                         itemBuilder: (BuildContext context, int index) {
                           Record r = _watcherController.records.value![index];
-                          return Card(
-                            elevation: 0,
-                            // color: Theme.of(context).colorScheme.surfaceVariant,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: primaryColor,
-                              ),
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(12)),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(r.appName ?? ''),
-                                Text(r.notificationTitle ?? ''),
-                                Text(r.notificationText ?? ''),
-                              ],
-                            ),
+                          var icon = _watcherController
+                              .deviceAppsMap.value[r.packageName]?.icon;
+
+                          return NotificationTitle(
+                            title: r.notificationTitle,
+                            subtitle: r.notificationText,
+                            appName: r.appName,
+                            icon: icon,
+                            tileKey: r.packageName,
                           );
-                          // return ListTile(
-                          //   onTap: () {
-                          //     // _ruleFormController.clearTextField();
-                          //     // _ruleFormController.selectedApp.value = app;
-                          //     Get.back();
-                          //   },
-                          //   leading: Container(
-                          //     width: 50,
-                          //     height: 50,
-
-                          //     // child: CachedMemoryImage(
-                          //     //   bytes: app.icon,
-                          //     //   width: 50,
-                          //     //   height: 50,
-                          //     //   uniqueKey: app.packageName,
-                          //     // ),
-                          //   ),
-
-                          //   trailing: Text(r.appName ?? ''),
-                          //   // subtitle: Text(app.packageName),
-                          // );
                         },
                       ),
                     ),

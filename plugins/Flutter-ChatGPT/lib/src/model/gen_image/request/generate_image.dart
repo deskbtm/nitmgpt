@@ -18,10 +18,10 @@ class GenerateImage {
       {this.size = "1024x1024", this.response_format = "url", this.user = ""});
 
   Map<String, dynamic> toJson() => Map.of({
-    "prompt": this.prompt,
-    "n": this.n,
-    "size": this.size,
-    "response_format": this.response_format,
-    "user": this.user
-  });
+        "prompt": this.prompt,
+        "n": this.n,
+        "size": this.size,
+        "response_format": this.response_format,
+        "user": this.user
+      });
 }

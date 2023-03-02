@@ -1,10 +1,15 @@
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:get/get.dart';
 import 'package:device_apps/device_apps.dart';
+import 'package:nitmgpt/firebase.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
@@ -26,9 +31,9 @@ _getFieldsMeans(Settings? settings) {
       .join(',');
 }
 
-Future<GPTResponse?> inquireChatgpt(String question, Settings? settings) async {
+Future<GPTResponse?> inquireGPT(String question, Settings? settings) async {
   final openAI = OpenAI.instance.build(
-    token: settings?.openaiApiKey,
+    token: settings?.openAiKey,
     baseOption: HttpSetup(
       receiveTimeout: 100000,
       proxyUrl: settings != null && settings.proxyUri != ''
@@ -60,7 +65,7 @@ Future<GPTResponse?> inquireChatgpt(String question, Settings? settings) async {
   return null;
 }
 
-bool determineRemove(GPTResponse answer, Settings? settings) {
+bool _determineRemove(GPTResponse answer, Settings? settings) {
   bool adRemoved = false, spamRemoved = false;
   double? adProbability = settings?.presetAdProbability;
   double? spamProbability = settings?.presetSpamProbability;
@@ -91,64 +96,90 @@ bool determineRemove(GPTResponse answer, Settings? settings) {
 
 bool _isUnsetApiKey = true;
 
-handleNotificationListener(NotificationEvent event, ServiceInstance service,
+_handleNotificationListener(NotificationEvent event, ServiceInstance service,
     List<Application> deviceApps) async {
-  Settings settings = getSettingInstance();
+  try {
+    Settings settings = getSettingInstance();
 
-  if (settings.openaiApiKey == null) {
-    if (_isUnsetApiKey) {
-      _isUnsetApiKey = false;
-      service.invoke("set_api_key");
+    if (settings.openAiKey == null) {
+      if (_isUnsetApiKey) {
+        _isUnsetApiKey = false;
+        service.invoke("set_api_key");
+      }
+      return;
     }
-    return;
-  }
 
-  if (settings.ignoredApps.contains(event.packageName)) {
-    return;
-  }
-
-  String fieldsMeans = _getFieldsMeans(settings);
-  String question =
-      'Determine "${event.title} ${event.text}", $fieldsMeans, return json';
-  log(question);
-
-  var answer = await inquireChatgpt(question, settings);
-
-  if (answer != null) {
-    Application? app = deviceApps.firstWhereOrNull(
-        (element) => element.packageName == event.packageName);
-
-    bool isRemove = determineRemove(answer, settings);
-
-    if (isRemove) {
-      NotificationsListener.cancelNotification(event.key ?? '');
-      Record record = Record(
-        ObjectId(),
-        isAd: answer.isAd,
-        adProbability: answer.adProbability,
-        isSpam: answer.isSpam,
-        spamProbability: answer.spamProbability,
-        appName: app?.appName,
-        packageName: event.packageName,
-        notificationKey: event.key,
-        notificationText: event.text,
-        notificationTitle: event.title,
-        timestamp: event.timestamp,
-        createTime: event.createAt,
-        uid: event.uniqueId,
-      );
-      realm.write(() {
-        realm.add(record);
-      });
-      service.invoke('update_records');
+    if (settings.ignoredApps.contains(event.packageName)) {
+      return;
     }
+
+    String fieldsMeans = _getFieldsMeans(settings);
+    String question =
+        'Determine "${event.title} ${event.text}", $fieldsMeans, only return json.';
+    log(question);
+
+    var answer = await inquireGPT(question, settings);
+
+    if (answer != null) {
+      Application? app = deviceApps.firstWhereOrNull(
+          (element) => element.packageName == event.packageName);
+
+      bool isRemove = _determineRemove(answer, settings);
+
+      log("Notification removed: $isRemove");
+
+      if (isRemove) {
+        NotificationsListener.cancelNotification(event.key ?? '');
+        Record record = Record(
+          ObjectId(),
+          isAd: answer.isAd,
+          adProbability: answer.adProbability,
+          isSpam: answer.isSpam,
+          spamProbability: answer.spamProbability,
+          appName: app?.appName,
+          packageName: event.packageName,
+          notificationKey: event.key,
+          notificationText: event.text,
+          notificationTitle: event.title,
+          timestamp: event.timestamp,
+          createTime: event.createAt,
+          uid: event.uniqueId,
+        );
+        realm.write(() {
+          realm.add(record);
+        });
+        service.invoke('update_records');
+      }
+    }
+  } catch (e, stackTrace) {
+    log(e.toString());
+    FirebaseCrashlytics.instance.recordError(e, stackTrace, fatal: true);
   }
 }
 
+@pragma('vm:entry-point')
 permanentListenerServiceMain(ServiceInstance service) async {
+  DartPluginRegistrant.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (service is AndroidServiceInstance) {
+    service.on('setAsForeground').listen((event) {
+      service.setAsForegroundService();
+    });
+
+    service.on('setAsBackground').listen((event) {
+      service.setAsBackgroundService();
+    });
+  }
+
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
+
+  await initFirebase();
   await NotificationsListener.initialize();
   var deviceApps = await DeviceApps.getInstalledApplications();
 
   NotificationsListener.receivePort?.listen(
-      (message) => handleNotificationListener(message, service, deviceApps));
+      (message) => _handleNotificationListener(message, service, deviceApps));
 }

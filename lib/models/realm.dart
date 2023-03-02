@@ -8,7 +8,7 @@ var _config = Configuration.local(
     Settings.schema,
     RuleFields.schema,
   ],
-  schemaVersion: 2,
+  schemaVersion: 3,
 );
 
 var realm = Realm(_config);

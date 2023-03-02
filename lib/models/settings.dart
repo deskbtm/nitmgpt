@@ -1,4 +1,3 @@
-import 'package:nitmgpt/models/realm.dart';
 import 'package:realm/realm.dart';
 part 'settings.g.dart';
 
@@ -33,8 +32,8 @@ class _Settings {
   /// Proxy uri
   String? proxyUri;
 
-  /// Openai Api Key https://platform.openai.com/account/api-keys
-  String? openaiApiKey;
+  /// OpenAi Api Key https://platform.openai.com/account/api-keys
+  String? openAiKey;
 
   /// Preset Advertisement probability
   double? presetAdProbability;

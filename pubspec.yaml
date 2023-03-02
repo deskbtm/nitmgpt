@@ -11,7 +11,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   url_launcher: ^6.1.8
   flutter_local_notifications: ^13.0.0
-  sentry_flutter: ^6.19.0
   permission_handler: ^10.2.0
   wakelock: ^0.6.2
   flutter_notification_listener:
@@ -44,6 +43,7 @@ dependencies:
   flutter_background_service: ^2.4.6
   flutter_background_service_android: ^3.0.3
   realm: ^1.0.2
+  firebase_crashlytics: ^3.0.15
 
 dev_dependencies:
   flutter_lints: ^2.0.0

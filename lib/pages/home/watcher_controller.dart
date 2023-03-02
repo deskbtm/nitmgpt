@@ -1,10 +1,8 @@
 import 'dart:developer';
-import 'dart:ui';
 import 'package:device_apps/device_apps.dart';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:get/get.dart';
 import 'package:nitmgpt/models/record.dart';
@@ -17,6 +15,7 @@ class WatcherController extends GetxController {
   final records = Rxn<List<Record>>([]);
   // late Box<Record> recordsBox;
   final deviceApps = <ApplicationWithIcon>[].obs;
+  final deviceAppsMap = RxMap<String, ApplicationWithIcon>({});
 
   /// This records2 is used for the HomeScreen, it will pop
   /// and push record when out of limit.
@@ -67,12 +66,17 @@ class WatcherController extends GetxController {
     });
   }
 
-  initDeviceApps() async {
+  _initDeviceApps() async {
     var apps = (await DeviceApps.getInstalledApplications(
       includeAppIcons: true,
     ));
 
-    deviceApps.addAll(apps.map((e) => e as ApplicationWithIcon));
+    deviceApps.addAll(apps.map((e) {
+      // ignore: invalid_use_of_protected_member
+      deviceAppsMap.value[e.packageName] = e as ApplicationWithIcon;
+
+      return e;
+    }));
   }
 
   @override
@@ -82,7 +86,7 @@ class WatcherController extends GetxController {
     records.value = realm.all<Record>().toList();
 
     await _permissionDialog();
-    await initDeviceApps();
+    await _initDeviceApps();
     await _startPermanentService();
   }
 
@@ -91,7 +95,7 @@ class WatcherController extends GetxController {
 
     await service.configure(
       androidConfiguration: AndroidConfiguration(
-        onStart: onStartService,
+        onStart: permanentListenerServiceMain,
         autoStart: true,
         isForegroundMode: true,
         initialNotificationTitle: 'NITMGPT SERVICE',
@@ -103,28 +107,6 @@ class WatcherController extends GetxController {
     service.on('update_records').listen((event) async {
       records.value = realm.all<Record>().toList();
     });
-  }
-
-  @pragma('vm:entry-point')
-  static onStartService(ServiceInstance service) async {
-    DartPluginRegistrant.ensureInitialized();
-    WidgetsFlutterBinding.ensureInitialized();
-
-    if (service is AndroidServiceInstance) {
-      service.on('setAsForeground').listen((event) {
-        service.setAsForegroundService();
-      });
-
-      service.on('setAsBackground').listen((event) {
-        service.setAsBackgroundService();
-      });
-    }
-
-    service.on('stopService').listen((event) {
-      service.stopSelf();
-    });
-
-    await permanentListenerServiceMain(service);
   }
 
   _permissionDialog() async {

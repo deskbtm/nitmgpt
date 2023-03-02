@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:get/get.dart';
 import 'i18n/i18n.dart';
 import 'notification_utils.dart';
@@ -54,7 +52,6 @@ class _NITMState extends State<NITM> {
             locale: TranslationService.locale,
             fallbackLocale: TranslationService.fallbackLocale,
             navigatorObservers: [
-              SentryNavigatorObserver(),
               FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
             ],
             initialRoute: '/',

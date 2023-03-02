@@ -33,19 +33,15 @@ class _TranslateScreenState extends State<TranslateScreen> {
   ///t => translate
   final tController = StreamController<CTResponse?>.broadcast();
 
-  void _translateEngToThai() async{
+  void _translateEngToThai() async {
     final request = CompleteText(
         prompt: translateEngToThai(word: _txtWord.text.toString()),
         maxTokens: 200,
         model: kTranslateModelV3);
 
-    openAI
-        .onCompleteStream(request: request)
-        .asBroadcastStream()
-        .listen((res) {
+    openAI.onCompleteStream(request: request).asBroadcastStream().listen((res) {
       tController.sink.add(res);
-    })
-    .onError((err) {
+    }).onError((err) {
       print("$err");
     });
   }
@@ -62,7 +58,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
   void initState() {
     openAI = OpenAI.instance.build(
         token: token,
-        baseOption: HttpSetup(receiveTimeout: 6000),isLogger: true);
+        baseOption: HttpSetup(receiveTimeout: 6000),
+        isLogger: true);
     super.initState();
   }
 
@@ -361,4 +358,3 @@ class _TranslateScreenState extends State<TranslateScreen> {
     );
   }
 }
-

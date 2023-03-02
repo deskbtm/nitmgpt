@@ -69,8 +69,8 @@ class SettingsPage extends GetView<SettingsController> {
                 onTap: controller.setupOpenaiApiKey,
                 title: const Text("Chatgpt API Key"),
                 trailing: Obx(
-                  () => Text(
-                      controller.openaiApiKey.value.isEmpty ? "" : "******"),
+                  () =>
+                      Text(controller.openAiKey.value.isEmpty ? "" : "******"),
                 ),
               ),
               ListTile(
