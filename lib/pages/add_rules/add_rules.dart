@@ -9,7 +9,6 @@ import 'package:nitmgpt/pages/home/watcher_controller.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:unicons/unicons.dart';
 
-
 class ProbabilityTile extends StatelessWidget {
   final String title;
   final String subtitle;

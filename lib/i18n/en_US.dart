@@ -40,7 +40,8 @@ const Map<String, String> en_US = {
   'You could follow my Github or star this project to hide this dialog ':
       'You could follow my Github or star this project to hide this dialog. ',
   'Get this App': 'Get this App',
-  'github account name': 'github account name',
+  'Ignore': 'Ignore',
+  'Github account name': 'Github account name',
   'Setup OpenAI API Key': 'Setup OpenAI API Key',
   'Downloading update...': 'Downloading update...',
   'Reset': 'Reset',

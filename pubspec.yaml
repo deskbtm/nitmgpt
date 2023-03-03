@@ -1,5 +1,5 @@
 name: nitmgpt
-version: 0.0.1
+version: 0.0.1-alpha.1
 publish_to: none
 description: It's a watcher client for Android that auto-hide ads, spam, etc notifications via chatgpt.
 environment:

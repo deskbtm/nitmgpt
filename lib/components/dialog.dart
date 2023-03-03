@@ -10,12 +10,13 @@ Future<T?> showCommonDialog<T>({
   Widget? description,
   WillPopCallback? onWillPop,
   String? textFieldPlaceholder,
+  Widget? suffix,
   required String title,
 }) {
   return Get.defaultDialog<T>(
     onWillPop: onWillPop,
     titlePadding: const EdgeInsets.only(top: 20),
-    titleStyle: const TextStyle(fontSize: 22),
+    titleStyle: const TextStyle(fontSize: 19),
     contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     title: title,
     content: Column(
@@ -25,9 +26,12 @@ Future<T?> showCommonDialog<T>({
             ? Container()
             : FractionallySizedBox(
                 widthFactor: 0.8,
-                child: TextField(
+                child: TextFormField(
                   controller: controller,
-                  decoration: InputDecoration(hintText: textFieldPlaceholder),
+                  decoration: InputDecoration(
+                    hintText: textFieldPlaceholder,
+                    suffix: suffix,
+                  ),
                 ),
               ),
       ],

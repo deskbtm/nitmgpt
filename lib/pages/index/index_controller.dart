@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:nitmgpt/pages/home/home.dart';
 import 'package:nitmgpt/pages/settings/settings.dart';
 
-
 class IndexController extends GetxController {
   static IndexController get to => Get.find();
 

@@ -51,10 +51,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias System.getenv("NITM_KEY_ALIAS")
-            keyPassword System.getenv("NITM_KEY_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
             storeFile file("../public_key.jks")
-            storePassword System.getenv("NITM_STORE_PASSWORD")
+            storePassword System.getenv("STORE_PASSWORD")
         }
     }
 

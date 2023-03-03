@@ -11,9 +11,7 @@
 
 ![workflow](https://img.shields.io/github/actions/workflow/status/deskbtm/nitmgpt/release.yml?style=flat-square)
 [![download](https://img.shields.io/github/downloads/deskbtm/nitmgpt/total?style=flat-square)](https://github.com/deskbtm/nitmgpt/releases)
-[![简体中文 badge](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Simplified%20Chinese-blue?style=flat-square)](./README-ZH_CN.md)
-<!-- ![flutter](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Simplified%20Chinese-blue?style=flat-square) -->
-[![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://github.com/deskbtm/nitmgpt/releases)
+[![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://twitter.com/Deskbtm)
 
 
 **Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3.
@@ -45,7 +43,7 @@ Coming Soon to the other App Stores.
 
 <img width="180" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png">
 
-1. Enable all the necessary permission (notification listener, battery optimization..).
+1. Enable all the necessary permissions (notification listener, battery optimization...).
 3. Setup the OpenAI API Key [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys) (国内如果梯子无效可以尝试修改代理).
 2. Waiting for the ad notifications 😂 . (Download [nitmgpt test](https://github.com/deskbtm/nitmgpt_test/releases/latest) to try)
 

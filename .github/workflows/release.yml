@@ -11,9 +11,9 @@ jobs:
     permissions:
       contents: write
     env:
-      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.NITM_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.NITM_KEY_PASSWORD }}
+      STORE_PASSWORD: ${{ secrets.NITM_STORE_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3

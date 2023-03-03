@@ -18,8 +18,6 @@ import 'package:nitmgpt/notification_utils.dart';
 import 'package:system_info2/system_info2.dart';
 import 'package:version/version.dart';
 
-
-
 class GithubRelease {
   final String version;
   final String url;
@@ -41,7 +39,9 @@ class SettingsController extends GetxController {
 
   late final GithubRelease? githubRelease;
   final proxyUri = ''.obs;
+  final ownedApp = false.obs;
   final openAiKey = ''.obs;
+  final _isVerifyLoading = false.obs;
   final currentVersion = Rxn<Version>();
   final latestVersion = Rxn<Version>();
   final proxyUriController = TextEditingController();
@@ -274,16 +274,28 @@ class SettingsController extends GetxController {
     );
     return showCommonDialog(
       title: "Get this App".tr,
-      cancelText: "Reset".tr,
       controller: ownAppController,
       description: description,
-      textFieldPlaceholder: "github account name".tr,
+      textFieldPlaceholder: "Github account name".tr,
+      onCancel: () => {Get.back()},
+      cancelText: 'Ignore'.tr,
+      suffix: SizedBox(
+        width: 20,
+        height: 20,
+        child: Obx(
+          () => _isVerifyLoading.value
+              ? const CircularProgressIndicator(strokeWidth: 2)
+              : Container(),
+        ),
+      ),
       onConfirm: () async {
+        _isVerifyLoading.value = true;
         _accessApp().then((owned) {
-          settings.ownedApp = owned;
+          _isVerifyLoading.value = false;
+          realm.write(() => {settings.ownedApp = owned});
+          ownedApp.value = owned;
+          Get.back();
         });
-
-        Get.back();
       },
     );
   }
@@ -318,6 +330,10 @@ class SettingsController extends GetxController {
       openAiKey.value = openAiKeyController.text = settings.openAiKey!;
     }
 
+    if (settings.ownedApp == true) {
+      ownedApp.value = true;
+    }
+
     var packageInfo = await PackageInfo.fromPlatform();
     currentVersion.value = Version.parse(packageInfo.version);
 
@@ -327,8 +343,6 @@ class SettingsController extends GetxController {
   @override
   void onReady() async {
     await _checkGithubLatestRelease();
-
-    
 
     super.onReady();
   }

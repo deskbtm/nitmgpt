@@ -45,7 +45,7 @@ class WatcherController extends FullLifeCycleController
     return Get.defaultDialog(
       onWillPop: onWillPop,
       titlePadding: const EdgeInsets.only(top: 20),
-      titleStyle: const TextStyle(fontSize: 22),
+      titleStyle: const TextStyle(fontSize: 19),
       contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
       title: title,
       content: Text(

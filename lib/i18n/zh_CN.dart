@@ -39,7 +39,8 @@ Map<String, String> zh_CN = {
   'You could follow my Github or star this project to hide this dialog ':
       '你可以通过关注我的GitHub, 或者star这个项目, 来隐藏这个对话框。',
   'Get this App': '获取该软件',
-  'github account name': 'github 账户名',
+  'Ignore': '忽略',
+  'Github account name': 'Github账户名',
   'Setup OpenAI API Key': '设置OpenAI API密钥',
   'Downloading update...': '更新中...',
   'Reset': '重置',
