@@ -11,8 +11,10 @@
 
 ![workflow](https://img.shields.io/github/actions/workflow/status/deskbtm/nitmgpt/release.yml?style=flat-square)
 [![download](https://img.shields.io/github/downloads/deskbtm/nitmgpt/total?style=flat-square)](https://github.com/deskbtm/nitmgpt/releases)
-[![简体中文 badge](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Simplified%20Chinese-blue?style=flat-square)](./README-ZH_CN.md)\
+[![简体中文 badge](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Simplified%20Chinese-blue?style=flat-square)](./README-ZH_CN.md)
+<!-- ![flutter](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Simplified%20Chinese-blue?style=flat-square) -->
 [![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://github.com/deskbtm/nitmgpt/releases)
+
 
 **Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3.
 
@@ -32,14 +34,25 @@
 
 [Github release](https://github.com/deskbtm/nitmgpt/releases/latest)
 
-### Note bene
-This app is not free. it needs your star or follow.
+#### Note bene
+ - This app is not free. it needs your star or follow [Nawbc](https://github.com/Nawbc).  
+ - The software has only been tested on a small number of models. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
+ - Han(Nawbc) assumes no responsibility or liability for any errors or omissions in the content of this app.  
 
 ## Usage
 
-| <img width="200" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> | <img width="200" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> |
-| --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| <img width="200" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> |<img width="200" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png"> |
+<img width="180" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png">
+
+
+Download [nitmgpt test](https://github.com/deskbtm/nitmgpt_test/releases/latest) to try notifications.
+
+## FAQ
+
+1. In some AOKP cannot keep the background service alive.
+
+2. Ignore the important applications, like IM, EMAIL.
+
+
 
 
 ## License
@@ -49,6 +62,6 @@ This project is available under the GNU AFFERO GENERAL PUBLIC LICENSE (AGPL-3.0)
 Additional licenses:
 Copyright (C) 2021 Han <deskbtm@outlook.com>
 
-a) The source code of this program is forbidden to be distributed, deployed, or derived by individuals, and the source code is only used for learning and communication.
-b) To obtain a license to use this program, a purchase is required.
-c) The source code and binary products of this program may not be used for any commercial and profitable purposes
+a) The source code of this program is forbidden to be distributed, deployed, or derived by individuals, and the source code is only used for learning and communication.  
+b) To obtain a license to use this program, a purchase is required.  
+c) The source code and binary products of this program may not be used for any commercial and profitable purposes  
