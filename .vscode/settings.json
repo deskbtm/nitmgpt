@@ -3,6 +3,8 @@
         "fluttertoast",
         "nitm",
         "nitmgpt",
-        "unicons"
+        "syncfusion",
+        "unicons",
+        "xlsio"
     ]
 }

@@ -9,26 +9,38 @@
   </a>
 </p>
 
-It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3.
+![workflow](https://img.shields.io/github/actions/workflow/status/deskbtm/nitmgpt/release.yml?style=flat-square)
+[![download](https://img.shields.io/github/downloads/deskbtm/nitmgpt/total?style=flat-square)](https://github.com/deskbtm/nitmgpt/releases)
+[![简体中文 badge](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Simplified%20Chinese-blue?style=flat-square)](./README-ZH_CN.md)\
+[![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://github.com/deskbtm/nitmgpt/releases)
+
+**Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3.
+
+<img width="100" src="https://user-images.githubusercontent.com/45007226/222633102-5d3efb05-b255-46f9-8309-adfdef00d1bd.jpg"> <img width="100" src="https://user-images.githubusercontent.com/45007226/222633092-c0197a6f-43ea-443d-bed6-c7d6283b3134.jpg">
 
 ## Features
 
 - Smart notification filtering power by GPT3.
-- Notification listener.
-- Permanent background service.
+- Permanent background service event kill the app.
 - Custom match rules.
 - Local export history(xlsx).
+- Safe, Fully open source.
 - Beautiful ui (Material You).
 
-## Getting Started
 
-| <img width="200" src="https://user-images.githubusercontent.com/45007226/220536610-9a585ccf-5eb9-4300-a9aa-0723671e070d.png"> | <img width="200" src="https://user-images.githubusercontent.com/45007226/220536639-9ee133c8-13f9-4226-afde-1b8e561789bf.png"> |
-| --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| <img width="200" src="https://user-images.githubusercontent.com/45007226/220536654-fcbbe390-8223-42e9-b982-2f37fc5d3868.png"> | <img width="200" src="https://user-images.githubusercontent.com/45007226/220536536-00015062-caeb-4db9-94e8-cf5ab694b89f.png"> |
+## Installation
 
-## Note Bene
+[Github release](https://github.com/deskbtm/nitmgpt/releases/latest)
 
+### Note bene
 This app is not free. it needs your star or follow.
+
+## Usage
+
+| <img width="200" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> | <img width="200" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> |
+| --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| <img width="200" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> |<img width="200" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png"> |
+
 
 ## License
 

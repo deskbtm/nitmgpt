@@ -1,10 +1,12 @@
-import 'dart:ui';
+import 'dart:developer';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
+import 'package:nitmgpt/utils.dart';
 import 'i18n/i18n.dart';
 import 'notification_utils.dart';
 import 'pages/home/watcher_controller.dart';
@@ -36,6 +38,9 @@ class _NITMState extends State<NITM> {
 
   @override
   Widget build(BuildContext context) {
+    Settings settings = getSettingInstance();
+    log('Root re-render', name: 'NITM');
+
     return ScreenUtilInit(
       designSize: const Size(360, 690),
       minTextAdapt: true,
@@ -52,7 +57,7 @@ class _NITMState extends State<NITM> {
             defaultTransition: Transition.native,
             enableLog: true,
             translations: TranslationService(),
-            locale: TranslationService.locale,
+            locale: TranslationService.from(settings.language),
             fallbackLocale: TranslationService.fallbackLocale,
             navigatorObservers: [
               FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)

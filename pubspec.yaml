@@ -11,12 +11,10 @@ dependencies:
   url_launcher: ^6.1.8
   flutter_local_notifications: ^13.0.0
   permission_handler: ^10.2.0
-  wakelock: ^0.6.2
   flutter_notification_listener:
     path: plugins/flutter_notification_listener
   fluttertoast: ^8.1.2
   flutter_screenutil: ^5.6.1
-  get_storage: ^2.0.3
   unicons: ^2.1.0
   get: 4.6.5
   flutter:
@@ -36,7 +34,6 @@ dependencies:
       ref: "master"
   flutter_markdown: ^0.6.14
   markdown: ^7.0.1
-  flutter_inappwebview: ^5.7.2+3
   chat_gpt_sdk:
     path: plugins/Flutter-ChatGPT
   flutter_background_service: ^2.4.6

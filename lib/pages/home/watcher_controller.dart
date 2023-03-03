@@ -1,20 +1,23 @@
-import 'dart:developer';
 import 'dart:io';
+import 'dart:async';
+import 'dart:developer';
+import 'package:get/get.dart';
+import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:device_apps/device_apps.dart';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/models/realm.dart';
+import 'package:nitmgpt/models/settings.dart';
+import 'package:nitmgpt/permanent_listener_service/main.dart';
+import 'package:nitmgpt/utils.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart';
-import '../../constants.dart';
-import '../../models/realm.dart';
-import '../../permanent_listener_service/main.dart';
 
 class WatcherController extends FullLifeCycleController
     with FullLifeCycleMixin {
@@ -34,8 +37,13 @@ class WatcherController extends FullLifeCycleController
 
   final _settingController = SettingsController.to;
 
-  static showNB({VoidCallback? onConfirm, required String title}) {
+  static showNecessaryPermissionDialog({
+    VoidCallback? onConfirm,
+    required String title,
+    required WillPopCallback onWillPop,
+  }) {
     return Get.defaultDialog(
+      onWillPop: onWillPop,
       titlePadding: const EdgeInsets.only(top: 20),
       titleStyle: const TextStyle(fontSize: 22),
       contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
@@ -54,28 +62,17 @@ class WatcherController extends FullLifeCycleController
           if (onConfirm != null) {
             onConfirm();
           }
-
-          Get.back();
         },
       ),
     );
   }
 
-  addRecord(Record record) async {
-    // records.add(record);
-    if (records2.length > 2000) {
-      records2.insert(0, record);
-      records2.removeLast();
-    } else {
-      records2.add(record);
-    }
-  }
-
   Future<void> clearRecords() async {
     records.value = [];
-    realm.write(() {
+    await realm.writeAsync(() {
       realm.deleteAll<Record>();
     });
+    Fluttertoast.showToast(msg: 'Cleanup completed'.tr);
   }
 
   _initDeviceApps() async {
@@ -86,7 +83,6 @@ class WatcherController extends FullLifeCycleController
     deviceApps.addAll(apps.map((e) {
       // ignore: invalid_use_of_protected_member
       deviceAppsMap.value[e.packageName] = e as ApplicationWithIcon;
-
       return e;
     }));
   }
@@ -96,7 +92,7 @@ class WatcherController extends FullLifeCycleController
 
     await service.configure(
       androidConfiguration: AndroidConfiguration(
-        onStart: _startService,
+        onStart: permanentListenerServiceMain,
         autoStart: true,
         isForegroundMode: true,
         initialNotificationTitle: 'NITMGPT SERVICE',
@@ -114,37 +110,62 @@ class WatcherController extends FullLifeCycleController
     });
   }
 
-  @pragma('vm:entry-point')
-  static _startService(ServiceInstance service) async {
-    await permanentListenerServiceMain(service);
+  hasNotificationListenerPermission() async {
+    return await NotificationsListener.hasPermission ?? false;
   }
 
-  _permissionDialog() async {
-    var hasPermission = await NotificationsListener.hasPermission ?? false;
-    bool isBatteryOptimizationDisabled =
-        await DisableBatteryOptimization.isBatteryOptimizationDisabled ?? false;
+  hasBatteryOptimizationDisabledPermission() async {
+    return await DisableBatteryOptimization.isBatteryOptimizationDisabled ??
+        false;
+  }
 
-    if (hasPermission) {
-      await toggleNotificationService();
-    } else {
-      await showNB(
-          title: 'Notification Listener'.tr,
-          onConfirm: () {
-            NotificationsListener.openPermissionSettings();
-          });
+  Future<bool> _initPermission() async {
+    bool isNotificationListenerEnabled =
+        await hasNotificationListenerPermission();
+    bool isBatteryOptimizationDisabled =
+        await hasBatteryOptimizationDisabledPermission();
+
+    if (isNotificationListenerEnabled && isBatteryOptimizationDisabled) {
+      return true;
     }
-    if (!isBatteryOptimizationDisabled) {
-      await showNB(
-        title: 'Battery Optimization !'.tr,
+
+    if (!isNotificationListenerEnabled) {
+      await showNecessaryPermissionDialog(
+        title: 'Notification Listener'.tr,
+        onWillPop: () async {
+          return await hasNotificationListenerPermission();
+        },
         onConfirm: () async {
-          await DisableBatteryOptimization
-              .showDisableBatteryOptimizationSettings();
+          if (await hasNotificationListenerPermission()) {
+            Get.back();
+          } else {
+            NotificationsListener.openPermissionSettings();
+          }
         },
       );
     }
+
+    if (!isBatteryOptimizationDisabled) {
+      await showNecessaryPermissionDialog(
+        title: 'Battery Optimization !'.tr,
+        onWillPop: () async {
+          return await hasBatteryOptimizationDisabledPermission();
+        },
+        onConfirm: () async {
+          if (await hasBatteryOptimizationDisabledPermission()) {
+            Get.back();
+          } else {
+            await DisableBatteryOptimization
+                .showDisableBatteryOptimizationSettings();
+          }
+        },
+      );
+    }
+
+    return true;
   }
 
-  toggleNotificationService() async {
+  Future<void> startNotificationService() async {
     var isRunning = await NotificationsListener.isRunning ?? false;
 
     if (!isRunning) {
@@ -273,11 +294,26 @@ class WatcherController extends FullLifeCycleController
   void onInit() async {
     super.onInit();
 
-    records.value = realm.all<Record>().toList().reversed.toList();
+    bool hasPermission = await _initPermission();
 
-    await _permissionDialog();
+    if (hasPermission) {
+      log('Start permanent service android notification listener service');
+
+      await _startPermanentService();
+      await startNotificationService();
+
+      Settings settings = getSettingInstance();
+
+      if (settings.ownedApp == null) {
+        Timer(const Duration(seconds: 5), () {
+          _settingController.verifyOwnedApp();
+        });
+      }
+    }
+
     await _initDeviceApps();
-    await _startPermanentService();
+
+    records.value = realm.all<Record>().toList().reversed.toList();
   }
 
   @override

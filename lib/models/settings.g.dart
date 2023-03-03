@@ -90,6 +90,8 @@ class Settings extends _Settings
     double? presetAdProbability,
     double? presetSpamProbability,
     RuleFields? ruleFields,
+    bool? ownedApp,
+    String? language,
     Iterable<String> ignoredApps = const [],
   }) {
     RealmObjectBase.set(this, 'id', id);
@@ -98,6 +100,8 @@ class Settings extends _Settings
     RealmObjectBase.set(this, 'presetAdProbability', presetAdProbability);
     RealmObjectBase.set(this, 'presetSpamProbability', presetSpamProbability);
     RealmObjectBase.set(this, 'ruleFields', ruleFields);
+    RealmObjectBase.set(this, 'ownedApp', ownedApp);
+    RealmObjectBase.set(this, 'language', language);
     RealmObjectBase.set<RealmList<String>>(
         this, 'ignoredApps', RealmList<String>(ignoredApps));
   }
@@ -150,6 +154,17 @@ class Settings extends _Settings
       throw RealmUnsupportedSetError();
 
   @override
+  bool? get ownedApp => RealmObjectBase.get<bool>(this, 'ownedApp') as bool?;
+  @override
+  set ownedApp(bool? value) => RealmObjectBase.set(this, 'ownedApp', value);
+
+  @override
+  String? get language =>
+      RealmObjectBase.get<String>(this, 'language') as String?;
+  @override
+  set language(String? value) => RealmObjectBase.set(this, 'language', value);
+
+  @override
   Stream<RealmObjectChanges<Settings>> get changes =>
       RealmObjectBase.getChanges<Settings>(this);
 
@@ -172,6 +187,8 @@ class Settings extends _Settings
           optional: true, linkTarget: 'RuleFields'),
       SchemaProperty('ignoredApps', RealmPropertyType.string,
           collectionType: RealmCollectionType.list),
+      SchemaProperty('ownedApp', RealmPropertyType.bool, optional: true),
+      SchemaProperty('language', RealmPropertyType.string, optional: true),
     ]);
   }
 }

@@ -5,9 +5,10 @@ import 'package:get/get.dart';
 import 'package:nitmgpt/components/back_button.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
 import 'package:nitmgpt/pages/add_rules/rules_controller.dart';
+import 'package:nitmgpt/pages/home/watcher_controller.dart';
+import 'package:nitmgpt/theme.dart';
 import 'package:unicons/unicons.dart';
-import '../../theme.dart';
-import '../home/watcher_controller.dart';
+
 
 class ProbabilityTile extends StatelessWidget {
   final String title;
@@ -172,15 +173,16 @@ class AddRulesPage extends GetView<RulesController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      "Ignore app (multi select)",
+                      "Ignore app (multi-select)".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
                       ),
                     ),
-                    const Text(
-                      "Some permanent notifications will always trigger notification check, so you needs to ignore or close it",
-                      style: TextStyle(
+                    Text(
+                      "Some permanent notifications will always trigger notification check, so you need to ignore or close it"
+                          .tr,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
                       ),
@@ -235,7 +237,7 @@ class AddRulesPage extends GetView<RulesController> {
                     ),
                     const SizedBox(height: 15),
                     Text(
-                      "Filter condition (ask chatgpt)",
+                      "Filter condition (ask chatgpt)".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
@@ -265,32 +267,34 @@ class AddRulesPage extends GetView<RulesController> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Custom probability(0~1.0)",
+                      "Custom probability(0~1.0)".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
                       ),
                     ),
-                    const Text(
-                      "If set, remove the notification should be more than the probability set here",
-                      style: TextStyle(
+                    Text(
+                      "If set, remove the notification should be more than the probability set here"
+                          .tr,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
                       ),
                     ),
                     ProbabilityTile(
                       validator: controller.validatorPercent,
-                      title: 'Advertisement probability',
+                      title: 'Advertisement probability'.tr,
                       subtitle: '`ad_probability`',
                       controller: controller.adProbabilityController,
                     ),
                     const SizedBox(height: 10),
                     ProbabilityTile(
                       validator: controller.validatorPercent,
-                      title: 'Spam probability',
+                      title: 'Spam probability'.tr,
                       subtitle: '`spam_probability`',
                       controller: controller.spamProbabilityController,
                     ),
+                    const SizedBox(height: 130),
                   ],
                 ),
               ),

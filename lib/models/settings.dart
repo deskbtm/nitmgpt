@@ -45,4 +45,8 @@ class _Settings {
   _RuleFields? ruleFields;
 
   List<String> ignoredApps = [];
+
+  bool? ownedApp;
+
+  String? language;
 }

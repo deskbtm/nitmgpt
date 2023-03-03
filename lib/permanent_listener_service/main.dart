@@ -3,21 +3,20 @@ import 'dart:ui';
 
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:get/get.dart';
 import 'package:device_apps/device_apps.dart';
 import 'package:nitmgpt/firebase.dart';
 import 'package:nitmgpt/models/realm.dart';
+import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
 import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
-import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:nitmgpt/utils.dart';
 import 'package:realm/realm.dart';
-import '../models/record.dart';
-import '../utils.dart';
 
 _getFieldsMeans(Settings? settings) {
   return ruleFieldsMap.values
@@ -31,7 +30,7 @@ _getFieldsMeans(Settings? settings) {
       .join(',');
 }
 
-Future<GPTResponse?> inquireGPT(String question, Settings? settings) async {
+Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
   final openAI = OpenAI.instance.build(
     token: settings?.openAiKey,
     baseOption: HttpSetup(
@@ -40,7 +39,7 @@ Future<GPTResponse?> inquireGPT(String question, Settings? settings) async {
           ? settings.proxyUri
           : null,
     ),
-    isLogger: kDebugMode,
+    isLogger: true,
   );
 
   final request = CompleteText(
@@ -96,15 +95,18 @@ bool _determineRemove(GPTResponse answer, Settings? settings) {
 
 bool _isUnsetApiKey = true;
 
-_handleNotificationListener(NotificationEvent event, ServiceInstance service,
-    List<Application> deviceApps) async {
+late List<Application> _deviceApps;
+late ServiceInstance _backgroundService;
+
+@pragma('vm:entry-point')
+handleNotificationListener(NotificationEvent event) async {
   try {
     Settings settings = getSettingInstance();
 
     if (settings.openAiKey == null || settings.openAiKey == '') {
       if (_isUnsetApiKey) {
         _isUnsetApiKey = false;
-        service.invoke("set_api_key");
+        _backgroundService.invoke("set_api_key");
       }
       return;
     }
@@ -116,12 +118,12 @@ _handleNotificationListener(NotificationEvent event, ServiceInstance service,
     String fieldsMeans = _getFieldsMeans(settings);
     String question =
         'Determine "${event.title} ${event.text}", $fieldsMeans, only return json.';
-    log(question);
+    log(question, name: 'permanent_listener_service');
 
-    var answer = await inquireGPT(question, settings);
+    var answer = await _inquireGPT(question, settings);
 
     if (answer != null) {
-      Application? app = deviceApps.firstWhereOrNull(
+      Application? app = _deviceApps.firstWhereOrNull(
           (element) => element.packageName == event.packageName);
       bool isRemove = _determineRemove(answer, settings);
 
@@ -147,15 +149,16 @@ _handleNotificationListener(NotificationEvent event, ServiceInstance service,
         await realm.writeAsync(() {
           realm.add(record);
         });
-        service.invoke('update_records');
+        _backgroundService.invoke('update_records');
       }
     }
   } catch (e, stackTrace) {
-    log(e.toString());
+    log(e.toString(), name: 'permanent_listener_service');
     FirebaseCrashlytics.instance.recordError(e, stackTrace, fatal: true);
   }
 }
 
+@pragma('vm:entry-point')
 permanentListenerServiceMain(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
@@ -174,10 +177,13 @@ permanentListenerServiceMain(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  await initFirebase();
-  await NotificationsListener.initialize();
-  var deviceApps = await DeviceApps.getInstalledApplications();
+  _backgroundService = service;
 
-  NotificationsListener.receivePort?.listen(
-      (message) => _handleNotificationListener(message, service, deviceApps));
+  await initFirebase();
+
+  _deviceApps = await DeviceApps.getInstalledApplications();
+
+  await NotificationsListener.initialize(
+    callbackHandle: handleNotificationListener,
+  );
 }

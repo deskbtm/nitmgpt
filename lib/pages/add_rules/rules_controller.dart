@@ -1,11 +1,11 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:device_apps/device_apps.dart';
+import 'package:nitmgpt/models/realm.dart';
+import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
 import 'package:nitmgpt/pages/home/watcher_controller.dart';
-import '../../models/realm.dart';
-import '../../models/settings.dart';
-import '../../utils.dart';
+import 'package:nitmgpt/utils.dart';
 
 class RulesController extends GetxController {
   static RulesController get to => Get.find();

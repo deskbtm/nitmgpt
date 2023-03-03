@@ -3,11 +3,11 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:nitmgpt/components/empty.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
+import 'package:nitmgpt/models/record.dart';
 import 'watcher_controller.dart';
 import 'package:unicons/unicons.dart';
-import '../../models/record.dart';
-import '../../theme.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
                   children: [
                     SizedBox(
                       child: ElevatedButton.icon(
-                        onPressed: _watcherController.toggleNotificationService,
+                        onPressed: _watcherController.startNotificationService,
                         icon: _watcherController.isListening.value
                             ? const Icon(UniconsLine.record_audio)
                             : const Icon(UniconsLine.play),
@@ -53,27 +53,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               _watcherController.records.value!.isEmpty
-                  ? SizedBox(
-                      height: Get.height - 300,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            UniconsLine.square_full,
-                            size: 30,
-                            color: primaryColor,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Empty',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: primaryColor,
-                            ),
-                          )
-                        ],
-                      ),
-                    )
+                  ? const Empty()
                   : Obx(
                       () => ListView.builder(
                         shrinkWrap: true,
@@ -86,7 +66,7 @@ class HomePage extends StatelessWidget {
                               .deviceAppsMap.value[r.packageName]?.icon;
 
                           return NotificationTitle(
-                            title: '的巴萨你顿巴斯的啊实打实的啊似乎大师',
+                            title: r.notificationTitle,
                             subtitle: r.notificationText,
                             appName: r.appName,
                             icon: icon,

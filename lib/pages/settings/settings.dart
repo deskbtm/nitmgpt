@@ -2,9 +2,9 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:nitmgpt/pages/home/watcher_controller.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
-import '../home/watcher_controller.dart';
-import '../../theme.dart';
+import 'package:nitmgpt/theme.dart';
 
 class SettingsPage extends GetView<SettingsController> {
   SettingsPage({super.key});
@@ -60,14 +60,14 @@ class SettingsPage extends GetView<SettingsController> {
                 height: 40,
                 child: ListTile(
                   title: Text(
-                    "app",
+                    "app".tr,
                     style: TextStyle(fontSize: 14, color: primaryColor),
                   ),
                 ),
               ),
               ListTile(
                 onTap: controller.setupOpenAiKey,
-                title: const Text("Chatgpt API Key"),
+                title: const Text("GPT3 OpenAI API Key"),
                 trailing: Obx(
                   () =>
                       Text(controller.openAiKey.value.isEmpty ? "" : "******"),
@@ -75,7 +75,7 @@ class SettingsPage extends GetView<SettingsController> {
               ),
               ListTile(
                 onTap: () => {Get.toNamed('/add_rules')},
-                title: const Text("Custom Rules"),
+                title: Text("Custom Rules".tr),
               ),
             ],
           ),
@@ -96,15 +96,15 @@ class SettingsPage extends GetView<SettingsController> {
                 trailing: Text('_locale'.tr),
               ),
               ListTile(
-                onTap: watcher.clearRecords,
-                title: Text("Clear records".tr),
-              ),
-              ListTile(
                 onTap: controller.setupProxy,
-                title: const Text("Proxy"),
+                title: Text("Proxy".tr),
                 trailing: Obx(
                   () => Text(controller.proxyUri.value),
                 ),
+              ),
+              ListTile(
+                onTap: watcher.clearRecords,
+                title: Text("Clear records".tr),
               ),
               updateTile,
             ],

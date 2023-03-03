@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nitmgpt/pages/settings/settings_binding.dart';
+import 'package:nitmgpt/pages/home/home.dart';
+import 'package:nitmgpt/pages/settings/settings.dart';
 
-import '../home/home.dart';
-import '../settings/settings.dart';
 
 class IndexController extends GetxController {
   static IndexController get to => Get.find();

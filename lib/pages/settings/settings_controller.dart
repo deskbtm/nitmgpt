@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:nitmgpt/components/dialog.dart';
+import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/i18n/i18n.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/utils.dart';
@@ -11,11 +16,9 @@ import 'package:ota_update/ota_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:nitmgpt/notification_utils.dart';
 import 'package:system_info2/system_info2.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:version/version.dart';
 
-import '../../constants.dart';
-import '../../i18n/i18n.dart';
+
 
 class GithubRelease {
   final String version;
@@ -36,38 +39,25 @@ class GithubRelease {
 class SettingsController extends GetxController {
   static SettingsController get to => Get.find();
 
-  late final PackageInfo? packageInfo;
-  late final release = Rxn<GithubRelease>();
+  late final GithubRelease? githubRelease;
   final proxyUri = ''.obs;
   final openAiKey = ''.obs;
   final currentVersion = Rxn<Version>();
   final latestVersion = Rxn<Version>();
   final proxyUriController = TextEditingController();
   final openAiKeyController = TextEditingController();
+  final ownAppController = TextEditingController();
 
   late Settings settings;
 
-  _getArch(String name) {
-    switch (name) {
-      case 'X86_64':
-        return 'x86_64';
-      case 'ARM64':
-        return 'arm64-v8a';
-      case 'ARM':
-        return 'armeabi-v7a';
-      default:
-        return '';
-    }
-  }
-
-  Future<GithubRelease?> fetchGithubRelease(String owner, String repo) async {
+  Future<GithubRelease?> _fetchGithubRelease(String owner, String repo) async {
     var res = await GetConnect()
         .get("https://api.github.com/repos/$owner/$repo/releases/latest");
 
     GithubRelease? resource;
 
     if (res.isOk) {
-      String arch = _getArch(SysInfo.kernelArchitecture.name);
+      String arch = getArch(SysInfo.kernelArchitecture.name);
       Map body = res.body;
 
       if (body["tag_name"] != null && body["assets"] != null) {
@@ -107,28 +97,30 @@ class SettingsController extends GetxController {
     return false;
   }
 
-  downloadArchive() {
-    OtaUpdate()
-        .execute(release.value!.url, sha256checksum: release.value!.sha256sum)
-        .listen(
-      (OtaEvent event) async {
-        switch (event.status) {
-          case OtaStatus.DOWNLOADING:
-            if (event.value != null) {
-              await LocalNotification.showNotification(
-                channelName: 'Downloading update',
-                title: 'Downloading update',
-                onlyAlertOnce: true,
-                index: 0,
-                progress: int.parse(event.value!),
-                maxProgress: 100,
-              );
-            }
-            break;
-          default:
-        }
-      },
-    );
+  void _downloadArchive() {
+    if (githubRelease != null) {
+      OtaUpdate()
+          .execute(githubRelease!.url, sha256checksum: githubRelease!.sha256sum)
+          .listen(
+        (OtaEvent event) async {
+          switch (event.status) {
+            case OtaStatus.DOWNLOADING:
+              if (event.value != null) {
+                await LocalNotification.showNotification(
+                  channelName: 'Downloading update',
+                  title: 'Downloading update...'.tr,
+                  onlyAlertOnce: true,
+                  index: 0,
+                  progress: int.parse(event.value!),
+                  maxProgress: 100,
+                );
+              }
+              break;
+            default:
+          }
+        },
+      );
+    }
   }
 
   Future<void> checkUpdate() async {
@@ -145,7 +137,7 @@ class SettingsController extends GetxController {
             height: double.maxFinite,
             child: Markdown(
               selectable: true,
-              data: release.value!.changelog,
+              data: githubRelease!.changelog,
               extensionSet: md.ExtensionSet(
                 md.ExtensionSet.gitHubFlavored.blockSyntaxes,
                 [
@@ -162,13 +154,13 @@ class SettingsController extends GetxController {
             style: TextStyle(fontSize: 20),
           ),
           onPressed: () {
-            downloadArchive();
+            _downloadArchive();
             Get.back();
           },
         ),
       );
     } else {
-      await initGithubRelease();
+      await _checkGithubLatestRelease();
       if (hasNewVersion()) {
         checkUpdate();
       } else {
@@ -178,125 +170,139 @@ class SettingsController extends GetxController {
   }
 
   setupProxy() async {
-    return Get.defaultDialog(
-      titlePadding: const EdgeInsets.only(top: 20),
-      titleStyle: const TextStyle(fontSize: 22),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      title: "Setup proxy",
-      content: FractionallySizedBox(
-        widthFactor: 0.8,
-        child: TextField(
-          controller: proxyUriController,
-        ),
-      ),
-      cancel: TextButton(
-        child: const Text("Reset", style: TextStyle(fontSize: 20)),
-        onPressed: () {
-          proxyUri.value = '';
-          proxyUriController.text = '';
-          realm.write(() {
-            settings.proxyUri = null;
-          });
-        },
-      ),
-      confirm: TextButton(
-        child: const Text("Ok", style: TextStyle(fontSize: 20)),
-        onPressed: () {
-          proxyUri.value = proxyUriController.text;
-          realm.write(() {
-            settings.proxyUri = proxyUriController.text;
-          });
-          Get.back();
-        },
-      ),
+    return showCommonDialog(
+      controller: proxyUriController,
+      title: "Setup proxy".tr,
+      cancelText: "Reset".tr,
+      onCancel: () async {
+        proxyUri.value = '';
+        proxyUriController.text = '';
+        realm.write(() {
+          settings.proxyUri = null;
+        });
+      },
+      onConfirm: () async {
+        proxyUri.value = proxyUriController.text.trim();
+        realm.write(() {
+          settings.proxyUri = proxyUriController.text.trim();
+        });
+        Get.back();
+      },
     );
   }
 
   setupOpenAiKey() async {
-    return Get.defaultDialog(
-      titlePadding: const EdgeInsets.only(top: 20),
-      titleStyle: const TextStyle(fontSize: 22),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      title: "Setup openai api key",
-      content: Column(
+    var description = RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: const TextStyle(color: Colors.black),
         children: [
-          RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: const TextStyle(color: Colors.black),
-              children: [
-                const TextSpan(
-                  text: "You could get open ai keys from ",
-                ),
-                TextSpan(
-                  text: openAiKeysUrl,
-                  style: const TextStyle(color: Colors.blue),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () async {
-                      Uri uri = Uri.parse(openAiKeysUrl);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
-                      }
-                    },
-                ),
-              ],
-            ),
+          TextSpan(
+            text: "You could get OpenAI API Key from ".tr,
           ),
-          FractionallySizedBox(
-            widthFactor: 0.8,
-            child: TextField(
-              controller: openAiKeyController,
-            ),
+          TextSpan(
+            text: openAiKeysUrl,
+            style: const TextStyle(color: Colors.blue),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () async {
+                await open(openAiKeysUrl);
+              },
           ),
         ],
       ),
-      cancel: TextButton(
-        child: const Text(
-          "Reset",
-          style: TextStyle(fontSize: 20),
-        ),
-        onPressed: () {
-          openAiKey.value = '';
-          openAiKeyController.text = '';
-          realm.write(() {
-            settings.openAiKey = null;
-          });
-        },
-      ),
-      confirm: TextButton(
-        child: const Text(
-          "Ok",
-          style: TextStyle(fontSize: 20),
-        ),
-        onPressed: () {
-          openAiKey.value = openAiKeyController.text;
-          realm.write(() {
-            settings.openAiKey = openAiKeyController.text;
-          });
-          Get.back();
-        },
-      ),
+    );
+
+    return showCommonDialog(
+      controller: openAiKeyController,
+      title: "Setup OpenAI API Key".tr,
+      description: description,
+      cancelText: "Reset".tr,
+      onCancel: () async {
+        openAiKey.value = '';
+        openAiKeyController.text = '';
+        realm.write(() {
+          settings.openAiKey = null;
+        });
+      },
+      onConfirm: () async {
+        openAiKey.value = openAiKeyController.text.trim();
+        realm.write(() {
+          settings.openAiKey = openAiKeyController.text.trim();
+        });
+        Get.back();
+      },
     );
   }
 
-  initGithubRelease() async {
-    GithubRelease? res = await fetchGithubRelease("deskbtm", "nitmgpt");
+  Future<void> _checkGithubLatestRelease() async {
+    GithubRelease? res = await _fetchGithubRelease("deskbtm", "nitmgpt");
 
     if (res != null) {
-      release.value = res;
+      githubRelease = res;
       latestVersion.value = Version.parse(res.version.replaceFirst("v", ''));
     }
   }
 
-  setLanguage() {
+  Future<bool> _accessApp() async {
+    return (await verifyGithubStarred(
+            ownAppController.text.trim(), REPO_NAME) ||
+        await verifyGithubFollowed(
+            ownAppController.text.trim(), MY_GITHUB_NAME));
+  }
+
+  verifyOwnedApp() {
+    var description = RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: const TextStyle(color: Colors.black),
+        children: [
+          TextSpan(
+            text:
+                "You could follow my Github or star this project to hide this dialog "
+                    .tr,
+          ),
+          TextSpan(
+            text: githubRepoUrl,
+            style: const TextStyle(color: Colors.blue),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () async {
+                await open(githubRepoUrl);
+              },
+          ),
+        ],
+      ),
+    );
+    return showCommonDialog(
+      title: "Get this App".tr,
+      cancelText: "Reset".tr,
+      controller: ownAppController,
+      description: description,
+      textFieldPlaceholder: "github account name".tr,
+      onConfirm: () async {
+        _accessApp().then((owned) {
+          settings.ownedApp = owned;
+        });
+
+        Get.back();
+      },
+    );
+  }
+
+  void setLanguage() {
     String code = Get.locale!.languageCode;
 
     if (code.contains('en')) {
       Get.updateLocale(TranslationService.zhCN);
+      realm.write(() {
+        settings.language = 'zh_CN';
+      });
     }
 
     if (code.contains('zh')) {
       Get.updateLocale(TranslationService.enUS);
+      realm.write(() {
+        settings.language = 'en_US';
+      });
     }
   }
 
@@ -312,15 +318,18 @@ class SettingsController extends GetxController {
       openAiKey.value = openAiKeyController.text = settings.openAiKey!;
     }
 
-    packageInfo = await PackageInfo.fromPlatform();
-    currentVersion.value = Version.parse(packageInfo?.version ?? '');
+    var packageInfo = await PackageInfo.fromPlatform();
+    currentVersion.value = Version.parse(packageInfo.version);
 
     super.onInit();
   }
 
   @override
   void onReady() async {
-    await initGithubRelease();
+    await _checkGithubLatestRelease();
+
+    
+
     super.onReady();
   }
 }
