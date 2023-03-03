@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "762419633906",
+    "project_id": "nitmgpt-b764e",
+    "storage_bucket": "nitmgpt-b764e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762419633906:android:17aa4c07ea8a6ac2553a6b",
+        "android_client_info": {
+          "package_name": "com.deskbtm.nitmgpt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "762419633906-l1inuvtagcbaii5iua630afl39jqu3ks.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALkqmYRmw2J9KMxOZBv_PMx3MuN35nuTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "762419633906-l1inuvtagcbaii5iua630afl39jqu3ks.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
