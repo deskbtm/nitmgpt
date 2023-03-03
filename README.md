@@ -34,24 +34,35 @@
 
 [Github release](https://github.com/deskbtm/nitmgpt/releases/latest)
 
+Coming Soon to the other App Stores.
+
 #### Note bene
  - This app is not free. it needs your star or follow [Nawbc](https://github.com/Nawbc).  
- - The software has only been tested on a small number of models. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
+ - The software only been tested on the emulator. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
  - Han(Nawbc) assumes no responsibility or liability for any errors or omissions in the content of this app.  
 
 ## Usage
 
 <img width="180" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png">
 
-
-Download [nitmgpt test](https://github.com/deskbtm/nitmgpt_test/releases/latest) to try notifications.
+1. Enable all the necessary permission (notification listener, battery optimization..).
+3. Setup the OpenAI API Key [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys) (国内如果梯子无效可以尝试修改代理).
+2. Waiting for the ad notifications 😂 . (Download [nitmgpt test](https://github.com/deskbtm/nitmgpt_test/releases/latest) to try)
 
 ## FAQ
 
-1. In some AOKP cannot keep the background service alive.
+1. Why i cannot keep the background service alive ?
 
-2. Ignore the important applications, like IM, EMAIL.
+In some AOKP may not keep the background service alive, You cloud
 
+
+2. What to do if you keep requesting the OpenAI api ?
+
+Ignore the applications in `Custom rules` option;
+
+3. How to avoid missing some important notifications ?
+
+Ignore the applications in `Custom rules` option;
 
 
 
