@@ -49,4 +49,6 @@ const Map<String, String> en_US = {
   'Setup proxy': 'Setup proxy',
   'Cleanup completed': 'Cleanup completed',
   'You could get OpenAI API Key from ': 'You could get OpenAI API Key from ',
+  'Spam': 'Spam',
+  'Ad': 'Ad',
 };

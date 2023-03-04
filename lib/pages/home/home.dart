@@ -71,6 +71,8 @@ class HomePage extends StatelessWidget {
                             appName: r.appName,
                             icon: icon,
                             tileKey: r.packageName,
+                            adProbability: r.adProbability,
+                            spamProbability: r.spamProbability,
                             dateTime: r.createTime != null
                                 ? formatter.format(r.createTime!)
                                 : '',

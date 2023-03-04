@@ -1,6 +1,7 @@
 import 'package:cached_memory_image/cached_memory_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class NotificationTitle extends StatelessWidget {
   final String? title;
@@ -8,6 +9,8 @@ class NotificationTitle extends StatelessWidget {
   final String? appName;
   final String? tileKey;
   final String? dateTime;
+  final double? adProbability;
+  final double? spamProbability;
   final Uint8List? icon;
 
   const NotificationTitle({
@@ -18,6 +21,8 @@ class NotificationTitle extends StatelessWidget {
     this.tileKey,
     this.appName,
     this.dateTime,
+    this.adProbability = .0,
+    this.spamProbability = .0,
   });
 
   @override
@@ -101,6 +106,7 @@ class NotificationTitle extends StatelessWidget {
                 children: [
                   title != null && title!.isNotEmpty
                       ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               title ?? '',
@@ -115,6 +121,28 @@ class NotificationTitle extends StatelessWidget {
                   Text(
                     subtitle ?? '',
                     style: const TextStyle(fontSize: 12),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${'Ad'.tr}: ${adProbability! * 100}%',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 20),
+                      Text(
+                        '${'Spam'.tr}: ${spamProbability! * 100}%',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 20),
+                      const Text(
+                        'power by GPT',
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 2, 104, 5),
+                            fontSize: 10),
+                      ),
+                    ],
                   )
                 ],
               ),
