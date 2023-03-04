@@ -39,9 +39,13 @@ Coming Soon to the other App Stores.
  - The software only been tested on the emulator. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
  - Han(Nawbc) assumes no responsibility or liability for any errors or omissions in the content of this app.  
 
-## Usage
-
 <img width="180" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png">
+
+
+<video width="180" src="https://user-images.githubusercontent.com/45007226/222894017-c08c5a4e-fa9f-4985-99d8-3cd3850fa188.mp4" controls="true" preload="true">
+</video>
+
+## Usage
 
 1. Enable all the necessary permissions (notification listener, battery optimization...).
 3. Setup the OpenAI API Key [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys) (国内如果梯子无效可以尝试修改代理).
