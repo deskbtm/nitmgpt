@@ -172,7 +172,7 @@ class AddRulesPage extends GetView<RulesController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      "Ignore app (multi-select)".tr,
+                      "Ignore apps".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
@@ -236,7 +236,7 @@ class AddRulesPage extends GetView<RulesController> {
                     ),
                     const SizedBox(height: 15),
                     Text(
-                      "Filter condition (ask chatgpt)".tr,
+                      "Filter conditions (ask chatgpt)".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
@@ -266,7 +266,7 @@ class AddRulesPage extends GetView<RulesController> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Custom probability(0~1.0)".tr,
+                      "Custom probability (0~1.0)".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,

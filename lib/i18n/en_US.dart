@@ -27,12 +27,12 @@ const Map<String, String> en_US = {
   'Clear records': 'Clear records',
   'Custom Rules': 'Custom Rules',
   'app': 'app',
-  'Ignore app (multi-select)': 'Ignore app(multi-select)',
+  'Ignore apps': 'Ignore apps',
   'Some permanent notifications will always trigger notification check, so you need to ignore or close it':
       'Some permanent notifications will always trigger notification check, so you need to ignore or close it.',
   'Proxy': 'Proxy',
-  'Filter condition (ask chatgpt)': 'Filter condition (ask chatgpt)',
-  'Custom probability(0~1.0)': 'Custom probability(0~1.0)',
+  'Filter conditions (ask chatgpt)': 'Filter conditions (ask chatgpt)',
+  'Custom probability (0~1.0)': 'Custom probability (0~1.0)',
   'If set, remove the notification should be more than the probability set here':
       'If set, remove the notification should be more than the probability set here.',
   'Advertisement probability': 'Advertisement probability',

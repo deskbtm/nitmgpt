@@ -24,14 +24,14 @@
 - Permanent background service even kills the app.
 - Custom match rules.
 - Local export history(xlsx).
-- Safe, Fully open source.
+- Safe, fully open source.
 - Beautiful UI (Material You).
 
 ## Installation
 
 [Github release](https://github.com/deskbtm/nitmgpt/releases/latest)
 
-Coming Soon to the other App Stores.
+Coming soon to the other App Stores.
 
 #### Note bene
  - This app is not free. it needs your star or follow [Nawbc](https://github.com/Nawbc).  
