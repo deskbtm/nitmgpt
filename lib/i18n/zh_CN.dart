@@ -48,4 +48,6 @@ Map<String, String> zh_CN = {
   'Setup proxy': '设置代理',
   'Cleanup completed': '清理完成',
   'You could get OpenAI API Key from ': '你可以通过以下方式获得OpenAI的API密钥 ',
+  'Spam': '垃圾消息',
+  'Ad': '广告',
 };

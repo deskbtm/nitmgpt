@@ -27,7 +27,6 @@
 - Safe, Fully open source.
 - Beautiful ui (Material You).
 
-
 ## Installation
 
 [Github release](https://github.com/deskbtm/nitmgpt/releases/latest)
@@ -65,8 +64,6 @@ Ignore the applications in `Custom rules` option;
 3. How to avoid missing some important notifications ?
 
 Ignore the applications in `Custom rules` option;
-
-
 
 ## License
 
