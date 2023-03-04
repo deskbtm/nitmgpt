@@ -14,18 +14,18 @@
 [![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://twitter.com/Deskbtm)
 
 
-**Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3.
+**Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3. And this idea lets AI return the formatted data for UX.
 
 <img width="100" src="https://user-images.githubusercontent.com/45007226/222633102-5d3efb05-b255-46f9-8309-adfdef00d1bd.jpg"> <img width="100" src="https://user-images.githubusercontent.com/45007226/222633092-c0197a6f-43ea-443d-bed6-c7d6283b3134.jpg">
 
 ## Features
 
-- Smart notification filtering power by GPT3.
-- Permanent background service event kill the app.
+- Innovative notification filtering power by GPT3.
+- Permanent background service even kills the app.
 - Custom match rules.
 - Local export history(xlsx).
 - Safe, Fully open source.
-- Beautiful ui (Material You).
+- Beautiful UI (Material You).
 
 ## Installation
 
