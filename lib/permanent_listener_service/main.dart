@@ -34,7 +34,8 @@ Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
   final openAI = OpenAI.instance.build(
     token: settings?.openAiKey,
     baseOption: HttpSetup(
-      receiveTimeout: 100000,
+      receiveTimeout: const Duration(seconds: 5),
+      connectTimeout: const Duration(seconds: 8),
       proxyUrl: settings != null && settings.proxyUri != ''
           ? settings.proxyUri
           : null,
@@ -44,12 +45,11 @@ Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
 
   final request = CompleteText(
     prompt: question,
-    model: kTranslateModelV3,
+    model: kTextDavinci3,
     maxTokens: 200,
-    stream: false,
   );
 
-  var result = await openAI.onCompleteText(request: request).catchError((err) {
+  var result = await openAI.onCompletion(request: request).catchError((err) {
     log('$err');
   });
   var choicesTexts = result?.choices

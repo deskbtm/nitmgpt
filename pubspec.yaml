@@ -35,7 +35,9 @@ dependencies:
   flutter_markdown: ^0.6.14
   markdown: ^7.0.1
   chat_gpt_sdk:
-    path: plugins/Flutter-ChatGPT
+    path: plugins/chatgpt_api
+  flutter_chatgpt_api:
+    path: plugins/chatgpt_api_unofficial
   flutter_background_service: ^2.4.6
   flutter_background_service_android: ^3.0.3
   realm: ^1.0.2

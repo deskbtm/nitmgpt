@@ -68,6 +68,12 @@ Ignore the applications in `Custom rules` option;
 
 Ignore the applications in `Custom rules` option;
 
+
+## Credits (modified)
+1. [Flutter-ChatGPT](https://github.com/redevRx/Flutter-ChatGPT)
+2. [flutter_notification_listener](https://github.com/jiusanzhou/flutter_notification_listener)
+
+
 ## License
 
 This project is available under the GNU AFFERO GENERAL PUBLIC LICENSE (AGPL-3.0).
