@@ -18,6 +18,9 @@
 
 <img width="100" src="https://user-images.githubusercontent.com/45007226/222633102-5d3efb05-b255-46f9-8309-adfdef00d1bd.jpg"> <img width="100" src="https://user-images.githubusercontent.com/45007226/222633092-c0197a6f-43ea-443d-bed6-c7d6283b3134.jpg">
 
+### ☢ If you use a paid API, **Ignore the ongoing notification app in `Custom rules` option**;
+### ☢ 如果使用付费的接口, 请在自定义规则中忽略常驻状态栏的应用.
+
 ## Features
 
 - Innovative notification filtering power by GPT3.
@@ -34,6 +37,7 @@
 Coming soon to the other App Stores.
 
 #### Note bene
+ - Recommend 
  - This app is not free. it needs your star or follow [Nawbc](https://github.com/Nawbc).  
  - The software only been tested on the emulator. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
  - Han(Nawbc) assumes no responsibility or liability for any errors or omissions in the content of this app.  
@@ -55,7 +59,6 @@ Coming soon to the other App Stores.
 1. Why i cannot keep the background service alive ?
 
 In some AOKP may not keep the background service alive, You cloud
-
 
 2. What to do if you keep requesting the OpenAI api ?
 
