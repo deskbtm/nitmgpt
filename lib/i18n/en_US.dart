@@ -51,4 +51,5 @@ const Map<String, String> en_US = {
   'You could get OpenAI API Key from ': 'You could get OpenAI API Key from ',
   'Spam': 'Spam',
   'Ad': 'Ad',
+  'Bug report': 'Bug report',
 };

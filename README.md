@@ -14,7 +14,7 @@
 [![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://twitter.com/Deskbtm)
 
 
-**Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hide ads, spam, etc notifications via GPT3. And this idea lets AI return the formatted data for UX.
+**Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hides ads, spam, etc notifications via GPT3. And this idea lets AI return the formatted data for UX.
 
 <img width="100" src="https://user-images.githubusercontent.com/45007226/222633102-5d3efb05-b255-46f9-8309-adfdef00d1bd.jpg"> <img width="100" src="https://user-images.githubusercontent.com/45007226/222633092-c0197a6f-43ea-443d-bed6-c7d6283b3134.jpg">
 
@@ -75,3 +75,4 @@ Copyright (C) 2021 Han <deskbtm@outlook.com>
 a) The source code of this program is forbidden to be distributed, deployed, or derived by individuals, and the source code is only used for learning and communication.  
 b) To obtain a license to use this program, a purchase is required.  
 c) The source code and binary products of this program may not be used for any commercial and profitable purposes  
+

@@ -49,7 +49,9 @@ Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
     stream: false,
   );
 
-  var result = await openAI.onCompleteText(request: request);
+  var result = await openAI.onCompleteText(request: request).catchError((err) {
+    log('$err');
+  });
   var choicesTexts = result?.choices
           .map((e) => e.text.replaceAll(RegExp(r'[\n\r]'), ''))
           .toSet()

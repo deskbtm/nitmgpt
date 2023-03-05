@@ -50,4 +50,5 @@ Map<String, String> zh_CN = {
   'You could get OpenAI API Key from ': '你可以通过以下方式获得OpenAI的API密钥 ',
   'Spam': '垃圾消息',
   'Ad': '广告',
+  'Bug report': '问题反馈',
 };

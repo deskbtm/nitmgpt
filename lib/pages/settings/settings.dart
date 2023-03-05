@@ -5,6 +5,9 @@ import 'package:flutter_notification_listener/flutter_notification_listener.dart
 import 'package:nitmgpt/pages/home/watcher_controller.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
 import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/utils.dart';
+
+import '../../constants.dart';
 
 class SettingsPage extends GetView<SettingsController> {
   SettingsPage({super.key});
@@ -82,6 +85,10 @@ class SettingsPage extends GetView<SettingsController> {
               ListTile(
                 onTap: () => {Get.toNamed('/add_rules')},
                 title: Text("Custom Rules".tr),
+              ),
+              ListTile(
+                onTap: () async => {open('$githubRepoUrl/issues')},
+                title: Text("Bug report".tr),
               ),
             ],
           ),
