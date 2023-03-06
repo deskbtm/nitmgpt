@@ -31,7 +31,7 @@ const Map<String, String> en_US = {
   'Some permanent notifications will always trigger notification check, so you need to ignore or close it':
       'Some permanent notifications will always trigger notification check, so you need to ignore or close it.',
   'Proxy': 'Proxy',
-  'Filter conditions (ask chatgpt)': 'Filter conditions (ask chatgpt)',
+  'Filter conditions (ask ChatGPT)': 'Filter conditions (ask ChatGPT)',
   'Custom probability (0~1.0)': 'Custom probability (0~1.0)',
   'If set, remove the notification should be more than the probability set here':
       'If set, remove the notification should be more than the probability set here.',
@@ -40,7 +40,11 @@ const Map<String, String> en_US = {
   'You could follow my Github or star this project to hide this dialog ':
       'You could follow my Github or star this project to hide this dialog. ',
   'Get this App': 'Get this App',
-  'Ignore': 'Ignore',
+  'Ignore forever': 'Ignore',
+  'Limit': 'Limit',
+  'reset': 'reset',
+  'Limit the number of ChatGPT API calls per 24 hours':
+      'Limit the number of ChatGPT API calls per 24 hours',
   'Github account name': 'Github account name',
   'Setup OpenAI API Key': 'Setup OpenAI API Key',
   'Downloading update...': 'Downloading update...',

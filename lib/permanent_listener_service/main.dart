@@ -1,6 +1,5 @@
-import 'dart:developer';
 import 'dart:ui';
-
+import 'dart:developer';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +17,7 @@ import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
 import 'package:nitmgpt/utils.dart';
 import 'package:realm/realm.dart';
 
-_getFieldsMeans(Settings? settings) {
+String _getFieldsMeans(Settings? settings) {
   return ruleFieldsMap.values
       .map((element) {
         var mean = settings?.ruleFields != null
@@ -30,11 +29,12 @@ _getFieldsMeans(Settings? settings) {
       .join(',');
 }
 
-Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
+Future<GPTResponse?> _inquireGPT(String question, Settings? settings,
+    {Future<void> Function()? onRequestSuccess}) async {
   final openAI = OpenAI.instance.build(
     token: settings?.openAiKey,
     baseOption: HttpSetup(
-      receiveTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 8),
       connectTimeout: const Duration(seconds: 8),
       proxyUrl: settings != null && settings.proxyUri != ''
           ? settings.proxyUri
@@ -49,9 +49,14 @@ Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
     maxTokens: 200,
   );
 
-  var result = await openAI.onCompletion(request: request).catchError((err) {
+  CTResponse? result =
+      await openAI.onCompletion(request: request).then((value) async {
+    if (onRequestSuccess != null) await onRequestSuccess();
+    return value;
+  }).catchError((err) {
     log('$err');
   });
+
   var choicesTexts = result?.choices
           .map((e) => e.text.replaceAll(RegExp(r'[\n\r]'), ''))
           .toSet()
@@ -64,6 +69,26 @@ Future<GPTResponse?> _inquireGPT(String question, Settings? settings) async {
   }
 
   return null;
+}
+
+Future<bool> _limited(Settings settings) async {
+  bool noLimit = settings.limitTimestamp == null,
+      overLimitTime = !noLimit &&
+          DateTime.now().difference(settings.limitTimestamp!) >
+              const Duration(hours: 24);
+  if (noLimit || overLimitTime) {
+    await realm.writeAsync(() {
+      settings.limitTimestamp = DateTime.now();
+      settings.limitCounter = 0;
+    });
+  }
+
+  if (settings.limitCounter != null &&
+      settings.limitCounter! > settings.presetLimit) {
+    return true;
+  }
+
+  return false;
 }
 
 bool _determineRemove(GPTResponse answer, Settings? settings) {
@@ -108,7 +133,7 @@ handleNotificationListener(NotificationEvent event) async {
     if (settings.openAiKey == null || settings.openAiKey == '') {
       if (_isUnsetApiKey) {
         _isUnsetApiKey = false;
-        _backgroundService.invoke("set_api_key");
+        _backgroundService.invoke("prompt_api_key");
       }
       return;
     }
@@ -117,12 +142,25 @@ handleNotificationListener(NotificationEvent event) async {
       return;
     }
 
+    if (await _limited(settings)) {
+      return;
+    }
+
     String fieldsMeans = _getFieldsMeans(settings);
     String question =
         'Determine "${event.title} ${event.text}", $fieldsMeans, only return json.';
     log(question, name: 'permanent_listener_service');
 
-    var answer = await _inquireGPT(question, settings);
+    var answer = await _inquireGPT(
+      question,
+      settings,
+      onRequestSuccess: () async {
+        await realm.writeAsync(() {
+          settings.limitCounter =
+              settings.limitCounter == null ? 0 : settings.limitCounter! + 1;
+        });
+      },
+    );
 
     if (answer != null) {
       Application? app = _deviceApps.firstWhereOrNull(

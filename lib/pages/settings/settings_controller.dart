@@ -250,6 +250,11 @@ class SettingsController extends GetxController {
             ownAppController.text.trim(), MY_GITHUB_NAME));
   }
 
+  _ignoreGetApp(bool owned) async {
+    await realm.writeAsync(() => {settings.ownedApp = owned});
+    ownedApp.value = owned;
+  }
+
   verifyOwnedApp() {
     var description = RichText(
       textAlign: TextAlign.center,
@@ -277,8 +282,15 @@ class SettingsController extends GetxController {
       controller: ownAppController,
       description: description,
       textFieldPlaceholder: "Github account name".tr,
-      onCancel: () => {Get.back()},
-      cancelText: 'Ignore'.tr,
+      onCancel: () async {
+        await _ignoreGetApp(true);
+        Get.back();
+      },
+      onWillPop: () async {
+        await _ignoreGetApp(true);
+        return true;
+      },
+      cancelText: 'Ignore forever'.tr,
       suffix: SizedBox(
         width: 20,
         height: 20,
@@ -290,10 +302,9 @@ class SettingsController extends GetxController {
       ),
       onConfirm: () async {
         _isVerifyLoading.value = true;
-        _accessApp().then((owned) {
+        _accessApp().then((owned) async {
           _isVerifyLoading.value = false;
-          realm.write(() => {settings.ownedApp = owned});
-          ownedApp.value = owned;
+          await _ignoreGetApp(owned);
           Get.back();
         });
       },

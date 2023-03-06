@@ -20,6 +20,8 @@ class RulesController extends GetxController {
 
   final spamProbabilityController = TextEditingController();
 
+  final limitController = TextEditingController();
+
   final _watcherController = WatcherController.to;
 
   @override
@@ -38,6 +40,8 @@ class RulesController extends GetxController {
       spamProbabilityController.text =
           settings.presetSpamProbability.toString();
     }
+
+    limitController.text = settings.presetLimit.toString();
   }
 
   @override
@@ -49,6 +53,7 @@ class RulesController extends GetxController {
     }
     spamProbabilityController.dispose();
     adProbabilityController.dispose();
+    limitController.dispose();
     super.onClose();
   }
 
@@ -117,12 +122,15 @@ class RulesController extends GetxController {
       settings.presetAdProbability = adProbabilityController.text.isEmpty
           ? null
           : double.tryParse(adProbabilityController.text);
-    });
 
-    realm.write(() {
       settings.presetSpamProbability = spamProbabilityController.text.isEmpty
           ? null
           : double.tryParse(spamProbabilityController.text);
+
+      int? limitVal = int.tryParse(limitController.text);
+      if (limitController.text.isNotEmpty && limitVal != null) {
+        settings.presetLimit = limitVal;
+      }
     });
   }
 }

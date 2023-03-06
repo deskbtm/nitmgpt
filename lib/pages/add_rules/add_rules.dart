@@ -236,7 +236,7 @@ class AddRulesPage extends GetView<RulesController> {
                     ),
                     const SizedBox(height: 15),
                     Text(
-                      "Filter conditions (ask chatgpt)".tr,
+                      "Filter conditions (ask ChatGPT)".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
@@ -265,6 +265,37 @@ class AddRulesPage extends GetView<RulesController> {
                       ]),
                     ),
                     const SizedBox(height: 10),
+                    Text(
+                      "${'Limit'.tr} (24h ${'reset'.tr})".tr,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: primaryColor,
+                      ),
+                    ),
+                    Text(
+                      "Limit the number of ChatGPT API calls per 24 hours".tr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 160,
+                      child: TextFormField(
+                        controller: controller.limitController,
+                        validator: controller.validator,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                     Text(
                       "Custom probability (0~1.0)".tr,
                       style: TextStyle(

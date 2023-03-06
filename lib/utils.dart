@@ -27,9 +27,16 @@ Settings getSettingInstance() {
   Settings? s = realm.find<Settings>(0);
   if (s == null) {
     realm.write(() {
-      realm.add(Settings(0));
+      realm.add(Settings(0, presetLimit: 200));
     });
     s = realm.find<Settings>(0);
+  }
+
+  /// Compat
+  if (s?.presetLimit == 0) {
+    realm.write(() {
+      s!.presetLimit = 200;
+    });
   }
 
   return s!;

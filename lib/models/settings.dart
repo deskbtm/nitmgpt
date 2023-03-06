@@ -41,6 +41,14 @@ class _Settings {
   /// Preset spam probability
   double? presetSpamProbability;
 
+  /// Request limit
+  int presetLimit = 200;
+
+  int? limitCounter;
+
+  /// Start limit timestamp
+  DateTime? limitTimestamp;
+
   /// Rule fields
   _RuleFields? ruleFields;
 

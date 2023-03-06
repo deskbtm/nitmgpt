@@ -30,7 +30,7 @@ Map<String, String> zh_CN = {
   'Some permanent notifications will always trigger notification check, so you need to ignore or close it':
       '一些永久性的通知会一直触发通知检查，所以你需要忽略或关闭它。',
   'Proxy': '代理',
-  'Filter conditions (ask chatgpt)': '筛选条件 (询问chatgpt)',
+  'Filter conditions (ask ChatGPT)': '筛选条件 (询问chatgpt)',
   'Custom probability (0~1.0)': '自定义概率(0~1.0)',
   'If set, remove the notification should be more than the probability set here':
       '如果设置了，删除通知应超过这里设置的概率.',
@@ -39,7 +39,11 @@ Map<String, String> zh_CN = {
   'You could follow my Github or star this project to hide this dialog ':
       '你可以通过关注我的GitHub, 或者star这个项目, 来隐藏这个对话框。',
   'Get this App': '获取该软件',
-  'Ignore': '忽略',
+  'Ignore forever': '忽略',
+  'Limit': '限制',
+  'reset': '重置',
+  'Limit the number of ChatGPT API calls per 24 hours':
+      '每24小时限制调用ChatGPT API的次数',
   'Github account name': 'Github账户名',
   'Setup OpenAI API Key': '设置OpenAI API密钥',
   'Downloading update...': '更新中...',
