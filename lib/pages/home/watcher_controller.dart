@@ -29,10 +29,6 @@ class WatcherController extends FullLifeCycleController
 
   final deviceAppsMap = RxMap<String, ApplicationWithIcon>({});
 
-  /// This records2 is used for the HomeScreen, it will pop
-  /// and push record when out of limit.
-  final records2 = <Record>[].obs;
-
   final isListening = false.obs;
 
   final _settingController = SettingsController.to;
@@ -105,7 +101,7 @@ class WatcherController extends FullLifeCycleController
       records.value = realm.all<Record>().toList();
     });
 
-    service.on('set_api_key').listen((event) async {
+    service.on('prompt_api_key').listen((event) async {
       await _settingController.setupOpenAiKey();
     });
   }

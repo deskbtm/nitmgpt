@@ -68,15 +68,17 @@ class SettingsPage extends GetView<SettingsController> {
                   ),
                 ),
               ),
-              controller.ownedApp.value
-                  ? Container()
-                  : ListTile(
-                      onTap: controller.verifyOwnedApp,
-                      title: Text("Get this App".tr),
-                    ),
+              Obx(
+                () => controller.ownedApp.value
+                    ? Container()
+                    : ListTile(
+                        onTap: controller.verifyOwnedApp,
+                        title: Text("Get this App".tr),
+                      ),
+              ),
               ListTile(
                 onTap: controller.setupOpenAiKey,
-                title: const Text("GPT3 OpenAI API Key"),
+                title: const Text("OpenAI API Key"),
                 trailing: Obx(
                   () =>
                       Text(controller.openAiKey.value.isEmpty ? "" : "******"),

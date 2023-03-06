@@ -83,22 +83,35 @@ class RuleFields extends _RuleFields
 
 class Settings extends _Settings
     with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
   Settings(
     int id, {
     String? proxyUri,
     String? openAiKey,
     double? presetAdProbability,
     double? presetSpamProbability,
+    int presetLimit = 200,
+    int? limitCounter,
+    DateTime? limitTimestamp,
     RuleFields? ruleFields,
     bool? ownedApp,
     String? language,
     Iterable<String> ignoredApps = const [],
   }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Settings>({
+        'presetLimit': 200,
+      });
+    }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'proxyUri', proxyUri);
     RealmObjectBase.set(this, 'openAiKey', openAiKey);
     RealmObjectBase.set(this, 'presetAdProbability', presetAdProbability);
     RealmObjectBase.set(this, 'presetSpamProbability', presetSpamProbability);
+    RealmObjectBase.set(this, 'presetLimit', presetLimit);
+    RealmObjectBase.set(this, 'limitCounter', limitCounter);
+    RealmObjectBase.set(this, 'limitTimestamp', limitTimestamp);
     RealmObjectBase.set(this, 'ruleFields', ruleFields);
     RealmObjectBase.set(this, 'ownedApp', ownedApp);
     RealmObjectBase.set(this, 'language', language);
@@ -138,6 +151,25 @@ class Settings extends _Settings
   @override
   set presetSpamProbability(double? value) =>
       RealmObjectBase.set(this, 'presetSpamProbability', value);
+
+  @override
+  int get presetLimit => RealmObjectBase.get<int>(this, 'presetLimit') as int;
+  @override
+  set presetLimit(int value) => RealmObjectBase.set(this, 'presetLimit', value);
+
+  @override
+  int? get limitCounter =>
+      RealmObjectBase.get<int>(this, 'limitCounter') as int?;
+  @override
+  set limitCounter(int? value) =>
+      RealmObjectBase.set(this, 'limitCounter', value);
+
+  @override
+  DateTime? get limitTimestamp =>
+      RealmObjectBase.get<DateTime>(this, 'limitTimestamp') as DateTime?;
+  @override
+  set limitTimestamp(DateTime? value) =>
+      RealmObjectBase.set(this, 'limitTimestamp', value);
 
   @override
   RuleFields? get ruleFields =>
@@ -182,6 +214,10 @@ class Settings extends _Settings
       SchemaProperty('presetAdProbability', RealmPropertyType.double,
           optional: true),
       SchemaProperty('presetSpamProbability', RealmPropertyType.double,
+          optional: true),
+      SchemaProperty('presetLimit', RealmPropertyType.int),
+      SchemaProperty('limitCounter', RealmPropertyType.int, optional: true),
+      SchemaProperty('limitTimestamp', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('ruleFields', RealmPropertyType.object,
           optional: true, linkTarget: 'RuleFields'),

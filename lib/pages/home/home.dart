@@ -20,10 +20,12 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Obx(() {
-          return ListView(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.only(top: 20, left: 15, right: 20),
+                padding: const EdgeInsets.only(
+                    top: 20, left: 15, right: 20, bottom: 10),
                 child: Wrap(
                   children: [
                     SizedBox(
@@ -54,32 +56,34 @@ class HomePage extends StatelessWidget {
               ),
               _watcherController.records.value!.isEmpty
                   ? const Empty()
-                  : Obx(
-                      () => ListView.builder(
-                        shrinkWrap: true,
-                        padding:
-                            const EdgeInsets.only(top: 20, left: 10, right: 10),
-                        itemCount: _watcherController.records.value!.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          Record r = _watcherController.records.value![index];
-                          var icon = _watcherController
-                              .deviceAppsMap.value[r.packageName]?.icon;
+                  : Expanded(
+                      child: Obx(
+                        () => ListView.builder(
+                          // shrinkWrap: true,
+                          padding: const EdgeInsets.only(
+                              top: 5, left: 10, right: 10, bottom: 20),
+                          itemCount: _watcherController.records.value!.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            Record r = _watcherController.records.value![index];
+                            var icon = _watcherController
+                                .deviceAppsMap.value[r.packageName]?.icon;
 
-                          return NotificationTitle(
-                            title: r.notificationTitle,
-                            subtitle: r.notificationText,
-                            appName: r.appName,
-                            icon: icon,
-                            tileKey: r.packageName,
-                            adProbability: r.adProbability,
-                            spamProbability: r.spamProbability,
-                            dateTime: r.createTime != null
-                                ? formatter.format(r.createTime!)
-                                : '',
-                          );
-                        },
+                            return NotificationTitle(
+                              title: r.notificationTitle,
+                              subtitle: r.notificationText,
+                              appName: r.appName,
+                              icon: icon,
+                              tileKey: r.packageName,
+                              adProbability: r.adProbability,
+                              spamProbability: r.spamProbability,
+                              dateTime: r.createTime != null
+                                  ? formatter.format(r.createTime!)
+                                  : '',
+                            );
+                          },
+                        ),
                       ),
-                    ),
+                    )
             ],
           );
         }),
