@@ -31,7 +31,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
-          flutter-version: "3.7.1"
+          flutter-version: "3.7.6"
           cache: true
 
       # Uncomment this step to verify the use of 'dart format' on each commit.
