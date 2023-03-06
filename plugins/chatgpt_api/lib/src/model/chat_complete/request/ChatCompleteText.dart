@@ -71,8 +71,7 @@ class ChatCompleteText {
   final String? user;
 
   ChatCompleteText(
-      {
-        required this.model,
+      {required this.model,
       required this.messages,
       this.temperature = .3,
       this.top_p = 1.0,
@@ -95,7 +94,7 @@ class ChatCompleteText {
         "max_tokens": this.maxToken,
         "presence_penalty": this.presencePenalty,
         "frequency_penalty": this.frequencyPenalty,
-       // "logit_bias": this.logitBias,
+        // "logit_bias": this.logitBias,
         "user": this.user
       });
 }

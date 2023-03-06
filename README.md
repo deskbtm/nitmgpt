@@ -14,8 +14,10 @@
 [![download](https://img.shields.io/github/downloads/deskbtm/nitmgpt/total?style=flat-square)](https://github.com/deskbtm/nitmgpt/releases)
 [![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://twitter.com/Deskbtm)
 
+<a href="https://www.producthunt.com/posts/nitmgpt?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nitmgpt" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=382415&theme=neutral" alt="nitmgpt - Filter&#0032;ad&#0044;&#0032;spam&#0032;notifications&#0032;via&#0032;GPT3 | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-**Hate these ads, spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hides ads, spam, etc notifications via GPT3. And this idea lets AI return the formatted data for UX.
+
+**Hate these ads or spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hides ads, spam, etc notifications via GPT3. And this idea lets AI return the formatted data for UX.
 
 <img width="100" src="https://user-images.githubusercontent.com/45007226/222633102-5d3efb05-b255-46f9-8309-adfdef00d1bd.jpg"> <img width="100" src="https://user-images.githubusercontent.com/45007226/222633092-c0197a6f-43ea-443d-bed6-c7d6283b3134.jpg">
 

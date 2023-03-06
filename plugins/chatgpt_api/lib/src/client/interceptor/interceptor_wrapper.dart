@@ -6,7 +6,7 @@ import '../../utils/constants.dart';
 class InterceptorWrapper extends Interceptor {
   final SharedPreferences? prefs;
   final String token;
-  InterceptorWrapper(this.prefs,this.token);
+  InterceptorWrapper(this.prefs, this.token);
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {

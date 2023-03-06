@@ -20,29 +20,30 @@ class OpenAIClient extends OpenAIWrapper {
 
   Future<T> get<T>(String url,
       {required T Function(Map<String, dynamic>) onSuccess}) async {
-  try {
-    final rawData = await _dio.get(url);
+    try {
+      final rawData = await _dio.get(url);
 
-    if (rawData.statusCode == HttpStatus.ok) {
-      log.debugString(
-          "============= success ==================\nresponse body :${rawData.data}");
-      return onSuccess(rawData.data);
-    } else {
-      log.errorLog(code: rawData.statusCode, error: "${rawData.data}");
-      throw RequestError(message: "${rawData.data}", code: rawData.statusCode);
+      if (rawData.statusCode == HttpStatus.ok) {
+        log.debugString(
+            "============= success ==================\nresponse body :${rawData.data}");
+        return onSuccess(rawData.data);
+      } else {
+        log.errorLog(code: rawData.statusCode, error: "${rawData.data}");
+        throw RequestError(
+            message: "${rawData.data}", code: rawData.statusCode);
+      }
+    } on DioError catch (err) {
+      throw RequestError(
+          message: "${err.message}", code: err.response?.statusCode);
     }
-  } on DioError catch (err) {
-    throw RequestError(message: "${err.message}", code: err.response?.statusCode);
-  }
   }
 
-  Future<T> post<T>(String url,Map<String,dynamic> request,
+  Future<T> post<T>(String url, Map<String, dynamic> request,
       {required T Function(Map<String, dynamic>) onSuccess}) async {
     try {
       log.debugString("request body :$request");
 
-      final rawData = await _dio.post(url,
-          data: json.encode(request));
+      final rawData = await _dio.post(url, data: json.encode(request));
       if (rawData.statusCode == HttpStatus.ok) {
         log.debugString("status code :${rawData.statusCode}");
         log.debugString(
@@ -50,15 +51,17 @@ class OpenAIClient extends OpenAIWrapper {
         return onSuccess(rawData.data);
       } else {
         log.errorLog(code: rawData.statusCode, error: "${rawData.data}");
-        throw RequestError(message: "${rawData.data}", code: rawData.statusCode);
+        throw RequestError(
+            message: "${rawData.data}", code: rawData.statusCode);
       }
-    } on DioError catch (err){
-      throw RequestError(message: "${err.message} \ndata:${err.response?.data}", code: err.response?.statusCode);
+    } on DioError catch (err) {
+      throw RequestError(
+          message: "${err.message} \ndata:${err.response?.data}",
+          code: err.response?.statusCode);
     }
   }
 
-  Stream<Response> postStream(String url,Map<String,dynamic> request)  {
-    return  _dio.post(url,
-        data: json.encode(request)).asStream();
+  Stream<Response> postStream(String url, Map<String, dynamic> request) {
+    return _dio.post(url, data: json.encode(request)).asStream();
   }
 }

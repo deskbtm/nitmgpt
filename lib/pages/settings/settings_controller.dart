@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:get/get.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart';
 import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/i18n/i18n.dart';
@@ -285,10 +285,6 @@ class SettingsController extends GetxController {
       onCancel: () async {
         await _ignoreGetApp(true);
         Get.back();
-      },
-      onWillPop: () async {
-        await _ignoreGetApp(true);
-        return true;
       },
       cancelText: 'Ignore forever'.tr,
       suffix: SizedBox(
