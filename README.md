@@ -10,6 +10,7 @@
 </p>
 
 ![workflow](https://img.shields.io/github/actions/workflow/status/deskbtm/nitmgpt/release.yml?style=flat-square)
+[![tag](https://img.shields.io/github/v/tag/deskbtm/nitmgpt?style=flat-square)](https://github.com/deskbtm/nitmgpt/releases)
 [![download](https://img.shields.io/github/downloads/deskbtm/nitmgpt/total?style=flat-square)](https://github.com/deskbtm/nitmgpt/releases)
 [![twitter](https://img.shields.io/twitter/follow/Deskbtm)](https://twitter.com/Deskbtm)
 
