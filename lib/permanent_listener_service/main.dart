@@ -17,6 +17,11 @@ import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
 import 'package:nitmgpt/utils.dart';
 import 'package:realm/realm.dart';
 
+bool _isUnsetApiKey = true;
+
+late List<Application> _deviceApps;
+late ServiceInstance _backgroundService;
+
 String _getFieldsMeans(Settings? settings) {
   return ruleFieldsMap.values
       .map((element) {
@@ -116,14 +121,9 @@ bool _determineRemove(GPTResponse answer, Settings? settings) {
     spamRemoved = true;
   }
 
-  bool isRemove = adRemoved || spamRemoved;
-  return isRemove;
+  bool isRemoved = adRemoved || spamRemoved;
+  return isRemoved;
 }
-
-bool _isUnsetApiKey = true;
-
-late List<Application> _deviceApps;
-late ServiceInstance _backgroundService;
 
 @pragma('vm:entry-point')
 handleNotificationListener(NotificationEvent event) async {
@@ -146,6 +146,14 @@ handleNotificationListener(NotificationEvent event) async {
       return;
     }
 
+    Application? app = _deviceApps.firstWhereOrNull(
+        (element) => element.packageName == event.packageName);
+
+    // Exclude system apps.
+    if (app != null && app.systemApp && settings.ignoreSystemApps) {
+      return;
+    }
+
     String fieldsMeans = _getFieldsMeans(settings);
     String question =
         'Determine "${event.title} ${event.text}", $fieldsMeans, only return json.';
@@ -163,13 +171,10 @@ handleNotificationListener(NotificationEvent event) async {
     );
 
     if (answer != null) {
-      Application? app = _deviceApps.firstWhereOrNull(
-          (element) => element.packageName == event.packageName);
-      bool isRemove = _determineRemove(answer, settings);
+      bool isRemoved = _determineRemove(answer, settings);
+      log("Notification removed: $isRemoved");
 
-      log("Notification removed: $isRemove");
-
-      if (isRemove) {
+      if (isRemoved) {
         NotificationsListener.cancelNotification(event.key ?? '');
         Record record = Record(
           ObjectId(),
@@ -221,7 +226,8 @@ permanentListenerServiceMain(ServiceInstance service) async {
 
   await initFirebase();
 
-  _deviceApps = await DeviceApps.getInstalledApplications();
+  _deviceApps =
+      await DeviceApps.getInstalledApplications(includeSystemApps: true);
 
   await NotificationsListener.initialize(
     callbackHandle: handleNotificationListener,

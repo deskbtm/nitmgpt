@@ -91,7 +91,8 @@ class Settings extends _Settings
     String? openAiKey,
     double? presetAdProbability,
     double? presetSpamProbability,
-    int presetLimit = 200,
+    int presetLimit = 100,
+    bool ignoreSystemApps = true,
     int? limitCounter,
     DateTime? limitTimestamp,
     RuleFields? ruleFields,
@@ -101,7 +102,8 @@ class Settings extends _Settings
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Settings>({
-        'presetLimit': 200,
+        'presetLimit': 100,
+        'ignoreSystemApps': true,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -110,6 +112,7 @@ class Settings extends _Settings
     RealmObjectBase.set(this, 'presetAdProbability', presetAdProbability);
     RealmObjectBase.set(this, 'presetSpamProbability', presetSpamProbability);
     RealmObjectBase.set(this, 'presetLimit', presetLimit);
+    RealmObjectBase.set(this, 'ignoreSystemApps', ignoreSystemApps);
     RealmObjectBase.set(this, 'limitCounter', limitCounter);
     RealmObjectBase.set(this, 'limitTimestamp', limitTimestamp);
     RealmObjectBase.set(this, 'ruleFields', ruleFields);
@@ -156,6 +159,13 @@ class Settings extends _Settings
   int get presetLimit => RealmObjectBase.get<int>(this, 'presetLimit') as int;
   @override
   set presetLimit(int value) => RealmObjectBase.set(this, 'presetLimit', value);
+
+  @override
+  bool get ignoreSystemApps =>
+      RealmObjectBase.get<bool>(this, 'ignoreSystemApps') as bool;
+  @override
+  set ignoreSystemApps(bool value) =>
+      RealmObjectBase.set(this, 'ignoreSystemApps', value);
 
   @override
   int? get limitCounter =>
@@ -216,6 +226,7 @@ class Settings extends _Settings
       SchemaProperty('presetSpamProbability', RealmPropertyType.double,
           optional: true),
       SchemaProperty('presetLimit', RealmPropertyType.int),
+      SchemaProperty('ignoreSystemApps', RealmPropertyType.bool),
       SchemaProperty('limitCounter', RealmPropertyType.int, optional: true),
       SchemaProperty('limitTimestamp', RealmPropertyType.timestamp,
           optional: true),

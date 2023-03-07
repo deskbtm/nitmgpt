@@ -22,6 +22,8 @@ class RulesController extends GetxController {
 
   final limitController = TextEditingController();
 
+  final ignoreSystemApps = true.obs;
+
   final _watcherController = WatcherController.to;
 
   @override
@@ -40,6 +42,8 @@ class RulesController extends GetxController {
       spamProbabilityController.text =
           settings.presetSpamProbability.toString();
     }
+
+    ignoreSystemApps.value = settings.ignoreSystemApps;
 
     limitController.text = settings.presetLimit.toString();
   }
@@ -105,6 +109,14 @@ class RulesController extends GetxController {
         selectedApp.add(r);
       }
     }
+  }
+
+  toggleIgnoreSystemApps(bool? value) async {
+    bool val = value ?? true;
+    realm.writeAsync(() {
+      settings.ignoreSystemApps = val;
+    });
+    ignoreSystemApps.value = val;
   }
 
   submit() async {

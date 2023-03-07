@@ -40,7 +40,7 @@ const Map<String, String> en_US = {
   'You could follow my Github or star this project to hide this dialog ':
       'You could follow my Github or star this project to hide this dialog. ',
   'Get this App': 'Get this App',
-  'Ignore forever': 'Ignore',
+  'Ignore forever': 'Ignore forever',
   'Limit': 'Limit',
   'reset': 'reset',
   'Limit the number of ChatGPT API calls per 24 hours':
@@ -56,4 +56,7 @@ const Map<String, String> en_US = {
   'Spam': 'Spam',
   'Ad': 'Ad',
   'Bug report': 'Bug report',
+  'Ignore system apps': 'Ignore system apps',
+  'This will exit all services': 'This will exit all services',
+  'Exit App': 'Exit App',
 };

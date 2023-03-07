@@ -32,12 +32,16 @@ Settings getSettingInstance() {
     s = realm.find<Settings>(0);
   }
 
-  /// Compat
-  if (s?.presetLimit == 0) {
-    realm.write(() {
-      s!.presetLimit = 200;
-    });
-  }
+  // /// Compat alpha version.
+  // realm.write(() {
+  //   if (s?.presetLimit == 0) {
+  //     s!.presetLimit = 200;
+  //   }
+
+  //   if (s?.ignoreSystemApps == null) {
+  //     s!.ignoreSystemApps = true;
+  //   }
+  // });
 
   return s!;
 }

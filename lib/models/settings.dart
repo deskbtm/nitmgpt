@@ -42,7 +42,10 @@ class _Settings {
   double? presetSpamProbability;
 
   /// Request limit
-  int presetLimit = 200;
+  int presetLimit = 100;
+
+  /// Ignore system apps
+  bool ignoreSystemApps = true;
 
   int? limitCounter;
 

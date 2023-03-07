@@ -1,13 +1,13 @@
-import 'package:cached_memory_image/cached_memory_image.dart';
-import 'package:device_apps/device_apps.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nitmgpt/components/back_button.dart';
-import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
-import 'package:nitmgpt/pages/add_rules/rules_controller.dart';
 import 'package:nitmgpt/pages/home/watcher_controller.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:unicons/unicons.dart';
+import 'package:flutter/material.dart';
+import 'package:device_apps/device_apps.dart';
+import 'package:cached_memory_image/cached_memory_image.dart';
+import 'package:nitmgpt/components/back_button.dart';
+import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
+import 'package:nitmgpt/pages/add_rules/rules_controller.dart';
 
 class ProbabilityTile extends StatelessWidget {
   final String title;
@@ -74,7 +74,6 @@ class ProbabilityTile extends StatelessWidget {
 class AddRulesPage extends GetView<RulesController> {
   AddRulesPage({super.key});
 
-  final _rulesController = RulesController.to;
   final _watcherController = WatcherController.to;
 
   _showDeviceApps(BuildContext context) {
@@ -85,33 +84,42 @@ class AddRulesPage extends GetView<RulesController> {
         return FractionallySizedBox(
           heightFactor: 0.8,
           child: Obx(
-            () => ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.only(top: 20),
-              itemCount: _watcherController.deviceApps.length,
-              itemBuilder: (BuildContext context, int index) {
-                ApplicationWithIcon app = _watcherController.deviceApps[index];
-
-                return ListTile(
-                  onTap: () {
-                    _rulesController.addSelectedApp(app);
-                    Get.back();
-                  },
-                  leading: SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: CachedMemoryImage(
-                      bytes: app.icon,
-                      width: 50,
-                      height: 50,
-                      uniqueKey: app.packageName,
+            () => _watcherController.deviceApps.isEmpty
+                ? const Center(
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(),
                     ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.only(top: 20),
+                    itemCount: _watcherController.deviceApps.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      ApplicationWithIcon app =
+                          _watcherController.deviceApps[index];
+
+                      return ListTile(
+                        onTap: () {
+                          controller.addSelectedApp(app);
+                          Get.back();
+                        },
+                        leading: SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: CachedMemoryImage(
+                            bytes: app.icon,
+                            width: 50,
+                            height: 50,
+                            uniqueKey: app.packageName,
+                          ),
+                        ),
+                        title: Text(app.appName),
+                        subtitle: Text(app.packageName),
+                      );
+                    },
                   ),
-                  title: Text(app.appName),
-                  subtitle: Text(app.packageName),
-                );
-              },
-            ),
           ),
         );
       },
@@ -167,7 +175,7 @@ class AddRulesPage extends GetView<RulesController> {
             Container(
               padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
               child: Form(
-                key: _rulesController.formKey,
+                key: controller.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -186,7 +194,15 @@ class AddRulesPage extends GetView<RulesController> {
                         color: Colors.grey,
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    Row(children: [
+                      Text('Ignore system apps'.tr),
+                      Obx(
+                        () => Checkbox(
+                          value: controller.ignoreSystemApps.value,
+                          onChanged: controller.toggleIgnoreSystemApps,
+                        ),
+                      ),
+                    ]),
                     Obx(
                       () => SizedBox(
                         width: double.infinity,
@@ -194,15 +210,16 @@ class AddRulesPage extends GetView<RulesController> {
                           spacing: 10,
                           children: [
                             ElevatedButton(
-                              onPressed: () {
-                                _showDeviceApps(context);
+                              onPressed: () async {
+                                _watcherController.getDeviceApps();
+                                return _showDeviceApps(context);
                               },
                               style: ButtonStyle(
-                                shape: MaterialStateProperty.all<
-                                    RoundedRectangleBorder>(
+                                shape: MaterialStateProperty.all(
                                   const RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(5)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(5),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -211,7 +228,7 @@ class AddRulesPage extends GetView<RulesController> {
                                 style: const TextStyle(fontSize: 16),
                               ),
                             ),
-                            ..._rulesController.selectedApp.map((element) {
+                            ...controller.selectedApp.map((element) {
                               return Chip(
                                 label: Text(element.appName),
                                 avatar: CircleAvatar(
@@ -333,7 +350,7 @@ class AddRulesPage extends GetView<RulesController> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
-            await _rulesController.submit();
+            await controller.submit();
 
             Get.back();
           },

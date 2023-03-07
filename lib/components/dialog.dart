@@ -17,7 +17,7 @@ Future<T?> showCommonDialog<T>({
     onWillPop: onWillPop,
     titlePadding: const EdgeInsets.only(top: 20),
     titleStyle: const TextStyle(fontSize: 19),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
     title: title,
     content: Column(
       children: [

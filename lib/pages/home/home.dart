@@ -66,7 +66,7 @@ class HomePage extends StatelessWidget {
                           itemBuilder: (BuildContext context, int index) {
                             Record r = _watcherController.records.value![index];
                             var icon = _watcherController
-                                .deviceAppsMap.value[r.packageName]?.icon;
+                                .deviceAppsMap[r.packageName]?.icon;
 
                             return NotificationTitle(
                               title: r.notificationTitle,

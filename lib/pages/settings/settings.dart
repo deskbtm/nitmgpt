@@ -6,7 +6,6 @@ import 'package:nitmgpt/pages/home/watcher_controller.dart';
 import 'package:nitmgpt/pages/settings/settings_controller.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:nitmgpt/utils.dart';
-
 import '../../constants.dart';
 
 class SettingsPage extends GetView<SettingsController> {
@@ -164,6 +163,17 @@ class SettingsPage extends GetView<SettingsController> {
                           "Follow the steps and disable the optimizations to allow smooth functioning of this app");
                 },
                 title: Text("Manufacturer specific Battery Optimization".tr),
+              ),
+              ListTile(
+                onTap: watcher.exitAllServices,
+                title: Text(
+                  "Exit App".tr,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                subtitle: Text(
+                  "This will exit all services".tr,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ),
             ],
           )

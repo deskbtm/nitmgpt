@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:developer';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:device_apps/device_apps.dart';
@@ -32,6 +33,10 @@ class WatcherController extends FullLifeCycleController
   final isListening = false.obs;
 
   final _settingController = SettingsController.to;
+
+  late final FlutterBackgroundService backgroundService;
+
+  late Settings settings;
 
   static showNecessaryPermissionDialog({
     VoidCallback? onConfirm,
@@ -71,22 +76,15 @@ class WatcherController extends FullLifeCycleController
     Fluttertoast.showToast(msg: 'Cleanup completed'.tr);
   }
 
-  _initDeviceApps() async {
-    var apps = (await DeviceApps.getInstalledApplications(
-      includeAppIcons: true,
-    ));
-
-    deviceApps.addAll(apps.map((e) {
-      // ignore: invalid_use_of_protected_member
-      deviceAppsMap.value[e.packageName] = e as ApplicationWithIcon;
-      return e;
-    }));
+  Future<void> exitAllServices() async {
+    backgroundService.invoke('stopService');
+    await SystemNavigator.pop();
   }
 
   _startPermanentService() async {
-    final service = FlutterBackgroundService();
+    backgroundService = FlutterBackgroundService();
 
-    await service.configure(
+    await backgroundService.configure(
       androidConfiguration: AndroidConfiguration(
         onStart: permanentListenerServiceMain,
         autoStart: true,
@@ -97,11 +95,11 @@ class WatcherController extends FullLifeCycleController
       iosConfiguration: IosConfiguration(),
     );
 
-    service.on('update_records').listen((event) async {
+    backgroundService.on('update_records').listen((event) async {
       records.value = realm.all<Record>().toList();
     });
 
-    service.on('prompt_api_key').listen((event) async {
+    backgroundService.on('prompt_api_key').listen((event) async {
       await _settingController.setupOpenAiKey();
     });
   }
@@ -159,6 +157,19 @@ class WatcherController extends FullLifeCycleController
     }
 
     return true;
+  }
+
+  Future<void> getDeviceApps() async {
+    deviceApps.value = [];
+
+    var apps = (await DeviceApps.getInstalledApplications(
+      includeAppIcons: true,
+    ));
+
+    deviceApps.value = apps.map((e) {
+      deviceAppsMap[e.packageName] = e as ApplicationWithIcon;
+      return e;
+    }).toList();
   }
 
   Future<void> startNotificationService() async {
@@ -298,7 +309,7 @@ class WatcherController extends FullLifeCycleController
       await _startPermanentService();
       await startNotificationService();
 
-      Settings settings = getSettingInstance();
+      settings = getSettingInstance();
 
       if (settings.ownedApp == null) {
         Timer(const Duration(seconds: 5), () {
@@ -307,7 +318,7 @@ class WatcherController extends FullLifeCycleController
       }
     }
 
-    await _initDeviceApps();
+    await getDeviceApps();
 
     records.value = realm.all<Record>().toList().reversed.toList();
   }

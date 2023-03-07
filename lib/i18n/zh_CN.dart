@@ -39,7 +39,7 @@ Map<String, String> zh_CN = {
   'You could follow my Github or star this project to hide this dialog ':
       '你可以通过关注我的GitHub, 或者star这个项目, 来隐藏这个对话框。',
   'Get this App': '获取该软件',
-  'Ignore forever': '忽略',
+  'Ignore forever': '不再显示',
   'Limit': '限制',
   'reset': '重置',
   'Limit the number of ChatGPT API calls per 24 hours':
@@ -55,4 +55,7 @@ Map<String, String> zh_CN = {
   'Spam': '垃圾消息',
   'Ad': '广告',
   'Bug report': '问题反馈',
+  'Ignore system apps': '忽略系统应用',
+  'This will exit all services': '这会退出所有服务',
+  'Exit App': '退出应用',
 };
