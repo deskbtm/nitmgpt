@@ -30,7 +30,7 @@
 - Permanent background service even kills the app.
 - Custom match rules.
 - Local export history(xlsx).
-- Safe, fully open source.
+- Safe, fully open source. **(Privacy. e.g. IM)** [FAQ.1](#faq)
 - Beautiful UI (Material You).
 
 ## Installation
@@ -59,15 +59,19 @@ Coming soon to the other App Stores.
 
 ## FAQ
 
-1. Why i cannot keep the background service alive ?
+1. Will the chat content be uploaded to GPT ? 
+
+Yep. If you are concerned about privacy issues, ignore the applications in `Custom rules` option.
+
+2. Why i cannot keep the background service alive ?
 
 In some AOKP may not keep the background service alive, You cloud
 
-2. What to do if you keep requesting the OpenAI api ?
+3. What to do if you keep requesting the OpenAI api ?
 
 Ignore the applications in `Custom rules` option;
 
-3. How to avoid missing some important notifications ?
+4. How to avoid missing some important notifications ?
 
 Ignore the applications in `Custom rules` option;
 
