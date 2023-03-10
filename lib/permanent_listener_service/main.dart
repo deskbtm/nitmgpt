@@ -191,9 +191,19 @@ handleNotificationListener(NotificationEvent event) async {
           createTime: event.createAt,
           uid: event.uniqueId,
         );
+
+        RealmResults<RecordedApp> result =
+            realm.query<RecordedApp>('packageName == \$0', [event.packageName]);
+
         await realm.writeAsync(() {
-          realm.add(record);
+          if (result.isEmpty) {
+            realm.add(
+                RecordedApp(ObjectId(), event.packageName!, records: [record]));
+          } else {
+            result.first.records.insert(0, record);
+          }
         });
+
         _backgroundService.invoke('update_records');
       }
     }

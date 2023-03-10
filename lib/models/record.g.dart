@@ -151,3 +151,58 @@ class Record extends _Record with RealmEntity, RealmObjectBase, RealmObject {
     ]);
   }
 }
+
+class RecordedApp extends _RecordedApp
+    with RealmEntity, RealmObjectBase, RealmObject {
+  RecordedApp(
+    ObjectId id,
+    String packageName, {
+    Iterable<Record> records = const [],
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, 'packageName', packageName);
+    RealmObjectBase.set<RealmList<Record>>(
+        this, 'records', RealmList<Record>(records));
+  }
+
+  RecordedApp._();
+
+  @override
+  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
+  @override
+  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  String get packageName =>
+      RealmObjectBase.get<String>(this, 'packageName') as String;
+  @override
+  set packageName(String value) =>
+      RealmObjectBase.set(this, 'packageName', value);
+
+  @override
+  RealmList<Record> get records =>
+      RealmObjectBase.get<Record>(this, 'records') as RealmList<Record>;
+  @override
+  set records(covariant RealmList<Record> value) =>
+      throw RealmUnsupportedSetError();
+
+  @override
+  Stream<RealmObjectChanges<RecordedApp>> get changes =>
+      RealmObjectBase.getChanges<RecordedApp>(this);
+
+  @override
+  RecordedApp freeze() => RealmObjectBase.freezeObject<RecordedApp>(this);
+
+  static SchemaObject get schema => _schema ??= _initSchema();
+  static SchemaObject? _schema;
+  static SchemaObject _initSchema() {
+    RealmObjectBase.registerFactory(RecordedApp._);
+    return const SchemaObject(
+        ObjectType.realmObject, RecordedApp, 'RecordedApp', [
+      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('packageName', RealmPropertyType.string),
+      SchemaProperty('records', RealmPropertyType.object,
+          linkTarget: 'Record', collectionType: RealmCollectionType.list),
+    ]);
+  }
+}

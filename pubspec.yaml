@@ -43,6 +43,8 @@ dependencies:
   realm: ^1.0.2
   firebase_crashlytics: ^3.0.15
   intl: ^0.18.0
+  bubble_tab_indicator: ^0.1.6
+  tab_indicator_styler: ^2.0.0
 
 dev_dependencies:
   flutter_lints: ^2.0.0

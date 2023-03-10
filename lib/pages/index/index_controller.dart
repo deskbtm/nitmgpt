@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nitmgpt/pages/home/home.dart';
+import 'package:nitmgpt/pages/home/home_binding.dart';
 import 'package:nitmgpt/pages/settings/settings.dart';
 
 class IndexController extends GetxController {
@@ -24,6 +25,7 @@ class IndexController extends GetxController {
           settings: settings,
           transition: Transition.leftToRight,
           page: () => HomePage(),
+          binding: HomeBinding(),
         );
       case '/settings':
         return GetPageRoute(

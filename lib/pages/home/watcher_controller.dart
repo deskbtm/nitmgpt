@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:developer';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:flutter_notification_listener/flutter_notification_listener.dart';
-import 'package:device_apps/device_apps.dart';
-import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:device_apps/device_apps.dart';
+import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:nitmgpt/constants.dart';
@@ -24,8 +24,6 @@ class WatcherController extends FullLifeCycleController
     with FullLifeCycleMixin {
   static WatcherController get to => Get.find();
 
-  final records = Rxn<List<Record>>([]);
-
   final deviceApps = <ApplicationWithIcon>[].obs;
 
   final deviceAppsMap = RxMap<String, ApplicationWithIcon>({});
@@ -34,7 +32,11 @@ class WatcherController extends FullLifeCycleController
 
   final _settingController = SettingsController.to;
 
+  final detectedApps = <ApplicationWithIcon>[].obs;
+
   late final FlutterBackgroundService backgroundService;
+
+  TabController? tabController;
 
   late Settings settings;
 
@@ -69,8 +71,9 @@ class WatcherController extends FullLifeCycleController
   }
 
   Future<void> clearRecords() async {
-    records.value = [];
+    detectedApps.value = [];
     await realm.writeAsync(() {
+      realm.deleteAll<RecordedApp>();
       realm.deleteAll<Record>();
     });
     Fluttertoast.showToast(msg: 'Cleanup completed'.tr);
@@ -81,7 +84,7 @@ class WatcherController extends FullLifeCycleController
     await SystemNavigator.pop();
   }
 
-  _startPermanentService() async {
+  Future<void> _startPermanentService() async {
     backgroundService = FlutterBackgroundService();
 
     await backgroundService.configure(
@@ -94,10 +97,6 @@ class WatcherController extends FullLifeCycleController
       ),
       iosConfiguration: IosConfiguration(),
     );
-
-    backgroundService.on('update_records').listen((event) async {
-      records.value = realm.all<Record>().toList();
-    });
 
     backgroundService.on('prompt_api_key').listen((event) async {
       await _settingController.setupOpenAiKey();
@@ -159,14 +158,12 @@ class WatcherController extends FullLifeCycleController
     return true;
   }
 
-  Future<void> getDeviceApps() async {
-    deviceApps.value = [];
-
+  Future<List<ApplicationWithIcon>> getDeviceApps() async {
     var apps = (await DeviceApps.getInstalledApplications(
       includeAppIcons: true,
     ));
 
-    deviceApps.value = apps.map((e) {
+    return apps.map((e) {
       deviceAppsMap[e.packageName] = e as ApplicationWithIcon;
       return e;
     }).toList();
@@ -188,8 +185,10 @@ class WatcherController extends FullLifeCycleController
     isListening.value = true;
   }
 
-  exportXlsx() async {
-    var exportRecords = records.value!.reversed.toList();
+  categorize() {}
+
+  Future<void> exportXlsx() async {
+    var exportRecords = getRecords();
     int c = 100;
     int n = (exportRecords.length / c).ceil();
     var now = DateTime.now();
@@ -297,6 +296,33 @@ class WatcherController extends FullLifeCycleController
     }
   }
 
+  List<ApplicationWithIcon> getDetectedApps() {
+    var result = realm.all<RecordedApp>();
+    List<ApplicationWithIcon> apps = [];
+
+    for (var app in result) {
+      if (deviceAppsMap[app.packageName] != null) {
+        apps.add(deviceAppsMap[app.packageName]!);
+      }
+    }
+
+    return apps;
+  }
+
+  List<Record> getRecords({String? packageName}) {
+    if (packageName == null) {
+      return realm
+          .all<RecordedApp>()
+          .expand((element) => element.records)
+          .toList();
+    } else {
+      var result =
+          realm.query<RecordedApp>('packageName == \$0', [packageName]);
+
+      return result.first.records.toList();
+    }
+  }
+
   @override
   void onInit() async {
     super.onInit();
@@ -318,9 +344,12 @@ class WatcherController extends FullLifeCycleController
       }
     }
 
-    await getDeviceApps();
+    deviceApps.value = await getDeviceApps();
+  }
 
-    records.value = realm.all<Record>().toList().reversed.toList();
+  @override
+  void onClose() {
+    super.onClose();
   }
 
   @override
@@ -333,7 +362,5 @@ class WatcherController extends FullLifeCycleController
   void onPaused() {}
 
   @override
-  void onResumed() {
-    records.value = realm.all<Record>().toList().reversed.toList();
-  }
+  void onResumed() {}
 }

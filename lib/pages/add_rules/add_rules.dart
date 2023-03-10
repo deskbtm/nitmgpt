@@ -211,6 +211,7 @@ class AddRulesPage extends GetView<RulesController> {
                           children: [
                             ElevatedButton(
                               onPressed: () async {
+                                _watcherController.deviceApps.value = [];
                                 _watcherController.getDeviceApps();
                                 return _showDeviceApps(context);
                               },

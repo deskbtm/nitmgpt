@@ -8,7 +8,7 @@ class _Record {
 
   bool? isAd;
 
-  ///the probability that this sentence is classified as an advertisement
+  /// The probability that this sentence is classified as an advertisement
   double? adProbability;
 
   bool? isSpam;
@@ -30,4 +30,14 @@ class _Record {
   String? uid;
 
   String? notificationKey;
+}
+
+@RealmModel()
+class _RecordedApp {
+  @PrimaryKey()
+  late ObjectId id;
+
+  late String packageName;
+
+  late List<_Record> records;
 }

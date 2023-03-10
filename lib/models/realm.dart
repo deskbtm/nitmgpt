@@ -7,6 +7,7 @@ var _config = Configuration.local(
     Record.schema,
     Settings.schema,
     RuleFields.schema,
+    RecordedApp.schema,
   ],
   schemaVersion: 7,
 );
