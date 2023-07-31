@@ -1,4 +1,4 @@
-# Archived due to Privacy issues.
+# Archived due to privacy issues.
 
 <a href="#" target="_blank" rel="noopener noreferrer">
 <img width="80" src="https://user-images.githubusercontent.com/45007226/222353001-228d9d09-5984-4c35-8ff7-7783847c7df2.png" alt="nitm" />
@@ -19,11 +19,11 @@
 <a href="https://www.producthunt.com/posts/nitmgpt?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nitmgpt" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=382415&theme=neutral" alt="nitmgpt - Filter&#0032;ad&#0044;&#0032;spam&#0032;notifications&#0032;via&#0032;GPT3 | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 
-**Hate these ads or spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hides ads, spam, etc notifications via GPT3. And this idea lets AI return the formatted data for UX.
+**Hate these ads or spam notifications?** Hurry up and use NITM now! It's a watcher client for Android that auto-hides ads, spam, etc notifications via GPT3.
 
 <img width="100" src="https://user-images.githubusercontent.com/45007226/222633102-5d3efb05-b255-46f9-8309-adfdef00d1bd.jpg"> <img width="100" src="https://user-images.githubusercontent.com/45007226/222633092-c0197a6f-43ea-443d-bed6-c7d6283b3134.jpg">
 
-### ☢ If you use a paid API, **Ignore the ongoing notification app in `Custom rules` option**;
+### ☢ If you use a paid API, **Ignore the ongoing notification app in the `Custom rules` option**;
 ### ☢ 如果使用付费的接口, 请在自定义规则中忽略常驻状态栏的应用.
 
 ## Features
@@ -44,7 +44,7 @@ Coming soon to the other App Stores.
 #### Note bene
  - Recommend 
  - This app is not free. it needs your star or follow [Nawbc](https://github.com/Nawbc).  
- - The software only been tested on the emulator. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
+ - The software has only been tested on the emulator. [Issues welcome](https://github.com/deskbtm/nitmgpt/issues).
  - Han(Nawbc) assumes no responsibility or liability for any errors or omissions in the content of this app.  
 
 <img width="180" src="https://user-images.githubusercontent.com/45007226/222633025-6bdd46c3-c191-4734-95b7-64297489c3c9.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633037-aeeef267-f384-45d1-a1b4-787aa5363242.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633030-336037ee-a661-483b-83c4-631245cf8ed6.png"> <img width="180" src="https://user-images.githubusercontent.com/45007226/222633035-2699123c-773a-4111-8bdb-03f5560b91eb.png">
@@ -61,21 +61,21 @@ Coming soon to the other App Stores.
 
 ## FAQ
 
-1. Will the chat content be uploaded to GPT ? 
+1. Will the chat content be uploaded to GPT? 
 
-Yep. If you are concerned about privacy issues, ignore the applications in `Custom rules` option.
+Yep. If you are concerned about privacy issues, ignore the applications in the `Custom rules` option.
 
-2. Why i cannot keep the background service alive ?
+2. Why i cannot keep the background service alive?
 
-In some AOKP may not keep the background service alive, You cloud
+In some AOKP may not keep the background service alive, Your cloud
 
-3. What to do if you keep requesting the OpenAI api ?
+3. What to do if you keep requesting the OpenAI API?
 
-Ignore the applications in `Custom rules` option;
+Ignore the applications in the `Custom rules` option;
 
-4. How to avoid missing some important notifications ?
+4. How to avoid missing some important notifications?
 
-Ignore the applications in `Custom rules` option;
+Ignore the applications in the `Custom rules` option;
 
 
 ## Credits (modified)
