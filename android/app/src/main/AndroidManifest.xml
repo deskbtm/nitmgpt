@@ -76,13 +76,6 @@
       </intent-filter>
     </service>
 
-    <service
-      android:name="de.julianassmann.flutter_background.IsolateHolderService"
-      android:exported="true"
-      android:process=":background" 
-    >
-    </service>
-
     <provider
       android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"
       android:authorities="${applicationId}.ota_update_provider"
