@@ -23,8 +23,6 @@
 
 ### ☢ If you are using a paid API, **ignore the ongoing notification app in `Custom rules` option**;
 
-### ☢ 如果使用付费的接口, 请在自定义规则中忽略常驻状态栏的应用.
-
 ## Features
 
 - Innovative notification filtering power by GPT3.
