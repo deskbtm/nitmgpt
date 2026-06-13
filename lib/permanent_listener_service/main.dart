@@ -112,17 +112,6 @@ class PermanentListenerTaskHandler extends TaskHandler {
   void onReceiveData(Object data) {}
 }
 
-String _getFieldsMeans(Settings? settings) {
-  return ruleFieldsMap.values
-      .map((element) {
-        var mean = settings?.ruleFields != null
-            ? settings!.ruleFields!.toMap()[element.name]
-            : element.means;
-        return "the field `${element.field}`: $mean";
-      })
-      .toList()
-      .join(',');
-}
 
 Future<GPTResponse?> _inquireGPT(String question, Settings? settings,
     {Future<void> Function()? onRequestSuccess}) async {
@@ -244,9 +233,12 @@ handleNotificationListener(NotificationEvent event) async {
       return;
     }
 
-    String fieldsMeans = _getFieldsMeans(settings);
-    String question =
-        'Determine "${event.title} ${event.text}", $fieldsMeans, only return json.';
+    final notificationText =
+        '${event.title ?? ''} ${event.text ?? ''}'.trim();
+    final question = buildClassificationPrompt(
+      notificationText,
+      formatFieldDefinitions(settings),
+    );
     log(question, name: 'permanent_listener_service');
 
     var answer = await _inquireGPT(

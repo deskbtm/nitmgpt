@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:nitmgpt/models/settings.dart';
 
 class CustomField {
   final String field;
@@ -16,14 +17,15 @@ class CustomField {
   });
 }
 
-const IS_AD = 'means whether it is an advertisement';
+const IS_AD =
+    'true if the content is promotional or advertising';
 const AD_PROBABILITY =
-    'means the probability that this sentence is classified as an advertisement';
-const IS_SPAM = 'means whether it is spam';
+    'confidence from 0.0 to 1.0 that the content is an advertisement';
+const IS_SPAM =
+    'true if the content is unsolicited junk or low-value noise';
 const SPAM_PROBABILITY =
-    'means the probability that this sentence is classified as a spam';
-const SENTENCE =
-    'means the probability that this sentence is classified as a spam';
+    'confidence from 0.0 to 1.0 that the content is spam';
+const SENTENCE = 'the notification text being analyzed';
 
 final ruleFieldsMap = {
   'is_ad': CustomField(
@@ -57,3 +59,20 @@ final ruleFieldsMap = {
     textEditingController: TextEditingController(),
   ),
 };
+
+String formatFieldDefinitions(Settings? settings) {
+  return ruleFieldsMap.values
+      .map((element) {
+        final mean = settings?.ruleFields != null
+            ? settings!.ruleFields!.toMap()[element.name]
+            : element.means;
+        return '${element.field}: $mean';
+      })
+      .join(', ');
+}
+
+String buildClassificationPrompt(String notificationText, String fieldDefinitions) {
+  return 'Classify the notification below as advertising or spam. '
+      'Notification: "$notificationText". '
+      'Return JSON only with these fields: $fieldDefinitions';
+}

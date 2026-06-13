@@ -466,7 +466,7 @@ packages:
       path: "plugins/flutter_notification_listener"
       relative: true
     source: path
-    version: "1.3.2"
+    version: "1.4.0"
   flutter_screenutil:
     dependency: "direct main"
     description:

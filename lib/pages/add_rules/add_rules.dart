@@ -135,14 +135,7 @@ class AddRulesPage extends GetView<RulesController> {
     var fieldsBlock = ruleFieldsMap.values.map((e) {
       return TextSpan(
         children: [
-          const TextSpan(text: " , \nthe field "),
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Text(
-              '`${e.field}` ',
-              style: blockTextStyle,
-            ),
-          ),
+          TextSpan(text: '\n${e.field}: '),
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: SizedBox(
@@ -252,33 +245,36 @@ class AddRulesPage extends GetView<RulesController> {
                     ),
                     const SizedBox(height: 15),
                     Text(
-                      "Filter conditions (ask ChatGPT)".tr,
+                      "Filter criteria".tr,
                       style: TextStyle(
                         fontSize: 14,
                         color: primaryColor,
                       ),
                     ),
                     RichText(
-                      text: TextSpan(children: [
-                        TextSpan(
-                          text: "Determine ",
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            height: 3.5,
-                          ),
-                          children: [
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Text(
-                                "{{template}}",
-                                style: blockTextStyle,
-                              ),
-                            ),
-                            ...fieldsBlock,
-                            const TextSpan(text: " , only return json."),
-                          ],
+                      text: TextSpan(
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          height: 2.2,
                         ),
-                      ]),
+                        children: [
+                          TextSpan(text: 'classification_prompt_intro'.tr),
+                          const TextSpan(text: '\n'),
+                          TextSpan(
+                              text: 'classification_prompt_notification'.tr),
+                          const TextSpan(text: ' '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Text(
+                              '{{template}}',
+                              style: blockTextStyle,
+                            ),
+                          ),
+                          const TextSpan(text: '\n'),
+                          TextSpan(text: 'classification_prompt_json'.tr),
+                          ...fieldsBlock,
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
@@ -289,7 +285,7 @@ class AddRulesPage extends GetView<RulesController> {
                       ),
                     ),
                     Text(
-                      "Limit the number of ChatGPT API calls per 24 hours".tr,
+                      "Maximum API calls per 24 hours".tr,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,

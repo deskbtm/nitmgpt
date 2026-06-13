@@ -134,13 +134,6 @@ class NotificationTitle extends StatelessWidget {
                         '${'Spam'.tr}: ${spamProbability! * 100}%',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(width: 20),
-                      const Text(
-                        'power by GPT',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 2, 104, 5),
-                            fontSize: 10),
-                      ),
                     ],
                   )
                 ],
