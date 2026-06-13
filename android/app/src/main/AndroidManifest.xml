@@ -9,6 +9,8 @@
   <uses-permission android:name="android.permission.WAKE_LOCK" />
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
   <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
   <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
   <!--  Auto start service after reboot-->
@@ -77,11 +79,9 @@
     </service>
 
     <service
-      android:name="de.julianassmann.flutter_background.IsolateHolderService"
-      android:exported="true"
-      android:process=":background" 
-    >
-    </service>
+      android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+      android:foregroundServiceType="dataSync|remoteMessaging"
+      android:exported="false" />
 
     <provider
       android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"
@@ -92,5 +92,13 @@
           android:name="android.support.FILE_PROVIDER_PATHS"
           android:resource="@xml/filepaths" />
     </provider>
+
+    <receiver
+      android:name="sk.fourq.otaupdate.InstallResultReceiver"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="${applicationId}.ACTION_INSTALL_COMPLETE" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

@@ -2,11 +2,13 @@ package im.zoe.labs.flutter_notification_listener
 
 import android.app.ActivityManager
 import android.content.*
+import android.content.Context.RECEIVER_EXPORTED
 import android.os.Build
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.FlutterEngineCache
+import io.flutter.embedding.engine.FlutterJNI
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.JSONMessageCodec
@@ -20,6 +22,10 @@ import java.util.*
 class FlutterNotificationListenerPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
   private var eventSink: EventChannel.EventSink? = null
 
+  private var methodChannel: MethodChannel? = null 
+  private var eventChannel: EventChannel? = null 
+  private val flutterJNI: FlutterJNI =  FlutterJNI() 
+
   private lateinit var mContext: Context
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -29,10 +35,20 @@ class FlutterNotificationListenerPlugin : FlutterPlugin, MethodChannel.MethodCal
 
     val binaryMessenger = flutterPluginBinding.binaryMessenger
 
-    // event stream channel
-    EventChannel(binaryMessenger, EVENT_CHANNEL_NAME).setStreamHandler(this)
     // method channel
-    MethodChannel(binaryMessenger, METHOD_CHANNEL_NAME).setMethodCallHandler(this)
+    val method = MethodChannel(binaryMessenger, METHOD_CHANNEL_NAME)
+    if(method != null) {
+      methodChannel = method
+      method.setMethodCallHandler(this)
+    }
+    // event stream channel
+    val event = EventChannel(binaryMessenger, EVENT_CHANNEL_NAME)
+    if(event != null) {
+      eventChannel = event
+      event.setStreamHandler(this)
+    }
+    Log.i(TAG, "Attaching FlutterJNI to native")
+    flutterJNI.attachToNative() 
 
     // store the flutter engine
     val engine = flutterPluginBinding.flutterEngine
@@ -42,13 +58,30 @@ class FlutterNotificationListenerPlugin : FlutterPlugin, MethodChannel.MethodCal
     val receiver = NotificationReceiver()
     val intentFilter = IntentFilter()
     intentFilter.addAction(NotificationsHandlerService.NOTIFICATION_INTENT)
-    mContext.registerReceiver(receiver, intentFilter)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      mContext.registerReceiver(receiver, intentFilter, RECEIVER_EXPORTED)
+    } else {
+      mContext.registerReceiver(receiver, intentFilter)
+    }
 
     Log.i(TAG, "attached engine finished")
   }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    // methodChannel.setMethodCallHandler(null)
+    val method = methodChannel
+    if (method != null) {
+      method.setMethodCallHandler(null) 
+      methodChannel = null 
+    }
+
+    val event = eventChannel
+    if (event != null) {
+      event.setStreamHandler(null) 
+      eventChannel = null 
+    }
+
+    Log.i(TAG, "Detaching FlutterJNI from native")
+    flutterJNI.detachFromNativeAndReleaseResources()
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -148,8 +181,6 @@ class FlutterNotificationListenerPlugin : FlutterPlugin, MethodChannel.MethodCal
       return true
     }
 
-
-
     fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
       return null != getRunningService(context, serviceClass)
     }
@@ -186,12 +217,6 @@ class FlutterNotificationListenerPlugin : FlutterPlugin, MethodChannel.MethodCal
         return result.success(startService(mContext, cfg))
       }
       "plugin.stopService" -> {
-        return result.success(stopService(mContext))
-      }
-      "plugin.cancelNotification" -> {
-        return result.success(stopService(mContext))
-      }
-      "plugin.cancelNotifications" -> {
         return result.success(stopService(mContext))
       }
       "plugin.hasPermission" -> {

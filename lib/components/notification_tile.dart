@@ -1,7 +1,7 @@
-import 'package:cached_memory_image/cached_memory_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:nitmgpt/components/app_icon.dart';
 
 class NotificationTitle extends StatelessWidget {
   final String? title;
@@ -49,11 +49,10 @@ class NotificationTitle extends StatelessWidget {
                   height: 23,
                   child: CircleAvatar(
                     backgroundColor: Colors.white,
-                    child: CachedMemoryImage(
+                    child: AppIconImage(
                       width: 17,
                       height: 17,
                       bytes: icon,
-                      uniqueKey: tileKey ?? '',
                     ),
                   ),
                 ),

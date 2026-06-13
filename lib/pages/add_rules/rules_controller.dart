@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';

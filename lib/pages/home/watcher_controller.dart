@@ -4,11 +4,11 @@ import 'dart:developer';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter_archive/flutter_archive.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
@@ -33,8 +33,6 @@ class WatcherController extends FullLifeCycleController
   final _settingController = SettingsController.to;
 
   final detectedApps = <ApplicationWithIcon>[].obs;
-
-  late final FlutterBackgroundService backgroundService;
 
   TabController? tabController;
 
@@ -80,27 +78,20 @@ class WatcherController extends FullLifeCycleController
   }
 
   Future<void> exitAllServices() async {
-    backgroundService.invoke('stopService');
+    await stopPermanentListenerForegroundTask();
     await SystemNavigator.pop();
   }
 
+  void _onForegroundTaskData(Object data) {
+    if (data is Map &&
+        data['action'] == ForegroundTaskAction.promptApiKey) {
+      _settingController.setupOpenAiKey();
+    }
+  }
+
   Future<void> _startPermanentService() async {
-    backgroundService = FlutterBackgroundService();
-
-    await backgroundService.configure(
-      androidConfiguration: AndroidConfiguration(
-        onStart: permanentListenerServiceMain,
-        autoStart: true,
-        isForegroundMode: true,
-        initialNotificationTitle: 'NITMGPT SERVICE',
-        initialNotificationContent: 'running...',
-      ),
-      iosConfiguration: IosConfiguration(),
-    );
-
-    backgroundService.on('prompt_api_key').listen((event) async {
-      await _settingController.setupOpenAiKey();
-    });
+    FlutterForegroundTask.addTaskDataCallback(_onForegroundTaskData);
+    await startPermanentListenerForegroundTask();
   }
 
   hasNotificationListenerPermission() async {
@@ -349,6 +340,7 @@ class WatcherController extends FullLifeCycleController
 
   @override
   void onClose() {
+    FlutterForegroundTask.removeTaskDataCallback(_onForegroundTaskData);
     super.onClose();
   }
 
@@ -363,4 +355,7 @@ class WatcherController extends FullLifeCycleController
 
   @override
   void onResumed() {}
+
+  @override
+  void onHidden() {}
 }

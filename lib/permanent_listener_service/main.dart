@@ -1,13 +1,13 @@
-import 'dart:ui';
 import 'dart:developer';
+import 'dart:ui';
+
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:get/get.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/firebase.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/record.dart';
@@ -17,10 +17,100 @@ import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
 import 'package:nitmgpt/utils.dart';
 import 'package:realm/realm.dart';
 
+class ForegroundTaskAction {
+  static const promptApiKey = 'prompt_api_key';
+  static const updateRecords = 'update_records';
+}
+
+const nitmForegroundServiceId = 888;
+
 bool _isUnsetApiKey = true;
 
 late List<Application> _deviceApps;
-late ServiceInstance _backgroundService;
+
+void initPermanentListenerForegroundTask() {
+  FlutterForegroundTask.init(
+    androidNotificationOptions: AndroidNotificationOptions(
+      channelId: 'nitmgpt_service',
+      channelName: 'NITMGPT Service',
+      channelDescription: 'Keeps notification filtering running',
+      onlyAlertOnce: true,
+    ),
+    iosNotificationOptions: const IOSNotificationOptions(
+      showNotification: false,
+      playSound: false,
+    ),
+    foregroundTaskOptions: ForegroundTaskOptions(
+      eventAction: ForegroundTaskEventAction.nothing(),
+      autoRunOnBoot: true,
+      autoRunOnMyPackageReplaced: true,
+      allowWakeLock: true,
+      allowWifiLock: true,
+    ),
+  );
+}
+
+Future<void> startPermanentListenerForegroundTask() async {
+  initPermanentListenerForegroundTask();
+
+  if (await FlutterForegroundTask.isRunningService) {
+    return;
+  }
+
+  await FlutterForegroundTask.startService(
+    serviceId: nitmForegroundServiceId,
+    notificationTitle: 'NITMGPT SERVICE',
+    notificationText: 'running...',
+    callback: permanentListenerStartCallback,
+  );
+}
+
+Future<void> stopPermanentListenerForegroundTask() {
+  return FlutterForegroundTask.stopService();
+}
+
+void sendPromptApiKeyToMain() {
+  FlutterForegroundTask.sendDataToMain({
+    'action': ForegroundTaskAction.promptApiKey,
+  });
+}
+
+void sendUpdateRecordsToMain() {
+  FlutterForegroundTask.sendDataToMain({
+    'action': ForegroundTaskAction.updateRecords,
+  });
+}
+
+@pragma('vm:entry-point')
+void permanentListenerStartCallback() {
+  FlutterForegroundTask.setTaskHandler(PermanentListenerTaskHandler());
+}
+
+class PermanentListenerTaskHandler extends TaskHandler {
+  @override
+  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
+    DartPluginRegistrant.ensureInitialized();
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await initFirebase();
+
+    _deviceApps =
+        await DeviceApps.getInstalledApplications(includeSystemApps: true);
+
+    await NotificationsListener.initialize(
+      callbackHandle: handleNotificationListener,
+    );
+  }
+
+  @override
+  void onRepeatEvent(DateTime timestamp) {}
+
+  @override
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
+
+  @override
+  void onReceiveData(Object data) {}
+}
 
 String _getFieldsMeans(Settings? settings) {
   return ruleFieldsMap.values
@@ -60,6 +150,7 @@ Future<GPTResponse?> _inquireGPT(String question, Settings? settings,
     return value;
   }).catchError((err) {
     log('$err');
+    return null;
   });
 
   var choicesTexts = result?.choices
@@ -133,7 +224,7 @@ handleNotificationListener(NotificationEvent event) async {
     if (settings.openAiKey == null || settings.openAiKey == '') {
       if (_isUnsetApiKey) {
         _isUnsetApiKey = false;
-        _backgroundService.invoke("prompt_api_key");
+        sendPromptApiKeyToMain();
       }
       return;
     }
@@ -149,7 +240,6 @@ handleNotificationListener(NotificationEvent event) async {
     Application? app = _deviceApps.firstWhereOrNull(
         (element) => element.packageName == event.packageName);
 
-    // Exclude system apps.
     if (app != null && app.systemApp && settings.ignoreSystemApps) {
       return;
     }
@@ -204,42 +294,11 @@ handleNotificationListener(NotificationEvent event) async {
           }
         });
 
-        _backgroundService.invoke('update_records');
+        sendUpdateRecordsToMain();
       }
     }
   } catch (e, stackTrace) {
     log(e.toString(), name: 'permanent_listener_service');
     FirebaseCrashlytics.instance.recordError(e, stackTrace, fatal: true);
   }
-}
-
-@pragma('vm:entry-point')
-permanentListenerServiceMain(ServiceInstance service) async {
-  DartPluginRegistrant.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized();
-
-  if (service is AndroidServiceInstance) {
-    service.on('setAsForeground').listen((event) {
-      service.setAsForegroundService();
-    });
-
-    service.on('setAsBackground').listen((event) {
-      service.setAsBackgroundService();
-    });
-  }
-
-  service.on('stopService').listen((event) {
-    service.stopSelf();
-  });
-
-  _backgroundService = service;
-
-  await initFirebase();
-
-  _deviceApps =
-      await DeviceApps.getInstalledApplications(includeSystemApps: true);
-
-  await NotificationsListener.initialize(
-    callbackHandle: handleNotificationListener,
-  );
 }

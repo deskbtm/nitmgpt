@@ -3,8 +3,8 @@ import 'package:nitmgpt/pages/home/watcher_controller.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:unicons/unicons.dart';
 import 'package:flutter/material.dart';
-import 'package:device_apps/device_apps.dart';
-import 'package:cached_memory_image/cached_memory_image.dart';
+import 'package:nitmgpt/device_apps_compat.dart';
+import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/back_button.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
 import 'package:nitmgpt/pages/add_rules/rules_controller.dart';
@@ -108,11 +108,10 @@ class AddRulesPage extends GetView<RulesController> {
                         leading: SizedBox(
                           width: 50,
                           height: 50,
-                          child: CachedMemoryImage(
+                          child: AppIconImage(
                             bytes: app.icon,
                             width: 50,
                             height: 50,
-                            uniqueKey: app.packageName,
                           ),
                         ),
                         title: Text(app.appName),
@@ -234,11 +233,10 @@ class AddRulesPage extends GetView<RulesController> {
                                 label: Text(element.appName),
                                 avatar: CircleAvatar(
                                   backgroundColor: Colors.grey.shade800,
-                                  child: CachedMemoryImage(
+                                  child: AppIconImage(
                                     bytes: element.icon,
-                                    width: 50,
-                                    height: 50,
-                                    uniqueKey: element.packageName,
+                                    width: 24,
+                                    height: 24,
                                   ),
                                 ),
                                 onDeleted: () {

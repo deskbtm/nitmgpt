@@ -30,7 +30,6 @@ import io.flutter.view.FlutterCallbackInformation
 import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class NotificationsHandlerService: MethodChannel.MethodCallHandler, NotificationListenerService() {
@@ -41,7 +40,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
     // notification event cache: packageName_id -> event
     private val eventsCache = HashMap<String, NotificationEvent>()
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
       when (call.method) {
           "service.initialized" -> {
@@ -75,24 +73,18 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
               return result.success(tapNotificationAction(uid, idx))
           }
           "service.cancel_notification" -> {
-              // tap the action
               Log.d(TAG, "cancel notification")
-              val arg = call.arguments<String?>()
-              cancelNotification(arg);
-              return result.success(true)
+              val key = call.arguments<String?>()
+              return result.success(cancelNotificationByKey(key))
           }
-           "service.cancel_notification" -> {
-              // tap the action
+          "service.cancel_notifications" -> {
               Log.d(TAG, "cancel notifications")
-              val args = call.arguments<ArrayList<String>?>()
-              cancelNotifications(args?.toTypedArray());
-              return result.success(true)
+              val keys = call.arguments<List<String>?>()
+              return result.success(cancelNotificationsByKeys(keys))
           }
-          "service.cancel_notification" -> {
-              // tap the action
-              Log.d(TAG, "cancel notifications")
-              cancelAllNotifications();
-              return result.success(true)
+          "service.cancel_all_notifications" -> {
+              Log.d(TAG, "cancel all notifications")
+              return result.success(cancelAllNotificationsInternal())
           }
           "service.send_input" -> {
               // send the input data
@@ -164,7 +156,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         Log.i(TAG, "notification listener service onTaskRemoved")
     }
 
-    @SuppressLint("LongLogTag")
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         super.onNotificationPosted(sbn)
 
@@ -187,7 +178,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         }
     }
 
-    @SuppressLint("LongLogTag")
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
         if (sbn == null) return
@@ -197,7 +187,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         Log.d(TAG, "notification removed: ${evt.uid}")
     }
 
-    @SuppressLint("LongLogTag")
     private fun initFinish() {
         Log.d(TAG, "service's flutter engine initialize finished")
         synchronized(sServiceStarted) {
@@ -206,7 +195,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         }
     }
 
-    @SuppressLint("LongLogTag")
     private fun promoteToForeground(cfg: Utils.PromoteServiceConfig? = null): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             Log.e(TAG, "promoteToForeground need sdk >= 26")
@@ -257,7 +245,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         return true
     }
 
-    @SuppressLint("LongLogTag")
     private fun demoteToBackground(): Boolean {
         Log.d(TAG, "demote the service to background")
         (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
@@ -280,7 +267,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         return true
     }
 
-    @SuppressLint("LongLogTag")
     private fun tapNotificationAction(uid: String, idx: Int): Boolean {
         Log.d(TAG, "tap the notification action: $uid @$idx")
         if (!eventsCache.containsKey(uid)) {
@@ -306,7 +292,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         return true
     }
 
-    @SuppressLint("LongLogTag")
     private fun sendNotificationInput(uid: String, idx: Int, data: Map<*, *>): Boolean {
         Log.d(TAG, "tap the notification action: $uid @$idx")
         if (!eventsCache.containsKey(uid)) {
@@ -348,6 +333,41 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
             return true
         } else {
             Log.e(TAG, "not implement :sdk < KITKAT_WATCH")
+            return false
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun cancelNotificationByKey(key: String?): Boolean {
+        if (key.isNullOrEmpty()) return false
+        try {
+            cancelNotification(key)
+            eventsCache.values.find { it.data["key"] == key }?.let { eventsCache.remove(it.uid) }
+            return true
+        } catch (e: Exception) {
+            Log.e(TAG, "cancel notification failed: ${e.message}")
+            return false
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun cancelNotificationsByKeys(keys: List<String>?): Boolean {
+        if (keys == null) return false
+        var success = true
+        for (key in keys) {
+            if (!cancelNotificationByKey(key)) success = false
+        }
+        return success
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun cancelAllNotificationsInternal(): Boolean {
+        try {
+            cancelAllNotifications()
+            eventsCache.clear()
+            return true
+        } catch (e: Exception) {
+            Log.e(TAG, "cancel all notifications failed: ${e.message}")
             return false
         }
     }
@@ -428,7 +448,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         }
     }
 
-    @SuppressLint("LongLogTag")
     private fun getFlutterEngine(context: Context): FlutterEngine {
         var eng = FlutterEngineCache.getInstance().get(FlutterNotificationListenerPlugin.FLUTTER_ENGINE_CACHE_KEY)
         if (eng != null) return eng
@@ -460,7 +479,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         return eng
     }
 
-    @SuppressLint("LongLogTag")
     private fun updateFlutterEngine(context: Context) {
         Log.d(TAG, "update the flutter engine of service")
         // take the engine
@@ -472,7 +490,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         mBackgroundChannel.setMethodCallHandler(this)
     }
 
-    @SuppressLint("LongLogTag")
     private fun startListenerService(context: Context) {
         Log.d(TAG, "start listener service")
         synchronized(sServiceStarted) {
@@ -489,7 +506,6 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
         Log.d(TAG, "service start finished")
     }
 
-    @SuppressLint("LongLogTag")
     private fun sendEvent(evt: NotificationEvent) {
         Log.d(TAG, "send notification event: ${evt.data}")
         if (callbackHandle == 0L) {
@@ -508,4 +524,3 @@ class NotificationsHandlerService: MethodChannel.MethodCallHandler, Notification
     }
 
 }
-

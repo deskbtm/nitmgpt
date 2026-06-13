@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class LocalNotification {
@@ -8,13 +7,27 @@ class LocalNotification {
 
   static Future<void> init() async {
     plugin = FlutterLocalNotificationsPlugin();
-    var android = const AndroidInitializationSettings('notification');
-    var initSettings = InitializationSettings(android: android);
-    await plugin.initialize(initSettings);
+    const android = AndroidInitializationSettings('notification');
+    const initSettings = InitializationSettings(android: android);
+    await plugin.initialize(
+      settings: initSettings,
+      onDidReceiveNotificationResponse: (_) {},
+    );
+
+    const channel = AndroidNotificationChannel(
+      'default',
+      'Default',
+      importance: Importance.defaultImportance,
+    );
+
+    await plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
   static Future<void> showNotification({
-    String channelId = '0',
+    String channelId = 'default',
     int index = 0,
     required String channelName,
     required String title,
@@ -32,7 +45,7 @@ class LocalNotification {
     Priority priority = Priority.defaultPriority,
     NotificationVisibility visibility = NotificationVisibility.public,
   }) async {
-    var android = AndroidNotificationDetails(
+    final android = AndroidNotificationDetails(
       channelId,
       channelName,
       priority: priority,
@@ -49,6 +62,12 @@ class LocalNotification {
       progress: progress,
     );
     androidDetails = NotificationDetails(android: android);
-    await plugin.show(index, title, subTitle, androidDetails, payload: payload);
+    await plugin.show(
+      id: index,
+      title: title,
+      body: subTitle,
+      notificationDetails: androidDetails,
+      payload: payload,
+    );
   }
 }

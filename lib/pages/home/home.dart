@@ -1,9 +1,9 @@
 import 'dart:core';
 
-import 'package:cached_memory_image/cached_memory_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/pages/home/home_controller.dart';
@@ -84,11 +84,10 @@ class HomePage extends StatelessWidget {
                                 child: CircleAvatar(
                                   backgroundColor:
                                       const Color.fromARGB(255, 250, 249, 249),
-                                  child: CachedMemoryImage(
+                                  child: AppIconImage(
                                     width: 25,
                                     height: 25,
                                     bytes: e.icon,
-                                    uniqueKey: e.packageName,
                                   ),
                                 ),
                               ),

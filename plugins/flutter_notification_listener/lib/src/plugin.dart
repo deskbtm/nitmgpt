@@ -155,18 +155,21 @@ class NotificationsListener {
   }
 
   static Future<bool> cancelNotification(String key) async {
-    return await _bgMethodChannel.invokeMethod<dynamic>(
-        "service.cancel_notification", key);
+    return await _bgMethodChannel.invokeMethod<bool>(
+            "service.cancel_notification", key) ??
+        false;
   }
 
   static Future<bool> cancelNotifications(List<String> keys) async {
-    return await _bgMethodChannel.invokeMethod<dynamic>(
-        "service.cancel_notifications", keys);
+    return await _bgMethodChannel.invokeMethod<bool>(
+            "service.cancel_notifications", keys) ??
+        false;
   }
 
   static Future<bool> cancelAllNotifications() async {
     return await _bgMethodChannel
-        .invokeMethod<dynamic>("service.cancel_all_notifications");
+            .invokeMethod<bool>("service.cancel_all_notifications") ??
+        false;
   }
 
   static void _defaultCallbackHandle(NotificationEvent evt) {
@@ -179,7 +182,8 @@ class NotificationsListener {
 }
 
 /// callbackDispatcher use to install background channel
-void callbackDispatcher({inited: true}) {
+@pragma('vm:entry-point')
+void callbackDispatcher({inited = true}) {
   WidgetsFlutterBinding.ensureInitialized();
 
   NotificationsListener._bgMethodChannel

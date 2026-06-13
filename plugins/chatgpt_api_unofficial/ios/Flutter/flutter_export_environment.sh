@@ -1,7 +1,8 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/opt/flutter"
-export "FLUTTER_APPLICATION_PATH=/home/nawbc/Desktop/nitmgpt/plugins/chatgpt_api_unofficial"
+export "FLUTTER_ROOT=/Users/han66/.local/share/mise/http-tarballs/fb03aa5d9790205c948922ec3f0751c16e4575b09d6ae9dd4fbeb664a69f0e00"
+export "FLUTTER_APPLICATION_PATH=/Users/han66/deskbtm/nitmgpt/plugins/chatgpt_api_unofficial"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/han66/deskbtm/nitmgpt/plugins/chatgpt_api_unofficial/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"

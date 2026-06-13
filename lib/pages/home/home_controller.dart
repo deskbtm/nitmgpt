@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nitmgpt/pages/home/watcher_controller.dart';
+import 'package:nitmgpt/permanent_listener_service/main.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 class HomeController extends FullLifeCycleController
     with FullLifeCycleMixin, GetTickerProviderStateMixin {
@@ -14,18 +16,22 @@ class HomeController extends FullLifeCycleController
     _watchController.detectedApps.value = _watchController.getDetectedApps();
   }
 
+  void _onForegroundTaskData(Object data) {
+    if (data is Map &&
+        data['action'] == ForegroundTaskAction.updateRecords) {
+      _setDetectedApps();
+      update();
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
 
+    FlutterForegroundTask.addTaskDataCallback(_onForegroundTaskData);
+
     once(_watchController.deviceApps, (callback) {
       _setDetectedApps();
-      _watchController.backgroundService
-          .on('update_records')
-          .listen((event) async {
-        _setDetectedApps();
-        update();
-      });
     });
 
     ever(_watchController.detectedApps, (callback) {
@@ -40,6 +46,7 @@ class HomeController extends FullLifeCycleController
 
   @override
   void onClose() {
+    FlutterForegroundTask.removeTaskDataCallback(_onForegroundTaskData);
     tabController?.dispose();
     super.onClose();
   }
@@ -57,4 +64,7 @@ class HomeController extends FullLifeCycleController
   void onResumed() {
     update();
   }
+
+  @override
+  void onHidden() {}
 }
