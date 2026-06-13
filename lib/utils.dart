@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get_connect/connect.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'models/realm.dart';
@@ -47,11 +47,12 @@ Settings getSettingInstance() {
 }
 
 Future<bool> verifyGithubStarred(String username, String repoFullName) async {
-  var res =
-      await GetConnect().get("https://api.github.com/users/$username/starred");
+  final res = await http.get(
+    Uri.parse('https://api.github.com/users/$username/starred'),
+  );
 
-  if (res.isOk) {
-    List body = res.body;
+  if (res.statusCode == 200) {
+    List body = jsonDecode(res.body);
     for (Map<dynamic, dynamic> item in body) {
       if (item['full_name'] == repoFullName) {
         return true;
@@ -64,8 +65,9 @@ Future<bool> verifyGithubStarred(String username, String repoFullName) async {
 }
 
 Future<bool> verifyGithubFollowed(String username, String target) async {
-  var res = await GetConnect()
-      .get("https://api.github.com/users/$username/following/$target");
+  final res = await http.get(
+    Uri.parse('https://api.github.com/users/$username/following/$target'),
+  );
 
   return res.statusCode == 204;
 }

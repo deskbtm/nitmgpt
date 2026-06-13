@@ -1,44 +1,30 @@
 import 'dart:developer';
-import 'package:firebase_analytics/firebase_analytics.dart';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:nitmgpt/models/settings.dart';
-import 'package:nitmgpt/pages/settings/settings_controller.dart';
-import 'package:nitmgpt/utils.dart';
-import 'i18n/i18n.dart';
-import 'notification_utils.dart';
-import 'pages/home/watcher_controller.dart';
-import 'routes.dart';
-import 'theme.dart';
+import 'package:nitmgpt/app/app_router.dart';
+import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/notification_utils.dart';
+import 'package:nitmgpt/theme.dart';
 
 class NITM extends StatefulWidget {
   const NITM({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _NITMState();
-  }
+  State<NITM> createState() => _NITMState();
 }
 
 class _NITMState extends State<NITM> {
   @override
-  void initState() {
-    super.initState();
-    Get.put(SettingsController(), permanent: true);
-    Get.put(WatcherController(), permanent: true);
-  }
-
-  @override
-  void didChangeDependencies() async {
+  void didChangeDependencies() {
     super.didChangeDependencies();
-    await LocalNotification.init();
+    LocalNotification.init();
   }
 
   @override
   Widget build(BuildContext context) {
-    Settings settings = getSettingInstance();
     log('Root re-render', name: 'NITM');
 
     return ScreenUtilInit(
@@ -53,22 +39,22 @@ class _NITMState extends State<NITM> {
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.dark,
           ),
-          child: GetMaterialApp(
-            defaultTransition: Transition.native,
-            enableLog: true,
-            translations: TranslationService(),
-            locale: TranslationService.from(settings.language),
-            fallbackLocale: TranslationService.fallbackLocale,
-            navigatorObservers: [
-              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
+          child: MaterialApp.router(
+            routerConfig: appRouter,
+            locale: appLocale.value,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
             ],
-            initialRoute: '/',
-            getPages: routes,
+            supportedLocales: const [
+              Locale('en', 'US'),
+              Locale('zh', 'CN'),
+            ],
             theme: lightThemeData,
           ),
         );
       },
-      // child: DoublePopExit(),
     );
   }
 }

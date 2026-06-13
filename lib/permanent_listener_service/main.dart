@@ -1,14 +1,12 @@
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
-import 'package:get/get.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
-import 'package:nitmgpt/firebase.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/settings.dart';
@@ -91,8 +89,6 @@ class PermanentListenerTaskHandler extends TaskHandler {
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     DartPluginRegistrant.ensureInitialized();
     WidgetsFlutterBinding.ensureInitialized();
-
-    await initFirebase();
 
     _deviceApps =
         await DeviceApps.getInstalledApplications(includeSystemApps: true);
@@ -291,6 +287,6 @@ handleNotificationListener(NotificationEvent event) async {
     }
   } catch (e, stackTrace) {
     log(e.toString(), name: 'permanent_listener_service');
-    FirebaseCrashlytics.instance.recordError(e, stackTrace, fatal: true);
+    log(stackTrace.toString(), name: 'permanent_listener_service');
   }
 }

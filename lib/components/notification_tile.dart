@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 
 class NotificationTitle extends StatelessWidget {

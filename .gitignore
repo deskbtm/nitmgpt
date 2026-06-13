@@ -46,3 +46,9 @@ app.*.map.json
 
 public_key.properties
 public.jks
+
+# amplify
+node_modules
+.amplify
+amplify_outputs*
+amplifyconfiguration*
