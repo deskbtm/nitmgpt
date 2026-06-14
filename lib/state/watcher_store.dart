@@ -16,6 +16,7 @@ import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
+import 'package:nitmgpt/mock/home_mock_data.dart';
 import 'package:nitmgpt/permanent_listener_service/main.dart';
 import 'package:nitmgpt/app/app_navigator.dart';
 import 'package:nitmgpt/state/settings_store.dart';
@@ -32,6 +33,7 @@ class WatcherStore {
   final deviceAppsMap = signal<Map<String, ApplicationWithIcon>>({});
   final isListening = signal(false);
   final detectedApps = signal<List<ApplicationWithIcon>>([]);
+  final recordsRevision = signal(0);
 
   late Settings settings;
 
@@ -59,7 +61,48 @@ class WatcherStore {
     }
 
     deviceApps.value = await getDeviceApps();
+    await seedHomeMockDataIfEmpty();
     refreshDetectedApps();
+  }
+
+  Future<void> seedHomeMockDataIfEmpty() async {
+    final seeded = await HomeMockData.seedIfEmpty(
+      registerApp: _registerDeviceApp,
+    );
+    _ensureMockAppsRegistered();
+    if (seeded) {
+      recordsRevision.value++;
+    }
+  }
+
+  void _registerDeviceApp(ApplicationWithIcon app) {
+    final map = Map<String, ApplicationWithIcon>.from(deviceAppsMap.value);
+    map[app.packageName] = app;
+    deviceAppsMap.value = map;
+  }
+
+  void _ensureMockAppsRegistered() {
+    final map = Map<String, ApplicationWithIcon>.from(deviceAppsMap.value);
+    HomeMockData.mergeMockAppsInto(map);
+    deviceAppsMap.value = map;
+  }
+
+  ApplicationWithIcon? _resolveRecordedApp(RecordedApp recordedApp) {
+    final mapped = deviceAppsMap.value[recordedApp.packageName];
+    if (mapped != null) return mapped;
+
+    if (recordedApp.records.isEmpty) return null;
+
+    final first = recordedApp.records.first;
+    if (HomeMockData.isMockPackage(recordedApp.packageName)) {
+      return HomeMockData.applicationFor(recordedApp.packageName);
+    }
+
+    return ApplicationWithIcon(
+      appName: first.appName ?? recordedApp.packageName,
+      packageName: recordedApp.packageName,
+      systemApp: false,
+    );
   }
 
   void dispose() {
@@ -102,11 +145,9 @@ class WatcherStore {
   }
 
   void _onForegroundTaskData(Object data) {
-    if (data is Map && data['action'] == ForegroundTaskAction.promptApiKey) {
-      final ctx = rootNavigatorContext;
-      if (ctx != null) {
-        _settingsStore.setupOpenAiKey(ctx);
-      }
+    if (data is Map &&
+        data['action'] == ForegroundTaskAction.updateRecords) {
+      onForegroundTaskRecordsUpdated();
     }
   }
 
@@ -182,6 +223,7 @@ class WatcherStore {
       return app;
     }).toList();
 
+    HomeMockData.mergeMockAppsInto(map);
     deviceAppsMap.value = map;
     return list;
   }
@@ -311,12 +353,12 @@ class WatcherStore {
   }
 
   List<ApplicationWithIcon> getDetectedApps() {
+    _ensureMockAppsRegistered();
     final result = realm.all<RecordedApp>();
     final apps = <ApplicationWithIcon>[];
-    final map = deviceAppsMap.value;
 
     for (final app in result) {
-      final deviceApp = map[app.packageName];
+      final deviceApp = _resolveRecordedApp(app);
       if (deviceApp != null) {
         apps.add(deviceApp);
       }
@@ -343,6 +385,23 @@ class WatcherStore {
   }
 
   void onForegroundTaskRecordsUpdated() {
-    refreshDetectedApps();
+    final nextApps = getDetectedApps();
+    final current = detectedApps.value;
+    if (current.length != nextApps.length ||
+        !_sameAppPackages(current, nextApps)) {
+      detectedApps.value = nextApps;
+    }
+    recordsRevision.value++;
+  }
+
+  bool _sameAppPackages(
+    List<ApplicationWithIcon> a,
+    List<ApplicationWithIcon> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].packageName != b[i].packageName) return false;
+    }
+    return true;
   }
 }

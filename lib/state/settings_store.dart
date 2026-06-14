@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:http/http.dart' as http;
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nitmgpt/components/dialog.dart';
@@ -36,21 +39,35 @@ class GithubRelease {
   });
 }
 
+class GithubFetchResult {
+  const GithubFetchResult._({
+    this.release,
+    this.networkError = false,
+  });
+
+  const GithubFetchResult.success(GithubRelease release)
+      : this._(release: release);
+
+  const GithubFetchResult.notFound() : this._();
+
+  const GithubFetchResult.networkError() : this._(networkError: true);
+
+  final GithubRelease? release;
+  final bool networkError;
+}
+
 class SettingsStore {
   GithubRelease? githubRelease;
   late Settings settings;
 
   late final RealmStringSignal proxyUri;
-  late final RealmStringSignal openAiKey;
   late final RealmBoolSignal ownedApp;
   late final RealmBoolSignal ignoreSystemApps;
 
   final isVerifyLoading = signal(false);
   final currentVersion = signal<Version?>(null);
-  final latestVersion = signal<Version?>(null);
 
   final proxyUriController = TextEditingController();
-  final openAiKeyController = TextEditingController();
   final ownAppController = TextEditingController();
 
   Future<void> init() async {
@@ -58,8 +75,6 @@ class SettingsStore {
 
     proxyUri =
         realmString(settings, (s) => s.proxyUri, (s, v) => s.proxyUri = v);
-    openAiKey =
-        realmString(settings, (s) => s.openAiKey, (s, v) => s.openAiKey = v);
     ownedApp = realmBool(
       settings,
       (s) => s.ownedApp ?? false,
@@ -75,65 +90,86 @@ class SettingsStore {
 
     appLocale.value = localeFromLanguageCode(settings.language);
     proxyUriController.text = proxyUri.value;
-    openAiKeyController.text = openAiKey.value;
 
     final packageInfo = await PackageInfo.fromPlatform();
     currentVersion.value = Version.parse(packageInfo.version);
-
-    await _checkGithubLatestRelease();
   }
 
   void dispose() {
     proxyUriController.dispose();
-    openAiKeyController.dispose();
     ownAppController.dispose();
   }
 
-  bool hasNewVersion() {
-    final latest = latestVersion.value;
-    final current = currentVersion.value;
-    if (latest != null && current != null && latest > current) {
-      return true;
-    }
-    return false;
-  }
+  Future<GithubFetchResult> _fetchGithubRelease(
+      String owner, String repo) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://api.github.com/repos/$owner/$repo/releases/latest',
+            ),
+          )
+          .timeout(const Duration(seconds: 15));
 
-  Future<GithubRelease?> _fetchGithubRelease(String owner, String repo) async {
-    final response = await http.get(
-      Uri.parse('https://api.github.com/repos/$owner/$repo/releases/latest'),
-    );
-
-    if (response.statusCode != 200) return null;
-
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    final arch = getArch(SysInfo.kernelArchitecture.name);
-
-    if (body['tag_name'] == null || body['assets'] == null) return null;
-
-    for (final asset in body['assets'] as List<dynamic>) {
-      final assetMap = asset as Map<String, dynamic>;
-      final filename = 'nitmgpt-release-${body['tag_name']}-$arch';
-      if (assetMap['content_type'] ==
-              'application/vnd.android.package-archive' &&
-          assetMap['name'] == '$filename.apk') {
-        String checksum = '';
-        for (final as in body['assets'] as List<dynamic>) {
-          final n = as['name'] as String;
-          if (n.contains(filename) && n.contains('sha256')) {
-            checksum = n.split('_').first;
-          }
-        }
-        return GithubRelease(
-          url: assetMap['browser_download_url'] as String,
-          version: body['tag_name'] as String,
-          size: assetMap['size'] as int,
-          changelog: body['body'] as String? ?? '',
-          sha256sum: checksum,
-        );
+      if (response.statusCode != 200) {
+        return const GithubFetchResult.notFound();
       }
-    }
 
-    return null;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final arch = getArch(SysInfo.kernelArchitecture.name);
+
+      if (body['tag_name'] == null || body['assets'] == null) {
+        return const GithubFetchResult.notFound();
+      }
+
+      for (final asset in body['assets'] as List<dynamic>) {
+        final assetMap = asset as Map<String, dynamic>;
+        final filename = 'nitmgpt-release-${body['tag_name']}-$arch';
+        if (assetMap['content_type'] ==
+                'application/vnd.android.package-archive' &&
+            assetMap['name'] == '$filename.apk') {
+          String checksum = '';
+          for (final as in body['assets'] as List<dynamic>) {
+            final n = as['name'] as String;
+            if (n.contains(filename) && n.contains('sha256')) {
+              checksum = n.split('_').first;
+            }
+          }
+          return GithubFetchResult.success(
+            GithubRelease(
+              url: assetMap['browser_download_url'] as String,
+              version: body['tag_name'] as String,
+              size: assetMap['size'] as int,
+              changelog: body['body'] as String? ?? '',
+              sha256sum: checksum,
+            ),
+          );
+        }
+      }
+
+      return const GithubFetchResult.notFound();
+    } on SocketException catch (error, stackTrace) {
+      log(
+        'GitHub release fetch failed: $error',
+        name: 'SettingsStore',
+        stackTrace: stackTrace,
+      );
+      return const GithubFetchResult.networkError();
+    } on http.ClientException catch (error, stackTrace) {
+      log(
+        'GitHub release fetch failed: $error',
+        name: 'SettingsStore',
+        stackTrace: stackTrace,
+      );
+      return const GithubFetchResult.networkError();
+    } on Exception catch (error, stackTrace) {
+      log(
+        'GitHub release fetch failed: $error',
+        name: 'SettingsStore',
+        stackTrace: stackTrace,
+      );
+      return const GithubFetchResult.notFound();
+    }
   }
 
   void _downloadArchive() {
@@ -159,51 +195,70 @@ class SettingsStore {
   }
 
   Future<void> checkUpdate(BuildContext context) async {
-    if (hasNewVersion()) {
-      await showAppDialog<void>(
-        context: context,
-        title: 'v${latestVersion.value!.toString()} available!',
-        content: Builder(
-          builder: (dialogContext) {
-            return LimitedBox(
-              maxHeight: MediaQuery.sizeOf(dialogContext).height / 5,
-              child: SizedBox(
-                width: double.maxFinite,
-                height: double.maxFinite,
-                child: Markdown(
-                  selectable: true,
-                  data: githubRelease!.changelog,
-                  extensionSet: md.ExtensionSet(
-                    md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                    [
-                      md.EmojiSyntax(),
-                      ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-                    ],
-                  ),
+    final result = await _fetchGithubRelease('deskbtm', 'nitmgpt');
+    if (!context.mounted) return;
+
+    if (result.networkError) {
+      Fluttertoast.showToast(
+        msg: 'Unable to reach GitHub. Check your network.'.tr,
+      );
+      return;
+    }
+
+    final release = result.release;
+    if (release == null) {
+      Fluttertoast.showToast(msg: 'Latest version'.tr);
+      return;
+    }
+
+    githubRelease = release;
+    final latest = Version.parse(release.version.replaceFirst('v', ''));
+    final current = currentVersion.value;
+
+    if (current != null && latest > current) {
+      await _showUpdateDialog(context, latest);
+    } else {
+      Fluttertoast.showToast(msg: 'Latest version'.tr);
+    }
+  }
+
+  Future<void> _showUpdateDialog(BuildContext context, Version latest) async {
+    await showAppDialog<void>(
+      context: context,
+      title: 'v${latest.toString()} available!',
+      content: Builder(
+        builder: (dialogContext) {
+          return LimitedBox(
+            maxHeight: MediaQuery.sizeOf(dialogContext).height / 5,
+            child: SizedBox(
+              width: double.maxFinite,
+              height: double.maxFinite,
+              child: Markdown(
+                selectable: true,
+                data: githubRelease!.changelog,
+                extensionSet: md.ExtensionSet(
+                  md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                  [
+                    md.EmojiSyntax(),
+                    ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+                  ],
                 ),
               ),
-            );
+            ),
+          );
+        },
+      ),
+      actionsBuilder: (dialogContext) => [
+        GlassDialogAction(
+          label: 'Update',
+          isPrimary: true,
+          onPressed: () {
+            _downloadArchive();
+            popDialog(dialogContext);
           },
         ),
-        actionsBuilder: (dialogContext) => [
-          FilledButton(
-            onPressed: () {
-              _downloadArchive();
-              popDialog(dialogContext);
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      );
-    } else {
-      await _checkGithubLatestRelease();
-      if (!context.mounted) return;
-      if (hasNewVersion()) {
-        await checkUpdate(context);
-      } else {
-        Fluttertoast.showToast(msg: 'Latest version');
-      }
-    }
+      ],
+    );
   }
 
   Future<void> setupProxy(BuildContext context) {
@@ -223,54 +278,26 @@ class SettingsStore {
     );
   }
 
-  Future<void> setupOpenAiKey(BuildContext context) {
-    final description = RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: const TextStyle(color: Colors.black),
-        children: [
-          TextSpan(text: 'You could get OpenAI API Key from '.tr),
-          TextSpan(
-            text: openAiKeysUrl,
-            style: const TextStyle(color: Colors.blue),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () async {
-                await open(openAiKeysUrl);
-              },
-          ),
-        ],
-      ),
-    );
-
-    return showAppInputDialog(
-      context: context,
-      controller: openAiKeyController,
-      title: 'Setup OpenAI API Key'.tr,
-      description: description,
-      cancelText: 'Reset'.tr,
-      onCancel: (dialogContext) async {
-        openAiKey.value = '';
-        openAiKeyController.text = '';
-      },
-      onConfirm: (dialogContext) async {
-        openAiKey.value = openAiKeyController.text.trim();
-        popDialog(dialogContext);
-      },
-    );
-  }
-
-  Future<void> _checkGithubLatestRelease() async {
-    final res = await _fetchGithubRelease('deskbtm', 'nitmgpt');
-    if (res != null) {
-      githubRelease = res;
-      latestVersion.value = Version.parse(res.version.replaceFirst('v', ''));
-    }
-  }
-
   Future<bool> _accessApp() async {
-    final username = ownAppController.text.trim();
-    return (await verifyGithubStarred(username, REPO_NAME) ||
-        await verifyGithubFollowed(username, MY_GITHUB_NAME));
+    try {
+      final username = ownAppController.text.trim();
+      return (await verifyGithubStarred(username, REPO_NAME) ||
+          await verifyGithubFollowed(username, MY_GITHUB_NAME));
+    } on SocketException catch (error, stackTrace) {
+      log(
+        'GitHub verify failed: $error',
+        name: 'SettingsStore',
+        stackTrace: stackTrace,
+      );
+      return false;
+    } on http.ClientException catch (error, stackTrace) {
+      log(
+        'GitHub verify failed: $error',
+        name: 'SettingsStore',
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
   }
 
   Future<void> verifyOwnedApp(BuildContext context) {

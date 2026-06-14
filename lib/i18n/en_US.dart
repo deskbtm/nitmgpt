@@ -48,13 +48,11 @@ const Map<String, String> en_US = {
   'reset': 'resets',
   'Maximum API calls per 24 hours': 'Maximum API calls per 24 hours',
   'Github account name': 'GitHub username',
-  'Setup OpenAI API Key': 'OpenAI API key',
   'Downloading update...': 'Downloading update…',
   'Reset': 'Reset',
   'Ok': 'OK',
   'Setup proxy': 'Proxy settings',
   'Cleanup completed': 'History cleared',
-  'You could get OpenAI API Key from ': 'Get your OpenAI API key from ',
   'Spam': 'Spam',
   'Ad': 'Ad',
   'Bug report': 'Report a bug',
@@ -62,4 +60,7 @@ const Map<String, String> en_US = {
   'This will exit all services':
       'This will stop all background services and close the app.',
   'Exit App': 'Exit app',
+  'Latest version': 'You are on the latest version',
+  'Unable to reach GitHub. Check your network.':
+      'Unable to reach GitHub. Check your network connection.',
 };

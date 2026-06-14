@@ -32,9 +32,6 @@ class _Settings {
   /// Proxy uri
   String? proxyUri;
 
-  /// OpenAi Api Key https://platform.openai.com/account/api-keys
-  String? openAiKey;
-
   /// Preset Advertisement probability
   double? presetAdProbability;
 

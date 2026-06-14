@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:nitmgpt/app/app_router.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
@@ -32,27 +31,19 @@ class _NITMState extends State<NITM> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: const SystemUiOverlayStyle(
-            systemNavigationBarIconBrightness: Brightness.dark,
-            systemNavigationBarColor: Colors.transparent,
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-          ),
-          child: MaterialApp.router(
-            routerConfig: appRouter,
-            locale: appLocale.value,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('en', 'US'),
-              Locale('zh', 'CN'),
-            ],
-            theme: lightThemeData,
-          ),
+        return MaterialApp.router(
+          routerConfig: appRouter,
+          locale: appLocale.value,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', 'US'),
+            Locale('zh', 'CN'),
+          ],
+          theme: lightThemeData,
         );
       },
     );

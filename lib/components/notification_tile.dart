@@ -27,17 +27,18 @@ class NotificationTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceVariant,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(24)),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-            dividerColor: Colors.transparent,
-            splashFactory: NoSplash.splashFactory),
-        child: ExpansionTile(
+    return RepaintBoundary(
+      child: Card(
+        elevation: 0,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+              dividerColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory),
+          child: ExpansionTile(
           tilePadding:
               const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 7),
           title: Padding(
@@ -142,6 +143,7 @@ class NotificationTitle extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

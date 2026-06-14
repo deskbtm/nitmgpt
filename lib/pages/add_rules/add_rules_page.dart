@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/back_button.dart';
@@ -259,7 +260,7 @@ class _AddRulesPageState extends State<AddRulesPage> {
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const Scaffold(body: SizedBox.shrink());
+      return const SizedBox.shrink();
     }
 
     final blockTextStyle = TextStyle(
@@ -295,8 +296,39 @@ class _AddRulesPageState extends State<AddRulesPage> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        appBar: AppBar(leading: const AppBarBackButton()),
+      child: GlassScaffold(
+        background: kAppGlassBackground,
+        statusBarStyle: GlassStatusBarStyle.auto,
+        edgeFade: false,
+        appBar: GlassToolbarLayer(
+          child: GlassAppBar(
+            leading: const AppBarBackButton(),
+          ),
+        ),
+        floatingActionButton: GlassButton.custom(
+          useOwnLayer: true,
+          quality: chromeGlassQuality,
+          onTap: () async {
+            if (_formKey.currentState?.validate() ?? false) {
+              await _submit();
+              if (!context.mounted) return;
+              context.pop();
+            }
+          },
+          height: 52,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 26),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(UniconsLine.check, size: 18),
+                const SizedBox(width: 8),
+                Text('Done'.tr, style: const TextStyle(fontSize: 16)),
+              ],
+            ),
+          ),
+        ),
         body: ListView(
           children: [
             Padding(
@@ -320,7 +352,7 @@ class _AddRulesPageState extends State<AddRulesPage> {
                       children: [
                         Text('Ignore system apps'.tr),
                         SignalBuilder(
-                          builder: (context) => Checkbox(
+                          builder: (context) => GlassSwitch(
                             value: _settingsStore.ignoreSystemApps.value,
                             onChanged: _toggleIgnoreSystemApps,
                           ),
@@ -328,49 +360,51 @@ class _AddRulesPageState extends State<AddRulesPage> {
                       ],
                     ),
                     SignalBuilder(
-                      builder: (context) => SizedBox(
-                        width: double.infinity,
-                        child: Wrap(
-                          spacing: 10,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () async {
-                                _watcher.deviceApps.value = [];
-                                await _watcher.getDeviceApps();
-                                await _showDeviceApps();
-                              },
-                              style: ButtonStyle(
-                                shape: WidgetStateProperty.all(
-                                  const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(5),
+                      builder: (context) => GlassToolbarLayer(
+                        quality: contentGlassQuality,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              GlassButton.custom(
+                                onTap: () async {
+                                  _watcher.deviceApps.value = [];
+                                  await _watcher.getDeviceApps();
+                                  await _showDeviceApps();
+                                },
+                                height: 44,
+                                shape: const LiquidRoundedSuperellipse(
+                                  borderRadius: 12,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Text(
+                                    'Select app'.tr,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                              ..._selectedApps.value.map((element) {
+                                return GlassChip(
+                                  label: element.appName,
+                                  icon: CircleAvatar(
+                                    backgroundColor: Colors.grey.shade800,
+                                    radius: 12,
+                                    child: AppIconImage(
+                                      bytes: element.icon,
+                                      width: 20,
+                                      height: 20,
                                     ),
                                   ),
-                                ),
-                              ),
-                              child: Text(
-                                'Select app'.tr,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            ..._selectedApps.value.map((element) {
-                              return Chip(
-                                label: Text(element.appName),
-                                avatar: CircleAvatar(
-                                  backgroundColor: Colors.grey.shade800,
-                                  child: AppIconImage(
-                                    bytes: element.icon,
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                ),
-                                onDeleted: () =>
-                                    _removeSelectedApp(element),
-                                deleteIcon:
-                                    const Icon(UniconsLine.multiply, size: 14),
-                              );
-                            }),
-                          ],
+                                  onDeleted: () => _removeSelectedApp(element),
+                                );
+                              }),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -461,18 +495,6 @@ class _AddRulesPageState extends State<AddRulesPage> {
               ),
             ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            if (_formKey.currentState?.validate() ?? false) {
-              await _submit();
-              if (!context.mounted) return;
-              context.pop();
-            }
-          },
-          tooltip: 'Add match rules',
-          icon: const Icon(UniconsLine.check),
-          label: Text('Done'.tr),
         ),
       ),
     );

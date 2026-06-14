@@ -1,17 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:nitmgpt/core/glass_quality_cache.dart';
+import 'package:nitmgpt/theme.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'nitm.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlutterForegroundTask.initCommunicationPort();
+  await LiquidGlassWidgets.initialize();
+
+  final savedGlassQuality = await GlassQualityCache.load();
 
   Map<Permission, PermissionStatus> statuses = await [
     Permission.notification,
   ].request();
 
   if (statuses.values.every((v) => v.isGranted)) {
-    runApp(const NITM());
+    runApp(
+      LiquidGlassWidgets.wrap(
+        child: const NITM(),
+        adaptiveQuality: true,
+        theme: glassThemeData,
+        adaptiveConfig: GlassAdaptiveScopeConfig(
+          initialQuality: savedGlassQuality ?? GlassQuality.standard,
+          allowStepUp: true,
+          onQualityChanged: (_, quality) => GlassQualityCache.save(quality),
+        ),
+      ),
+    );
   }
 }

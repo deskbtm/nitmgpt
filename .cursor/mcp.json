@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-861b0161-a942-48d4-b841-498156959f62"
+      }
+    },
+    "dart": {
+      "type": "stdio",
+      "command": "dart mcp-server --experimental-mcp-server --force-roots-fallback",
+      "env": {},
+      "args": []
+    },
+    "deepwiki": {
+      "url": "https://mcp.deepwiki.com/mcp"
+    }
+  }
+}

@@ -9,7 +9,7 @@ var _config = Configuration.local(
     RuleFields.schema,
     RecordedApp.schema,
   ],
-  schemaVersion: 7,
+  schemaVersion: 8,
 );
 
 var realm = Realm(_config);

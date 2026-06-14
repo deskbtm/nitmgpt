@@ -1,8 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/theme.dart';
 
 typedef DialogCallback = Future<void> Function(BuildContext dialogContext);
-typedef DialogActionsBuilder = List<Widget> Function(BuildContext dialogContext);
+typedef DialogActionsBuilder = List<GlassDialogAction> Function(
+  BuildContext dialogContext,
+);
 
 void popDialog(BuildContext dialogContext) {
   if (dialogContext.mounted) {
@@ -18,16 +22,31 @@ Future<T?> showAppDialog<T>({
   bool barrierDismissible = true,
   Future<bool> Function()? onBackPressed,
 }) {
-  return showDialog<T>(
+  return showCupertinoDialog<T>(
     context: context,
     barrierDismissible: onBackPressed == null && barrierDismissible,
     builder: (dialogContext) {
       final actions = actionsBuilder?.call(dialogContext) ?? [];
-      return _AppDialogShell(
+      final dialog = GlassDialog(
         title: title,
         content: content ?? const SizedBox.shrink(),
         actions: actions,
-        onBackPressed: onBackPressed,
+        quality: contentGlassQuality,
+      );
+
+      if (onBackPressed == null) {
+        return dialog;
+      }
+
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          if (await onBackPressed()) {
+            if (dialogContext.mounted) popDialog(dialogContext);
+          }
+        },
+        child: dialog,
       );
     },
   );
@@ -58,19 +77,20 @@ Future<T?> showAppAlertDialog<T>({
     content: body,
     onBackPressed: onBackPressed,
     actionsBuilder: (dialogContext) {
-      final actions = <Widget>[];
+      final actions = <GlassDialogAction>[];
       if (cancelText != null && onCancel != null) {
         actions.add(
-          TextButton(
+          GlassDialogAction(
+            label: cancelText,
             onPressed: () => onCancel(dialogContext),
-            child: Text(cancelText),
           ),
         );
       }
       actions.add(
-        FilledButton(
+        GlassDialogAction(
+          label: confirmText,
+          isPrimary: true,
           onPressed: () => onConfirm?.call(dialogContext),
-          child: Text(confirmText),
         ),
       );
       return actions;
@@ -101,25 +121,21 @@ Future<T?> showAppInputDialog<T>({
           description,
           const SizedBox(height: 12),
         ],
-        TextField(
+        GlassTextField(
           controller: controller,
-          decoration: InputDecoration(
-            hintText: hint,
-            suffix: suffix,
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
-          ),
+          placeholder: hint,
+          quality: contentGlassQuality,
+          useOwnLayer: true,
+          suffixIcon: suffix,
         ),
       ],
     ),
     actionsBuilder: (dialogContext) {
-      final actions = <Widget>[];
+      final actions = <GlassDialogAction>[];
       if (cancelText != null) {
         actions.add(
-          TextButton(
+          GlassDialogAction(
+            label: cancelText,
             onPressed: () {
               if (onCancel != null) {
                 onCancel(dialogContext);
@@ -127,14 +143,14 @@ Future<T?> showAppInputDialog<T>({
                 popDialog(dialogContext);
               }
             },
-            child: Text(cancelText),
           ),
         );
       }
       actions.add(
-        FilledButton(
+        GlassDialogAction(
+          label: confirmText,
+          isPrimary: true,
           onPressed: () => onConfirm?.call(dialogContext),
-          child: Text(confirmText),
         ),
       );
       return actions;
@@ -164,86 +180,17 @@ Future<T?> showAppBottomSheet<T>({
   required WidgetBuilder builder,
   double heightFactor = 0.8,
 }) {
-  return showModalBottomSheet<T>(
+  return GlassSheet.show<T>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+    useRootNavigator: true,
     builder: (sheetContext) {
-      return FractionallySizedBox(
-        heightFactor: heightFactor,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Theme.of(sheetContext).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: builder(sheetContext),
-          ),
-        ),
+      final sheetHeight =
+          MediaQuery.sizeOf(sheetContext).height * heightFactor;
+      return SizedBox(
+        height: sheetHeight,
+        width: double.infinity,
+        child: builder(sheetContext),
       );
     },
   );
-}
-
-class _AppDialogShell extends StatelessWidget {
-  const _AppDialogShell({
-    required this.title,
-    required this.content,
-    required this.actions,
-    this.onBackPressed,
-  });
-
-  final String title;
-  final Widget content;
-  final List<Widget> actions;
-  final Future<bool> Function()? onBackPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: onBackPressed == null,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        if (onBackPressed != null && await onBackPressed!()) {
-          if (context.mounted) popDialog(context);
-        }
-      },
-      child: Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(context).height * 0.5,
-                ),
-                child: SingleChildScrollView(child: content),
-              ),
-              if (actions.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: actions,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

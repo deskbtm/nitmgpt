@@ -6,6 +6,7 @@ import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/record.dart';
@@ -16,13 +17,10 @@ import 'package:nitmgpt/utils.dart';
 import 'package:realm/realm.dart';
 
 class ForegroundTaskAction {
-  static const promptApiKey = 'prompt_api_key';
   static const updateRecords = 'update_records';
 }
 
 const nitmForegroundServiceId = 888;
-
-bool _isUnsetApiKey = true;
 
 late List<Application> _deviceApps;
 
@@ -67,12 +65,6 @@ Future<void> stopPermanentListenerForegroundTask() {
   return FlutterForegroundTask.stopService();
 }
 
-void sendPromptApiKeyToMain() {
-  FlutterForegroundTask.sendDataToMain({
-    'action': ForegroundTaskAction.promptApiKey,
-  });
-}
-
 void sendUpdateRecordsToMain() {
   FlutterForegroundTask.sendDataToMain({
     'action': ForegroundTaskAction.updateRecords,
@@ -111,8 +103,13 @@ class PermanentListenerTaskHandler extends TaskHandler {
 
 Future<GPTResponse?> _inquireGPT(String question, Settings? settings,
     {Future<void> Function()? onRequestSuccess}) async {
+  if (openAiApiKey.isEmpty) {
+    log('OpenAI API key is not configured', name: 'permanent_listener_service');
+    return null;
+  }
+
   final openAI = OpenAI.instance.build(
-    token: settings?.openAiKey,
+    token: openAiApiKey,
     baseOption: HttpSetup(
       receiveTimeout: const Duration(seconds: 8),
       connectTimeout: const Duration(seconds: 8),
@@ -205,14 +202,6 @@ bool _determineRemove(GPTResponse answer, Settings? settings) {
 handleNotificationListener(NotificationEvent event) async {
   try {
     Settings settings = getSettingInstance();
-
-    if (settings.openAiKey == null || settings.openAiKey == '') {
-      if (_isUnsetApiKey) {
-        _isUnsetApiKey = false;
-        sendPromptApiKeyToMain();
-      }
-      return;
-    }
 
     if (settings.ignoredApps.contains(event.packageName)) {
       return;

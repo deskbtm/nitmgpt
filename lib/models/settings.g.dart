@@ -88,7 +88,6 @@ class Settings extends _Settings
   Settings(
     int id, {
     String? proxyUri,
-    String? openAiKey,
     double? presetAdProbability,
     double? presetSpamProbability,
     int presetLimit = 100,
@@ -108,7 +107,6 @@ class Settings extends _Settings
     }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'proxyUri', proxyUri);
-    RealmObjectBase.set(this, 'openAiKey', openAiKey);
     RealmObjectBase.set(this, 'presetAdProbability', presetAdProbability);
     RealmObjectBase.set(this, 'presetSpamProbability', presetSpamProbability);
     RealmObjectBase.set(this, 'presetLimit', presetLimit);
@@ -134,12 +132,6 @@ class Settings extends _Settings
       RealmObjectBase.get<String>(this, 'proxyUri') as String?;
   @override
   set proxyUri(String? value) => RealmObjectBase.set(this, 'proxyUri', value);
-
-  @override
-  String? get openAiKey =>
-      RealmObjectBase.get<String>(this, 'openAiKey') as String?;
-  @override
-  set openAiKey(String? value) => RealmObjectBase.set(this, 'openAiKey', value);
 
   @override
   double? get presetAdProbability =>
@@ -220,7 +212,6 @@ class Settings extends _Settings
     return const SchemaObject(ObjectType.realmObject, Settings, 'Settings', [
       SchemaProperty('id', RealmPropertyType.int, primaryKey: true),
       SchemaProperty('proxyUri', RealmPropertyType.string, optional: true),
-      SchemaProperty('openAiKey', RealmPropertyType.string, optional: true),
       SchemaProperty('presetAdProbability', RealmPropertyType.double,
           optional: true),
       SchemaProperty('presetSpamProbability', RealmPropertyType.double,
