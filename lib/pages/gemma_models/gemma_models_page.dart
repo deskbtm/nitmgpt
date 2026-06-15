@@ -3,17 +3,17 @@ import 'package:flutter_gemma/core/model.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/dialog.dart';
+import 'package:nitmgpt/components/back_button.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/gemma_models/add_model_sheet.dart';
 import 'package:nitmgpt/state/gemma_model_helpers.dart';
 import 'package:nitmgpt/state/gemma_model_store.dart';
 import 'package:nitmgpt/theme.dart';
-import 'package:go_router/go_router.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 
-/// Secondary settings page — opaque content, no nested [GlassScaffold].
+/// Secondary settings page — opaque content on [SecondaryPageScaffold] pattern.
 class GemmaModelsPage extends StatefulWidget {
   const GemmaModelsPage({super.key});
 
@@ -262,10 +262,7 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   scrolledUnderElevation: 0,
-                  leading: IconButton(
-                    icon: const Icon(UniconsLine.angle_left_b),
-                    onPressed: () => context.pop(),
-                  ),
+                  leading: const AppBarBackButton(),
                   title: Text(
                     'Model configuration'.tr,
                     style: const TextStyle(

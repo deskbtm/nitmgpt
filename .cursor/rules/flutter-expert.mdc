@@ -20,7 +20,7 @@ When implementing or modifying Flutter/Dart code in this project:
 - [ ] `const` constructors on static widgets; keys on list items
 - [ ] Do not build widget subtrees inside `build()` — extract to methods or widgets
 - [ ] Prefer `SignalBuilder` / `Watch` for reactive UI over `setState` for app state
-- [ ] Reuse project components (`OpaqueGroupedSection`, `GlassScaffold`, dialogs in `components/`)
+- [ ] Reuse project components (`OpaqueGroupedSection`, `SecondaryPageScaffold`, `TabPageShell`, dialogs in `components/`)
 
 ## State (Signals)
 

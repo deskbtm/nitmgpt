@@ -1,10 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
-import 'package:nitmgpt/components/back_button.dart';
 import 'package:nitmgpt/components/dialog.dart';
+import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/models/realm.dart';
@@ -296,38 +295,19 @@ class _AddRulesPageState extends State<AddRulesPage> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: GlassScaffold(
-        background: kAppGlassBackground,
-        statusBarStyle: GlassStatusBarStyle.auto,
-        edgeFade: false,
-        appBar: GlassToolbarLayer(
-          child: GlassAppBar(
-            leading: const AppBarBackButton(),
-          ),
-        ),
-        floatingActionButton: GlassButton.custom(
-          useOwnLayer: true,
-          quality: chromeGlassQuality,
-          onTap: () async {
+      child: SecondaryPageScaffold(
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
             if (_formKey.currentState?.validate() ?? false) {
               await _submit();
               if (!context.mounted) return;
               context.pop();
             }
           },
-          height: 52,
-          shape: const LiquidRoundedSuperellipse(borderRadius: 26),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(UniconsLine.check, size: 18),
-                const SizedBox(width: 8),
-                Text('Done'.tr, style: const TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          icon: const Icon(UniconsLine.check, size: 18),
+          label: Text('Done'.tr),
         ),
         body: ListView(
           children: [
@@ -352,59 +332,55 @@ class _AddRulesPageState extends State<AddRulesPage> {
                       children: [
                         Text('Ignore system apps'.tr),
                         SignalBuilder(
-                          builder: (context) => GlassSwitch(
+                          builder: (context) => Switch.adaptive(
                             value: _settingsStore.ignoreSystemApps.value,
+                            activeTrackColor: primaryColor.withValues(alpha: 0.5),
+                            thumbColor: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) {
+                                return primaryColor;
+                              }
+                              return null;
+                            }),
                             onChanged: _toggleIgnoreSystemApps,
                           ),
                         ),
                       ],
                     ),
                     SignalBuilder(
-                      builder: (context) => GlassToolbarLayer(
-                        quality: contentGlassQuality,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: [
-                              GlassButton.custom(
-                                onTap: () async {
-                                  _watcher.deviceApps.value = [];
-                                  await _watcher.getDeviceApps();
-                                  await _showDeviceApps();
-                                },
-                                height: 44,
-                                shape: const LiquidRoundedSuperellipse(
-                                  borderRadius: 12,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  child: Text(
-                                    'Select app'.tr,
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                ),
+                      builder: (context) => SizedBox(
+                        width: double.infinity,
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            FilledButton(
+                              onPressed: () async {
+                                _watcher.deviceApps.value = [];
+                                await _watcher.getDeviceApps();
+                                await _showDeviceApps();
+                              },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: Colors.white,
                               ),
-                              ..._selectedApps.value.map((element) {
-                                return GlassChip(
-                                  label: element.appName,
-                                  icon: CircleAvatar(
-                                    backgroundColor: Colors.grey.shade800,
-                                    radius: 12,
-                                    child: AppIconImage(
-                                      bytes: element.icon,
-                                      width: 20,
-                                      height: 20,
-                                    ),
+                              child: Text('Select app'.tr),
+                            ),
+                            ..._selectedApps.value.map((element) {
+                              return InputChip(
+                                label: Text(element.appName),
+                                avatar: CircleAvatar(
+                                  backgroundColor: Colors.grey.shade800,
+                                  radius: 12,
+                                  child: AppIconImage(
+                                    bytes: element.icon,
+                                    width: 20,
+                                    height: 20,
                                   ),
-                                  onDeleted: () => _removeSelectedApp(element),
-                                );
-                              }),
-                            ],
-                          ),
+                                ),
+                                onDeleted: () => _removeSelectedApp(element),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                     ),

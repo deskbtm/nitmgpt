@@ -7,6 +7,7 @@ import 'package:nitmgpt/app/app_router.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/notification_utils.dart';
 import 'package:nitmgpt/theme.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class NITM extends StatefulWidget {
   const NITM({super.key});
@@ -31,19 +32,24 @@ class _NITMState extends State<NITM> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp.router(
-          routerConfig: appRouter,
-          locale: appLocale.value,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en', 'US'),
-            Locale('zh', 'CN'),
-          ],
-          theme: lightThemeData,
+        return SignalBuilder(
+          builder: (context) {
+            final locale = appLocale.value;
+            return MaterialApp.router(
+              routerConfig: appRouter,
+              locale: locale,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en', 'US'),
+                Locale('zh', 'CN'),
+              ],
+              theme: lightThemeData,
+            );
+          },
         );
       },
     );

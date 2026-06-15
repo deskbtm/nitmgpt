@@ -24,8 +24,9 @@ When building widgets, screens, or UI flows:
 ## Layout & Depth
 
 - [ ] Use intentional spatial composition — asymmetry, overlap, or generous whitespace
-- [ ] Scrollable content uses opaque widgets (`OpaqueGroupedSection`); chrome uses glass per `theme.dart`
-- [ ] Add depth via gradients, shadows, transparency — not flat solid fills by default
+- [ ] Scrollable content uses opaque widgets (`OpaqueGroupedSection`)
+- [ ] Liquid glass only on Bottom Bar and secondary-page Back button (see ADR-0001)
+- [ ] Wallpaper (`kAppGlassBackground`) provides depth behind glass surfaces
 
 ## Motion & Feedback
 

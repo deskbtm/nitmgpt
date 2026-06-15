@@ -1,10 +1,24 @@
 import 'package:flutter/cupertino.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/theme.dart';
 
 typedef DialogCallback = Future<void> Function(BuildContext dialogContext);
-typedef DialogActionsBuilder = List<GlassDialogAction> Function(
+
+class AppDialogAction {
+  const AppDialogAction({
+    required this.label,
+    this.isPrimary = false,
+    this.isDestructive = false,
+    this.onPressed,
+  });
+
+  final String label;
+  final bool isPrimary;
+  final bool isDestructive;
+  final VoidCallback? onPressed;
+}
+
+typedef DialogActionsBuilder = List<AppDialogAction> Function(
   BuildContext dialogContext,
 );
 
@@ -27,11 +41,18 @@ Future<T?> showAppDialog<T>({
     barrierDismissible: onBackPressed == null && barrierDismissible,
     builder: (dialogContext) {
       final actions = actionsBuilder?.call(dialogContext) ?? [];
-      final dialog = GlassDialog(
-        title: title,
-        content: content ?? const SizedBox.shrink(),
-        actions: actions,
-        quality: contentGlassQuality,
+      final dialog = CupertinoAlertDialog(
+        title: Text(title),
+        content: content,
+        actions: [
+          for (final action in actions)
+            CupertinoDialogAction(
+              isDefaultAction: action.isPrimary,
+              isDestructiveAction: action.isDestructive,
+              onPressed: action.onPressed,
+              child: Text(action.label),
+            ),
+        ],
       );
 
       if (onBackPressed == null) {
@@ -65,9 +86,12 @@ Future<T?> showAppAlertDialog<T>({
 }) {
   final body = content ??
       (message != null
-          ? Text(
-              message,
-              style: const TextStyle(fontSize: 16, height: 1.45),
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                message,
+                style: const TextStyle(fontSize: 14, height: 1.45),
+              ),
             )
           : null);
 
@@ -77,17 +101,17 @@ Future<T?> showAppAlertDialog<T>({
     content: body,
     onBackPressed: onBackPressed,
     actionsBuilder: (dialogContext) {
-      final actions = <GlassDialogAction>[];
+      final actions = <AppDialogAction>[];
       if (cancelText != null && onCancel != null) {
         actions.add(
-          GlassDialogAction(
+          AppDialogAction(
             label: cancelText,
             onPressed: () => onCancel(dialogContext),
           ),
         );
       }
       actions.add(
-        GlassDialogAction(
+        AppDialogAction(
           label: confirmText,
           isPrimary: true,
           onPressed: () => onConfirm?.call(dialogContext),
@@ -138,10 +162,10 @@ Future<T?> showAppInputDialog<T>({
       },
     ),
     actionsBuilder: (dialogContext) {
-      final actions = <GlassDialogAction>[];
+      final actions = <AppDialogAction>[];
       if (cancelText != null) {
         actions.add(
-          GlassDialogAction(
+          AppDialogAction(
             label: cancelText,
             onPressed: () {
               if (onCancel != null) {
@@ -154,7 +178,7 @@ Future<T?> showAppInputDialog<T>({
         );
       }
       actions.add(
-        GlassDialogAction(
+        AppDialogAction(
           label: confirmText,
           isPrimary: true,
           onPressed: () => onConfirm?.call(dialogContext),
@@ -187,12 +211,16 @@ Future<T?> showAppBottomSheet<T>({
   required WidgetBuilder builder,
   double heightFactor = 0.8,
 }) {
-  return GlassSheet.show<T>(
+  return showModalBottomSheet<T>(
     context: context,
     useRootNavigator: true,
+    isScrollControlled: true,
+    backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
     builder: (sheetContext) {
-      final sheetHeight =
-          MediaQuery.sizeOf(sheetContext).height * heightFactor;
+      final sheetHeight = MediaQuery.sizeOf(sheetContext).height * heightFactor;
       return SizedBox(
         height: sheetHeight,
         width: double.infinity,

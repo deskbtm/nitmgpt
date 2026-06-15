@@ -27,12 +27,17 @@ class _IndexPageState extends State<IndexPage> {
   @override
   Widget build(BuildContext context) {
     return DoublePopExit(
-      child: GlassScaffold(
-        background: kAppGlassBackground,
-        statusBarStyle: GlassStatusBarStyle.auto,
-        edgeFade: true,
-        bottomBar: _buildBottomBar(context),
-        body: widget.navigationShell,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          kAppGlassBackground,
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            extendBody: true,
+            body: widget.navigationShell,
+            bottomNavigationBar: _buildBottomBar(context),
+          ),
+        ],
       ),
     );
   }
@@ -40,7 +45,6 @@ class _IndexPageState extends State<IndexPage> {
   Widget _buildBottomBar(BuildContext context) {
     final sysBottom = MediaQuery.paddingOf(context).bottom;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // iOS 26 compact pill: tabWidth × tab count (99 × 2 = 198 px).
     const tabWidth = 99.0;
     const tabCount = 2;
     final pillWidth = tabWidth * tabCount;

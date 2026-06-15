@@ -12,19 +12,6 @@ ThemeData lightThemeData = ThemeData(
   floatingActionButtonTheme: const FloatingActionButtonThemeData(elevation: 3),
 );
 
-/// Quality for scrollable / grouped content — use opaque widgets instead of glass.
-/// See: https://github.com/sdegenaar/liquid_glass_widgets#glass-vs-content--design-philosophy
-const GlassQuality contentGlassQuality = GlassQuality.minimal;
-
-/// Quality for toolbars, tab bars, bottom bars, and dialogs (navigation chrome).
-const GlassQuality chromeGlassQuality = GlassQuality.standard;
-
-/// Shared layer settings for grouped toolbar controls (one shader pass).
-const LiquidGlassSettings toolbarGlassSettings = LiquidGlassSettings(
-  blur: 6,
-  thickness: 24,
-);
-
 /// iOS 26-style bottom bar glass — matches library [kBottomBarGlassDefaults].
 LiquidGlassSettings bottomBarGlassSettings({required bool isDark}) {
   if (isDark) {
@@ -75,9 +62,9 @@ final GlassThemeData glassThemeData = GlassThemeData.simple(
   quality: GlassQuality.standard,
 );
 
-/// Lightweight shell for tab pages inside the root [GlassScaffold].
-class GlassTabShell extends StatelessWidget {
-  const GlassTabShell({
+/// Opaque tab page shell — app bar + body column inside the root scaffold.
+class TabPageShell extends StatelessWidget {
+  const TabPageShell({
     super.key,
     this.appBar,
     required this.body,
@@ -94,27 +81,6 @@ class GlassTabShell extends StatelessWidget {
         if (appBar != null) SafeArea(bottom: false, child: appBar!),
         Expanded(child: body),
       ],
-    );
-  }
-}
-
-/// Groups glass controls under a single [AdaptiveLiquidGlassLayer].
-class GlassToolbarLayer extends StatelessWidget {
-  const GlassToolbarLayer({
-    super.key,
-    required this.child,
-    this.quality = chromeGlassQuality,
-  });
-
-  final Widget child;
-  final GlassQuality quality;
-
-  @override
-  Widget build(BuildContext context) {
-    return AdaptiveLiquidGlassLayer(
-      quality: quality,
-      settings: toolbarGlassSettings,
-      child: child,
     );
   }
 }
