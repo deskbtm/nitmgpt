@@ -3,6 +3,7 @@ import 'package:nitmgpt/app/app_navigator.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/app/routes.dart';
 import 'package:nitmgpt/pages/add_rules/add_rules_page.dart';
+import 'package:nitmgpt/pages/gemma_models/gemma_models_page.dart';
 import 'package:nitmgpt/pages/home/home_page.dart';
 import 'package:nitmgpt/pages/index/index_page.dart';
 import 'package:nitmgpt/pages/settings/settings_page.dart';
@@ -44,6 +45,10 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.rules,
           builder: (context, state) => const AddRulesPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.gemmaModels,
+          builder: (context, state) => const GemmaModelsPage(),
         ),
       ],
     ),

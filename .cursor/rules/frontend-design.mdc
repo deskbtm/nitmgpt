@@ -1,0 +1,40 @@
+---
+description: Distinctive Flutter UI design — avoid generic AI aesthetics when building widgets and screens
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Frontend Design
+
+When building widgets, screens, or UI flows:
+
+## Design Direction
+
+- [ ] Pick one clear aesthetic (minimal, refined, playful, editorial, etc.) and commit to it
+- [ ] Define purpose, audience, and what makes this UI memorable
+- [ ] Match implementation complexity to the vision (maximalist → rich motion; minimal → precision spacing)
+
+## Typography & Theme
+
+- [ ] Use `ThemeData` / `TextTheme` with clear hierarchy — not flat system defaults only
+- [ ] Pair display + body fonts intentionally; avoid overused defaults (Roboto-only, Space Grotesk everywhere)
+- [ ] Use `ColorScheme` and project constants (`primaryColor`, `theme.dart`) for a cohesive palette
+- [ ] Dominant color + sharp accents; avoid timid evenly-distributed palettes
+
+## Layout & Depth
+
+- [ ] Use intentional spatial composition — asymmetry, overlap, or generous whitespace
+- [ ] Scrollable content uses opaque widgets (`OpaqueGroupedSection`); chrome uses glass per `theme.dart`
+- [ ] Add depth via gradients, shadows, transparency — not flat solid fills by default
+
+## Motion & Feedback
+
+- [ ] One high-impact entrance or transition beats scattered micro-animations
+- [ ] Use `AnimatedSwitcher`, `Hero`, implicit/explicit animations where they reinforce the aesthetic
+- [ ] Gestures, focus, and tap states feel responsive
+
+## Avoid
+
+- [ ] Purple-on-white gradient clichés and cookie-cutter component patterns
+- [ ] Generic layouts that could belong to any app
+- [ ] Copying the same font/palette across unrelated screens

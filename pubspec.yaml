@@ -44,6 +44,9 @@ dependencies:
   signals_flutter: ^7.1.0
   go_router: ^17.3.0
   liquid_glass_widgets: ^0.16.0
+  flutter_gemma: ^0.16.5
+  shared_preferences: ^2.5.5
+  modal_bottom_sheet: ^3.0.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -54,3 +57,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+# flutter_gemma -> sqlite3 downloads binaries from GitHub during hooks.
+# Use Android system libsqlite3 to avoid network failures and hook lock contention.
+hooks:
+  user_defines:
+    sqlite3:
+      source: system

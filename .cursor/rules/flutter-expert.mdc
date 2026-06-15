@@ -1,0 +1,46 @@
+---
+description: Flutter 3+ and Dart patterns for this project — Signals, widgets, navigation, performance
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Flutter Expert
+
+When implementing or modifying Flutter/Dart code in this project:
+
+## Architecture
+
+- [ ] Follow existing layout: `lib/app/` (router, scope), `lib/state/` (stores), `lib/pages/`, `lib/components/`
+- [ ] App-wide state in Signals stores (`signal`, `computed`, `listSignal`); expose via `AppScope`
+- [ ] Navigation with `go_router`; routes in `lib/app/routes.dart`
+- [ ] User strings via `.tr` and `lib/i18n/` — no hardcoded UI copy
+
+## Widgets
+
+- [ ] `const` constructors on static widgets; keys on list items
+- [ ] Do not build widget subtrees inside `build()` — extract to methods or widgets
+- [ ] Prefer `SignalBuilder` / `Watch` for reactive UI over `setState` for app state
+- [ ] Reuse project components (`OpaqueGroupedSection`, `GlassScaffold`, dialogs in `components/`)
+
+## State (Signals)
+
+- [ ] Read with `.value`; write by assigning new values — never mutate in place
+- [ ] Side effects in stores, not scattered in widgets
+- [ ] Async store methods set loading/error signals; guard `BuildContext` after awaits
+
+## Performance
+
+- [ ] No heavy work on UI thread — use `compute()` for large CPU tasks
+- [ ] Profile jank with DevTools before micro-optimizing
+- [ ] List views: stable keys, avoid rebuilding entire trees on small signal changes
+
+## Testing
+
+- [ ] Pure logic in testable helpers (see `lib/state/gemma_model_helpers.dart`)
+- [ ] Widget tests with `flutter_test`; offline checks via `dart run tool/verify_*.dart` when native deps block `flutter test`
+
+## Must Not
+
+- [ ] `setState` for cross-screen or persisted state
+- [ ] Skip `mounted` checks after async gaps with `BuildContext`
+- [ ] Import platform APIs directly in widgets — keep in stores or platform layers

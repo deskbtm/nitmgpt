@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/glass_quality_cache.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -10,6 +12,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlutterForegroundTask.initCommunicationPort();
   await LiquidGlassWidgets.initialize();
+  await FlutterGemma.initialize(
+    huggingFaceToken: huggingFaceToken.isEmpty ? null : huggingFaceToken,
+  );
 
   final savedGlassQuality = await GlassQualityCache.load();
 

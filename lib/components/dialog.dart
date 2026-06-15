@@ -113,22 +113,29 @@ Future<T?> showAppInputDialog<T>({
   return showAppDialog<T>(
     context: context,
     title: title,
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (description != null) ...[
-          description,
-          const SizedBox(height: 12),
-        ],
-        GlassTextField(
-          controller: controller,
-          placeholder: hint,
-          quality: contentGlassQuality,
-          useOwnLayer: true,
-          suffixIcon: suffix,
-        ),
-      ],
+    content: Builder(
+      builder: (fieldContext) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (description != null) ...[
+              description,
+              const SizedBox(height: 12),
+            ],
+            CupertinoTextField(
+              controller: controller,
+              placeholder: hint,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: CupertinoColors.tertiarySystemFill.resolveFrom(fieldContext),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              suffix: suffix,
+            ),
+          ],
+        );
+      },
     ),
     actionsBuilder: (dialogContext) {
       final actions = <GlassDialogAction>[];

@@ -3,7 +3,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 export 'components/app_background.dart' show kAppGlassBackground;
 
-var primaryColor = const Color.fromARGB(255, 116, 170, 156);
+var primaryColor = const Color(0xFF74AA9C);
 
 ThemeData lightThemeData = ThemeData(
   useMaterial3: true,
@@ -12,10 +12,11 @@ ThemeData lightThemeData = ThemeData(
   floatingActionButtonTheme: const FloatingActionButtonThemeData(elevation: 3),
 );
 
-/// Quality for scrollable / grouped content — zero custom shader during scroll.
+/// Quality for scrollable / grouped content — use opaque widgets instead of glass.
+/// See: https://github.com/sdegenaar/liquid_glass_widgets#glass-vs-content--design-philosophy
 const GlassQuality contentGlassQuality = GlassQuality.minimal;
 
-/// Quality for toolbars, tabs, and dialogs.
+/// Quality for toolbars, tab bars, bottom bars, and dialogs (navigation chrome).
 const GlassQuality chromeGlassQuality = GlassQuality.standard;
 
 /// Shared layer settings for grouped toolbar controls (one shader pass).

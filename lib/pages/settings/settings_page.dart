@@ -3,6 +3,7 @@ import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:nitmgpt/app/app_scope.dart';
+import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:go_router/go_router.dart';
@@ -31,84 +32,81 @@ class SettingsPage extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
-          GlassGroupedSection(
-            quality: contentGlassQuality,
-            header: Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 6),
-              child: Text('app'.tr, style: sectionHeaderStyle),
-            ),
+          OpaqueGroupedSection(
+            header: 'app'.tr,
+            headerStyle: sectionHeaderStyle,
             children: [
               SignalBuilder(
                 builder: (context) {
                   if (settings.ownedApp.value) {
                     return const SizedBox.shrink();
                   }
-                  return GlassListTile(
+                  return OpaqueListTile(
                     title: Text('Get this App'.tr),
-                    trailing: GlassListTile.chevron,
+                    showChevron: true,
                     onTap: () => settings.verifyOwnedApp(context),
                   );
                 },
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Custom Rules'.tr),
-                trailing: GlassListTile.chevron,
+                showChevron: true,
                 onTap: () => context.push(AppRoutes.rules),
               ),
-              GlassListTile(
+              OpaqueListTile(
+                title: Text('Model configuration'.tr),
+                showChevron: true,
+                onTap: () => context.push(AppRoutes.gemmaModels),
+              ),
+              OpaqueListTile(
                 title: Text('Bug report'.tr),
-                trailing: GlassListTile.chevron,
+                showChevron: true,
                 onTap: () async => open('$githubRepoUrl/issues'),
               ),
             ],
           ),
-          GlassGroupedSection(
-            quality: contentGlassQuality,
-            header: Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 6),
-              child: Text('system'.tr, style: sectionHeaderStyle),
-            ),
+          OpaqueGroupedSection(
+            header: 'system'.tr,
+            headerStyle: sectionHeaderStyle,
             children: [
-              GlassListTile(
+              OpaqueListTile(
                 title: const Text('Language'),
                 trailing: Text('_locale'.tr),
                 onTap: settings.setLanguage,
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Proxy'.tr),
                 trailing: SignalBuilder(
                   builder: (context) => Text(settings.proxyUri.value),
                 ),
                 onTap: () => settings.setupProxy(context),
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Clear records'.tr),
                 onTap: watcher.clearRecords,
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Update'.tr),
                 trailing: _UpdateTrailing(settings: settings),
                 onTap: () => settings.checkUpdate(context),
               ),
             ],
           ),
-          GlassGroupedSection(
-            quality: contentGlassQuality,
-            header: Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 6),
-              child: Text('permission'.tr, style: sectionHeaderStyle),
-            ),
+          OpaqueGroupedSection(
+            header: 'permission'.tr,
+            headerStyle: sectionHeaderStyle,
+            margin: EdgeInsets.zero,
             children: [
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Notification listener permission'.tr),
-                trailing: GlassListTile.chevron,
+                showChevron: true,
                 onTap: NotificationsListener.openPermissionSettings,
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Auto start'.tr),
-                trailing: GlassListTile.chevron,
+                showChevron: true,
                 onTap: () async {
                   await DisableBatteryOptimization.showEnableAutoStartSettings(
                     'Enable Auto Start',
@@ -116,17 +114,17 @@ class SettingsPage extends StatelessWidget {
                   );
                 },
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Battery optimization'.tr),
-                trailing: GlassListTile.chevron,
+                showChevron: true,
                 onTap: () async {
                   await DisableBatteryOptimization
                       .showDisableBatteryOptimizationSettings();
                 },
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text('Manufacturer specific Battery Optimization'.tr),
-                trailing: GlassListTile.chevron,
+                showChevron: true,
                 onTap: () async {
                   await DisableBatteryOptimization
                       .showDisableManufacturerBatteryOptimizationSettings(
@@ -135,7 +133,7 @@ class SettingsPage extends StatelessWidget {
                   );
                 },
               ),
-              GlassListTile(
+              OpaqueListTile(
                 title: Text(
                   'Exit App'.tr,
                   style: const TextStyle(color: Colors.red),

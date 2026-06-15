@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/state/gemma_model_store.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -9,11 +10,13 @@ class AppScope extends InheritedWidget {
     super.key,
     required this.settings,
     required this.watcher,
+    required this.gemmaModels,
     required super.child,
   });
 
   final SettingsStore settings;
   final WatcherStore watcher;
+  final GemmaModelStore gemmaModels;
 
   static AppScope of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
@@ -37,6 +40,7 @@ class AppScopeHost extends StatefulWidget {
 class _AppScopeHostState extends State<AppScopeHost> {
   late final SettingsStore _settings = SettingsStore();
   late final WatcherStore _watcher = WatcherStore(_settings);
+  late final GemmaModelStore _gemmaModels = GemmaModelStore();
 
   @override
   void initState() {
@@ -59,6 +63,7 @@ class _AppScopeHostState extends State<AppScopeHost> {
     return AppScope(
       settings: _settings,
       watcher: _watcher,
+      gemmaModels: _gemmaModels,
       child: SignalBuilder(
         builder: (context) {
           appLocale.value;
