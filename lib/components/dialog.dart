@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/theme.dart';
 
 typedef DialogCallback = Future<void> Function(BuildContext dialogContext);
 
@@ -153,7 +154,7 @@ Future<T?> showAppInputDialog<T>({
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: CupertinoColors.tertiarySystemFill.resolveFrom(fieldContext),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: kTileBorderRadiusAll,
               ),
               suffix: suffix,
             ),
@@ -217,7 +218,7 @@ Future<T?> showAppBottomSheet<T>({
     isScrollControlled: true,
     backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: kTileTopBorderRadius,
     ),
     builder: (sheetContext) {
       final sheetHeight = MediaQuery.sizeOf(sheetContext).height * heightFactor;

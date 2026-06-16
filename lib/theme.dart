@@ -5,6 +5,12 @@ export 'components/app_background.dart' show kAppGlassBackground;
 
 var primaryColor = const Color(0xFF74AA9C);
 
+/// Shared corner radius for tiles, grouped lists, and modal sheets.
+const kTileBorderRadius = 24.0;
+const kTileBorderRadiusAll = BorderRadius.all(Radius.circular(kTileBorderRadius));
+const kTileTopBorderRadius =
+    BorderRadius.vertical(top: Radius.circular(kTileBorderRadius));
+
 ThemeData lightThemeData = ThemeData(
   useMaterial3: true,
   colorSchemeSeed: primaryColor,
@@ -62,7 +68,36 @@ final GlassThemeData glassThemeData = GlassThemeData.simple(
   quality: GlassQuality.standard,
 );
 
-/// Opaque tab page shell — app bar + body column inside the root scaffold.
+/// White mist frosted glass for grouped list tiles on scrollable pages.
+LiquidGlassSettings tileGlassSettings({required bool isDark}) {
+  if (isDark) {
+    return const LiquidGlassSettings(
+      glassColor: Color(0xCC2C2C2E),
+      thickness: 26,
+      blur: 6,
+      chromaticAberration: 0.2,
+      lightIntensity: 0.55,
+      refractiveIndex: 1.52,
+      saturation: 0.75,
+      ambientStrength: 1,
+      lightAngle: GlassDefaults.lightAngle,
+    );
+  }
+
+  return const LiquidGlassSettings(
+    glassColor: Color(0xD9FFFFFF),
+    thickness: 26,
+    blur: 6,
+    chromaticAberration: 0.2,
+    lightIntensity: 0.85,
+    refractiveIndex: 1.52,
+    saturation: 0.9,
+    ambientStrength: 1,
+    lightAngle: GlassDefaults.lightAngle,
+  );
+}
+
+/// Opaque tab page shell — scrollable body inside the root scaffold.
 class TabPageShell extends StatelessWidget {
   const TabPageShell({
     super.key,
@@ -73,12 +108,21 @@ class TabPageShell extends StatelessWidget {
   final Widget? appBar;
   final Widget body;
 
+  /// Top inset for tab pages with a scrollable large title (no back button).
+  static double scrollTopPadding(BuildContext context) {
+    return MediaQuery.paddingOf(context).top + 12;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (appBar == null) {
+      return body;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (appBar != null) SafeArea(bottom: false, child: appBar!),
+        SafeArea(bottom: false, child: appBar!),
         Expanded(child: body),
       ],
     );

@@ -7,12 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
-import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/permanent_listener_service/main.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
-import 'package:unicons/unicons.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -99,107 +97,63 @@ class _HomePageState extends State<HomePage> {
     }
 
     return TabPageShell(
-      appBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: SignalBuilder(
-          builder: (context) {
-            final listening = _watcher.isListening.value;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                FilledButton.icon(
-                  onPressed: _watcher.startNotificationService,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: Icon(
-                    listening ? UniconsLine.record_audio : UniconsLine.play,
-                    size: 18,
-                  ),
-                  label: Text(
-                    listening ? '${'Listening'.tr}...' : 'Start listening'.tr,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _watcher.exportXlsx,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: primaryColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(UniconsLine.history, size: 18),
-                  label: Text(
-                    'Export History'.tr,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
-            );
-          },
+      body: Padding(
+        padding: EdgeInsets.only(
+          top: TabPageShell.scrollTopPadding(context),
         ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_cachedTabs.isNotEmpty)
-            SizedBox(
-              height: 52,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _cachedTabs.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final tab = _cachedTabs[index];
-                  final selected = index == _selectedTabIndex;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedTabIndex = index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: selected
-                              ? primaryColor
-                              : Colors.transparent,
-                          width: 2,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_cachedTabs.isNotEmpty)
+              SizedBox(
+                height: 52,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _cachedTabs.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final tab = _cachedTabs[index];
+                    final selected = index == _selectedTabIndex;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedTabIndex = index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: selected
+                                ? primaryColor
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor:
+                              const Color.fromARGB(255, 250, 249, 249),
+                          child: AppIconImage(
+                            width: 22,
+                            height: 22,
+                            bytes: tab.icon,
+                          ),
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor:
-                            const Color.fromARGB(255, 250, 249, 249),
-                        child: AppIconImage(
-                          width: 22,
-                          height: 22,
-                          bytes: tab.icon,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _HomeRecordsList(
+                watcher: _watcher,
+                selectedTabIndex: _selectedTabIndex,
+                formatter: _formatter,
               ),
             ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: _HomeRecordsList(
-              watcher: _watcher,
-              selectedTabIndex: _selectedTabIndex,
-              formatter: _formatter,
-            ),
-          ),
         ],
+        ),
       ),
     );
   }

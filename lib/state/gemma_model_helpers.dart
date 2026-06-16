@@ -17,6 +17,10 @@ String filenameFromUrl(String url) {
   return Uri.parse(url).pathSegments.last;
 }
 
+String filenameFromPath(String path) {
+  return path.split(RegExp(r'[/\\]')).last;
+}
+
 GemmaModelFileKind inferFileKind(String filename) {
   final lower = filename.toLowerCase();
   if (lower.endsWith('.task')) return GemmaModelFileKind.task;
@@ -27,6 +31,13 @@ GemmaModelFileKind inferFileKind(String filename) {
 String? validateModelUrl(String url) {
   if (url.trim().isEmpty) {
     return 'Model URL is required';
+  }
+  return null;
+}
+
+String? validateModelFilePath(String path) {
+  if (path.trim().isEmpty) {
+    return 'Model file is required';
   }
   return null;
 }

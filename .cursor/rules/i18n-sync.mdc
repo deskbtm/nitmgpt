@@ -1,0 +1,55 @@
+---
+description: Keep UI copy in sync across en_US and zh_CN whenever user-facing strings change
+globs: lib/**/*.dart
+alwaysApply: true
+---
+
+# i18n Sync
+
+When adding or changing **user-facing text** (labels, titles, toasts, dialogs, errors shown in UI), sync translations in the same change.
+
+## Project convention
+
+- UI code uses `'English source string'.tr` (see `lib/core/localization/app_locale.dart`).
+- **Key** = the exact English string passed to `.tr`.
+- Maps live in `lib/i18n/en_US.dart` and `lib/i18n/zh_CN.dart`; both must define every key used in code.
+
+## Required workflow
+
+1. **Add or update the key in both maps** — never only one locale file.
+2. **Use the same key string** in Dart and in both maps (character-for-character).
+3. **Prefer English keys in stores** for errors/messages; call `.tr` when displaying (e.g. `error.tr` in widgets).
+4. **Do not hardcode** user-visible Chinese or English in widgets/stores — use `.tr` unless the value is not shown to users (logs, debug).
+
+## Examples
+
+```dart
+// ✅ GOOD — key in both i18n files
+title: Text('Export History'.tr),
+
+// ❌ BAD — missing from lib/i18n/*.dart
+title: const Text('Export History'),
+
+// ✅ GOOD — store holds key; UI translates
+errorMessage.value = 'Model file not found';
+// in widget: Text(error.tr)
+```
+
+```dart
+// lib/i18n/en_US.dart
+'Local file': 'Local file',
+
+// lib/i18n/zh_CN.dart
+'Local file': '本地文件',
+```
+
+## Before marking work complete
+
+- [ ] Grep for new/changed `.tr` keys and confirm entries exist in **both** `en_US` and `zh_CN`.
+- [ ] No orphaned keys removed from code but left only in one locale (clean up unused keys when safe).
+- [ ] For ambiguous or easily confused strings, add a check in `test/i18n/` if the project already tests similar copy.
+
+## Out of scope
+
+- Comments, commit messages, ADR/docs (English unless user asks otherwise).
+- Third-party / plugin UI we do not control.

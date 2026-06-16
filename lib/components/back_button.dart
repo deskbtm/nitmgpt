@@ -9,7 +9,9 @@ class AppBarBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassIconButton(
-      icon: const Icon(UniconsLine.angle_left_b),
+      size: 44,
+      iconSize: 20,
+      icon: const Center(child: Icon(UniconsLine.angle_left_b)),
       onPressed: () => context.pop(),
     );
   }

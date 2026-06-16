@@ -26,6 +26,22 @@ void main() {
     });
   });
 
+  group('filenameFromPath', () {
+    test('extracts basename from unix path', () {
+      expect(
+        filenameFromPath('/storage/emulated/0/Download/gemma-3-270m.task'),
+        'gemma-3-270m.task',
+      );
+    });
+
+    test('extracts basename from windows path', () {
+      expect(
+        filenameFromPath(r'C:\Users\model\gemma-3-270m.task'),
+        'gemma-3-270m.task',
+      );
+    });
+  });
+
   group('inferFileKind', () {
     test('detects task files', () {
       expect(inferFileKind('model.task'), GemmaModelFileKind.task);
@@ -49,6 +65,20 @@ void main() {
     test('accepts non-empty URL', () {
       expect(
         validateModelUrl('https://example.com/model.task'),
+        isNull,
+      );
+    });
+  });
+
+  group('validateModelFilePath', () {
+    test('rejects blank path', () {
+      expect(validateModelFilePath(''), 'Model file is required');
+      expect(validateModelFilePath('   '), 'Model file is required');
+    });
+
+    test('accepts non-empty path', () {
+      expect(
+        validateModelFilePath('/tmp/model.task'),
         isNull,
       );
     });

@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/components/app_icon.dart';
+import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/theme.dart';
 
 class NotificationTitle extends StatelessWidget {
   final String? title;
@@ -32,7 +33,7 @@ class NotificationTitle extends StatelessWidget {
         elevation: 0,
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(24)),
+          borderRadius: kTileBorderRadiusAll,
         ),
         child: Theme(
           data: Theme.of(context).copyWith(

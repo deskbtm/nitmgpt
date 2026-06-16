@@ -11,7 +11,7 @@ class AppGlassBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const ColoredBox(
-      color: Color(0xFFD8EDE8),
+      color: Color(0xFFC8E4DD),
       child: CustomPaint(
         painter: _ReferenceBackgroundPainter(),
         isComplex: true,
@@ -26,9 +26,9 @@ class _ReferenceBackgroundPainter extends CustomPainter {
 
   // Sampled from reference image (473×1024).
   // Mint gradient range sampled from reference bottom block.
-  static const Color _mintLight = Color(0xFFE8F4F1);
-  static const Color _mintMid = Color(0xFFD5EBE5);
-  static const Color _mintDeep = Color(0xFFCFEAE3);
+  static const Color _mintLight = Color(0xFFDAF0EA);
+  static const Color _mintMid = Color(0xFFC8E4DD);
+  static const Color _mintDeep = Color(0xFFBEDDD5);
   static const Color _whiteBright = Color(0xFFF4F5FA);
   static const Color _whiteSoft = Color(0xFFF3F3F8);
   static const Color _whiteEdge = Color(0xFFF5F4F7);
@@ -96,7 +96,7 @@ class _ReferenceBackgroundPainter extends CustomPainter {
           colors: [
             _mintMid.withValues(alpha: 0.0),
             _mintDeep.withValues(alpha: 0.4),
-            const Color(0xFFC8E6DE),
+            const Color(0xFFB5D9CF),
           ],
           stops: const [0.0, 0.5, 1.0],
         ).createShader(glowRect),

@@ -17,5 +17,5 @@ We decided to keep liquid glass on **two surfaces only**: the root **Bottom Bar*
 
 - `GlassScaffold`, `GlassAppBar`, `GlassToolbarLayer`, `GlassTabShell`, and content glass controls (`GlassButton`, `GlassSwitch`, `GlassChip`) should be removed or replaced outside the two allowed surfaces.
 - Modals (`GlassDialog`, `GlassSheet`) become standard opaque dialogs and bottom sheets.
-- Secondary pages (Add Rules, Gemma Models, etc.) share one layout pattern: wallpaper Stack + transparent Scaffold + opaque AppBar, with `GlassIconButton` only on the leading back control.
+- Secondary pages (Add Rules, Gemma Models, etc.) share one layout pattern: wallpaper Stack + transparent Scaffold + fixed glass back button (44×44pt), with large title scrolled inside the body.
 - Domain terms for this UI model live in `CONTEXT.md` at the repo root.

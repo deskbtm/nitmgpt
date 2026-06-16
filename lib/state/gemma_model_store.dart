@@ -149,6 +149,54 @@ class GemmaModelStore {
     }
   }
 
+  Future<void> installFromFile({
+    required String path,
+    required ModelType modelType,
+    ModelFileType? fileType,
+  }) async {
+    if (shouldSkipConcurrentInstall(isInstalling: isInstalling.value)) {
+      return;
+    }
+
+    final trimmedPath = path.trim();
+    final validationError = validateModelFilePath(trimmedPath);
+    if (validationError != null) {
+      errorMessage.value = validationError;
+      return;
+    }
+
+    if (!File(trimmedPath).existsSync()) {
+      errorMessage.value = 'Model file not found';
+      return;
+    }
+
+    final filename = filenameFromPath(trimmedPath);
+    final effectiveFileType =
+        fileType ?? _fileTypeFromKind(inferFileKind(filename));
+
+    isInstalling.value = true;
+    installProgress.value = 0;
+    errorMessage.value = null;
+
+    try {
+      await FlutterGemma.installModel(
+        modelType: modelType,
+        fileType: effectiveFileType,
+      )
+          .fromFile(trimmedPath)
+          .withProgress((progress) => installProgress.value = progress)
+          .install();
+
+      await _persistModelIdentity(filename, modelType, effectiveFileType);
+      await refresh();
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isInstalling.value = false;
+      installProgress.value = null;
+    }
+  }
+
   Future<void> setActive(String modelId) async {
     errorMessage.value = null;
 

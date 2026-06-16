@@ -310,18 +310,24 @@ class _AddRulesPageState extends State<AddRulesPage> {
           label: Text('Done'.tr),
         ),
         body: ListView(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            SecondaryPageScaffold.scrollTopPadding(context),
+            20,
+            130,
+          ),
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ignore apps'.tr,
-                      style: TextStyle(fontSize: 14, color: primaryColor),
-                    ),
+            SecondaryPageScaffold.largeTitle('Custom Rules'.tr),
+            const SizedBox(height: 16),
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ignore apps'.tr,
+                    style: TextStyle(fontSize: 14, color: primaryColor),
+                  ),
                     Text(
                       'Some permanent notifications will always trigger notification check, so you need to ignore or close it'
                           .tr,
@@ -469,7 +475,6 @@ class _AddRulesPageState extends State<AddRulesPage> {
                   ],
                 ),
               ),
-            ),
           ],
         ),
       ),

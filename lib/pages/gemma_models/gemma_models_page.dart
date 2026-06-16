@@ -3,8 +3,8 @@ import 'package:flutter_gemma/core/model.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/dialog.dart';
-import 'package:nitmgpt/components/back_button.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
+import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/gemma_models/add_model_sheet.dart';
 import 'package:nitmgpt/state/gemma_model_helpers.dart';
@@ -106,11 +106,15 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
+        final topInset = SecondaryPageScaffold.scrollTopPadding(context);
+
         return RefreshIndicator(
           onRefresh: _store.refresh,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            padding: EdgeInsets.fromLTRB(16, topInset, 16, 96),
             children: [
+              SecondaryPageScaffold.largeTitle('Model configuration'.tr),
+              const SizedBox(height: 16),
               if (installing)
                 OpaqueGroupedSection(
                   children: [
@@ -250,44 +254,25 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
 
     return CupertinoScaffold(
       transitionBackgroundColor: const Color(0xFF0D1110),
+      topRadius: const Radius.circular(kTileBorderRadius),
       body: Builder(
         builder: (modalHostContext) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              kAppGlassBackground,
-              Scaffold(
-                backgroundColor: Colors.transparent,
-                appBar: AppBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  leading: const AppBarBackButton(),
-                  title: Text(
-                    'Model configuration'.tr,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                floatingActionButton: SignalBuilder(
-                  builder: (context) {
-                    if (_store.isInstalling.value) {
-                      return const SizedBox.shrink();
-                    }
-                    return FloatingActionButton(
-                      onPressed: () => _showAddModelDialog(modalHostContext),
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      elevation: 2,
-                      child: const Icon(UniconsLine.plus),
-                    );
-                  },
-                ),
-                body: _buildBody(modalHostContext),
-              ),
-            ],
+          return SecondaryPageScaffold(
+            floatingActionButton: SignalBuilder(
+              builder: (context) {
+                if (_store.isInstalling.value) {
+                  return const SizedBox.shrink();
+                }
+                return FloatingActionButton(
+                  onPressed: () => _showAddModelDialog(modalHostContext),
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  child: const Icon(UniconsLine.plus),
+                );
+              },
+            ),
+            body: _buildBody(modalHostContext),
           );
         },
       ),

@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemma/core/model.dart';
@@ -5,10 +6,13 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/state/gemma_model_helpers.dart';
 import 'package:nitmgpt/state/gemma_model_store.dart';
 import 'package:nitmgpt/theme.dart';
 
 enum _ActivePicker { none, modelType, fileType }
+
+enum _AddModelSource { network, local }
 
 Future<void> showAddModelSheet({
   required BuildContext context,
@@ -44,10 +48,13 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   late final FixedExtentScrollController _modelTypePickerController;
   late final FixedExtentScrollController _fileTypePickerController;
 
+  _AddModelSource _source = _AddModelSource.network;
   ModelType _selectedType = ModelType.gemmaIt;
   ModelFileType _selectedFileType = ModelFileType.task;
   _ActivePicker _activePicker = _ActivePicker.none;
   String? _urlError;
+  String? _localFilePath;
+  String? _localFileError;
 
   @override
   void initState() {
@@ -88,7 +95,15 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     };
   }
 
-  bool _validateUrl() {
+  ModelFileType _fileTypeFromFilename(String filename) {
+    return switch (inferFileKind(filename)) {
+      GemmaModelFileKind.task => ModelFileType.task,
+      GemmaModelFileKind.litertlm => ModelFileType.litertlm,
+      GemmaModelFileKind.binary => ModelFileType.binary,
+    };
+  }
+
+  bool _validateNetworkForm() {
     final url = _urlController.text.trim();
     if (url.isEmpty) {
       setState(() => _urlError = 'Model URL is required'.tr);
@@ -103,17 +118,64 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     return true;
   }
 
+  bool _validateLocalForm() {
+    if (_localFilePath == null || _localFilePath!.trim().isEmpty) {
+      setState(() => _localFileError = 'Model file is required'.tr);
+      return false;
+    }
+    setState(() => _localFileError = null);
+    return true;
+  }
+
+  Future<void> _pickLocalFile() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['task', 'litertlm', 'bin', 'tflite'],
+      allowMultiple: false,
+    );
+    if (!mounted) return;
+    if (result == null || result.files.isEmpty) return;
+
+    final path = result.files.single.path;
+    if (path == null || path.isEmpty) {
+      setState(() {
+        _localFileError = 'Could not read selected file'.tr;
+      });
+      return;
+    }
+
+    final filename = filenameFromPath(path);
+    setState(() {
+      _localFilePath = path;
+      _localFileError = null;
+      _selectedFileType = _fileTypeFromFilename(filename);
+      _fileTypePickerController.jumpToItem(
+        ModelFileType.values.indexOf(_selectedFileType),
+      );
+    });
+  }
+
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
-    if (!_validateUrl()) return;
+    if (_source == _AddModelSource.network) {
+      if (!_validateNetworkForm()) return;
+      widget.onClose();
+      final token = _tokenController.text.trim();
+      await widget.store.installFromNetwork(
+        url: _urlController.text,
+        modelType: _selectedType,
+        fileType: _selectedFileType,
+        token: token.isEmpty ? null : token,
+      );
+      return;
+    }
 
+    if (!_validateLocalForm()) return;
     widget.onClose();
-    final token = _tokenController.text.trim();
-    await widget.store.installFromNetwork(
-      url: _urlController.text,
+    await widget.store.installFromFile(
+      path: _localFilePath!,
       modelType: _selectedType,
       fileType: _selectedFileType,
-      token: token.isEmpty ? null : token,
     );
   }
 
@@ -143,11 +205,12 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           keyboardType: keyboardType,
           obscureText: obscureText,
           autocorrect: false,
-          onChanged: errorText != null ? (_) => setState(() => _urlError = null) : null,
+          onChanged:
+              errorText != null ? (_) => setState(() => _urlError = null) : null,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: kTileBorderRadiusAll,
             border: errorText != null
                 ? Border.all(color: CupertinoColors.destructiveRed)
                 : null,
@@ -184,6 +247,64 @@ class _AddModelSheetState extends State<_AddModelSheet> {
         );
       }
     });
+  }
+
+  Widget _sourceSegment(_AddModelSource value, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Text(label),
+    );
+  }
+
+  Widget _localFilePicker() {
+    final selectedName = _localFilePath == null
+        ? null
+        : filenameFromPath(_localFilePath!);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _fieldLabel('Model file'.tr),
+        CupertinoButton(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+          borderRadius: kTileBorderRadiusAll,
+          onPressed: _pickLocalFile,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  selectedName ?? 'Choose file'.tr,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: selectedName == null
+                        ? CupertinoColors.placeholderText.resolveFrom(context)
+                        : CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
+              ),
+              Icon(
+                CupertinoIcons.folder,
+                size: 20,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            ],
+          ),
+        ),
+        if (_localFileError != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _localFileError!,
+            style: const TextStyle(
+              fontSize: 12,
+              color: CupertinoColors.destructiveRed,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   @override
@@ -226,14 +347,45 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                     controller: scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     children: [
-                      _fieldLabel('Model download URL'.tr),
-                      _textField(
-                        controller: _urlController,
-                        placeholder: 'https://...',
-                        keyboardType: TextInputType.url,
-                        errorText: _urlError,
+                      CupertinoSlidingSegmentedControl<_AddModelSource>(
+                        groupValue: _source,
+                        children: {
+                          _AddModelSource.network:
+                              _sourceSegment(_AddModelSource.network, 'Download'.tr),
+                          _AddModelSource.local:
+                              _sourceSegment(_AddModelSource.local, 'Local file'.tr),
+                        },
+                        onValueChanged: (value) {
+                          if (value == null) return;
+                          setState(() {
+                            _source = value;
+                            _activePicker = _ActivePicker.none;
+                            _urlError = null;
+                            _localFileError = null;
+                          });
+                        },
                       ),
                       const SizedBox(height: 16),
+                      if (_source == _AddModelSource.network) ...[
+                        _fieldLabel('Model download URL'.tr),
+                        _textField(
+                          controller: _urlController,
+                          placeholder: 'https://...',
+                          keyboardType: TextInputType.url,
+                          errorText: _urlError,
+                        ),
+                        const SizedBox(height: 16),
+                        _fieldLabel('HuggingFace token (optional)'.tr),
+                        _textField(
+                          controller: _tokenController,
+                          placeholder: 'hf_...',
+                          obscureText: true,
+                        ),
+                        const SizedBox(height: 16),
+                      ] else ...[
+                        _localFilePicker(),
+                        const SizedBox(height: 16),
+                      ],
                       OpaqueGroupedSection(
                         header: 'Model settings'.tr,
                         headerStyle: TextStyle(fontSize: 14, color: primaryColor),
@@ -285,13 +437,6 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 16),
-                      _fieldLabel('HuggingFace token (optional)'.tr),
-                      _textField(
-                        controller: _tokenController,
-                        placeholder: 'hf_...',
-                        obscureText: true,
-                      ),
                     ],
                   ),
                 ),
@@ -301,7 +446,11 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                     width: double.infinity,
                     child: CupertinoButton.filled(
                       onPressed: _submit,
-                      child: Text('Download'.tr),
+                      child: Text(
+                        _source == _AddModelSource.network
+                            ? 'Download'.tr
+                            : 'Import'.tr,
+                      ),
                     ),
                   ),
                 ),
