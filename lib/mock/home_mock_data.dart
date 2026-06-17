@@ -1,11 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:realm/realm.dart';
 
-/// Seeds preview records on the home page when running in debug mode.
-const bool kSeedHomeMockData = kDebugMode;
+/// Seeds preview records on the home page when the database is empty.
+const bool kSeedHomeMockData = true;
 
 class HomeMockData {
   HomeMockData._();

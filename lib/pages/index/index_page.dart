@@ -101,7 +101,7 @@ class _IndexPageState extends State<IndexPage> {
       padding: EdgeInsets.only(bottom: sysBottom),
       child: GlassSearchableBottomBar(
         tabWidth: tabWidth,
-        horizontalPadding: 16,
+        horizontalPadding: kBottomBarHorizontalPadding,
         verticalPadding: kBottomBarVerticalPadding,
         barHeight: kBottomBarHeight,
         searchBarHeight: kBottomBarHeight,

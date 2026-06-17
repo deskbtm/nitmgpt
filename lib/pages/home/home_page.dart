@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:intl/intl.dart';
@@ -44,7 +43,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _bootstrapHomeData() async {
-    if (kDebugMode && !_mockSeedRequested) {
+    if (!_mockSeedRequested) {
       _mockSeedRequested = true;
       await _watcher.seedHomeMockDataIfEmpty();
     }

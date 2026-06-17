@@ -98,11 +98,14 @@ LiquidGlassSettings tileGlassSettings({required bool isDark}) {
   );
 }
 
+/// Horizontal inset of the floating bottom bar from screen edges (iOS 26 HIG).
+const kBottomBarHorizontalPadding = 21.0;
+
 /// Vertical padding around [GlassBottomBar] in [IndexPage] — keep in sync.
 const kBottomBarVerticalPadding = 8.0;
 
-/// Default [GlassBottomBar.barHeight] used in [IndexPage].
-const kBottomBarHeight = 64.0;
+/// Default [GlassBottomBar.barHeight] used in [IndexPage] (iOS 26 tab bar ~62pt).
+const kBottomBarHeight = 62.0;
 
 /// Opaque tab page shell — scrollable body inside the root scaffold.
 class TabPageShell extends StatelessWidget {

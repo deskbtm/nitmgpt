@@ -1,0 +1,41 @@
+---
+description: Prefer Unicons for UI icons in Flutter widgets
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Unicons First
+
+When adding or changing icons in UI code, **default to [Unicons](https://pub.dev/packages/unicons)** (`unicons: ^3.0.0`).
+
+## Import
+
+```dart
+import 'package:unicons/unicons.dart';
+```
+
+## Usage
+
+- **Outline (default):** `UniconsLine.*` — e.g. `Icon(UniconsLine.setting)`, `UniconsLine.angle_right`
+- **Filled / active:** `UniconsSolid.*` — e.g. `UniconsSolid.square_full`
+- Wrap in `Icon(...)` for `IconButton`, `ListTile.leading`, `NavigationDestination`, etc.
+
+```dart
+// ✅ GOOD
+icon: const Icon(UniconsLine.search),
+activeIcon: const Icon(UniconsLine.monitor_heart_rate),
+
+// ❌ BAD — Material/Cupertino when Unicons has an equivalent
+icon: const Icon(Icons.settings),
+icon: const Icon(CupertinoIcons.folder),
+```
+
+## When to use something else
+
+- **No suitable Unicons glyph** — pick the closest `UniconsLine` / `UniconsSolid` name; only then fall back to `Icons.*` or `CupertinoIcons.*`
+- **Platform / brand marks** — e.g. `Icons.android` for the OS logo in `AppIcon`
+- **Third-party widgets** that require a specific icon type — keep their API, but prefer Unicons for app-owned UI
+
+## Naming
+
+Unicons use snake_case (e.g. `angle_left_b`, `comment_alt_lines`). Browse `UniconsLine` / `UniconsSolid` in the IDE or package docs before importing another icon set.
