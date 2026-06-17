@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:signals/signals.dart';
 import 'package:nitmgpt/i18n/en_US.dart';
 import 'package:nitmgpt/i18n/zh_CN.dart';
@@ -29,5 +30,5 @@ extension AppLocalizations on String {
 }
 
 void setAppLocale(Locale locale) {
-  appLocale.value = locale;
+  safeSignalWrite(() => appLocale.value = locale);
 }

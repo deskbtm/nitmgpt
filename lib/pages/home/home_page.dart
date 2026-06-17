@@ -25,8 +25,6 @@ class _HomePageState extends State<HomePage> {
   late WatcherStore _watcher;
   bool _watcherReady = false;
   bool _mockSeedRequested = false;
-  EffectCleanup? _detectedAppsEffect;
-  List<_AppTab> _cachedTabs = const [];
 
   @override
   void initState() {
@@ -41,27 +39,6 @@ class _HomePageState extends State<HomePage> {
       _watcherReady = true;
       _watcher = AppScope.of(context).watcher;
       unawaited(_bootstrapHomeData());
-
-      _detectedAppsEffect = effect(() {
-        final apps = _watcher.detectedApps.value;
-        if (apps.isEmpty) {
-          _selectedTabIndex = 0;
-          _cachedTabs = const [];
-        } else {
-          if (_selectedTabIndex >= apps.length) {
-            _selectedTabIndex = 0;
-          }
-          _cachedTabs = apps
-              .map(
-                (e) => _AppTab(
-                  packageName: e.packageName,
-                  icon: e.icon,
-                ),
-              )
-              .toList();
-        }
-        setState(() {});
-      });
     }
   }
 
@@ -85,7 +62,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _detectedAppsEffect?.call();
     FlutterForegroundTask.removeTaskDataCallback(_onForegroundTaskData);
     super.dispose();
   }
@@ -104,46 +80,11 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_cachedTabs.isNotEmpty)
-              SizedBox(
-                height: 52,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _cachedTabs.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    final tab = _cachedTabs[index];
-                    final selected = index == _selectedTabIndex;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedTabIndex = index),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: selected
-                                ? primaryColor
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor:
-                              const Color.fromARGB(255, 250, 249, 249),
-                          child: AppIconImage(
-                            width: 22,
-                            height: 22,
-                            bytes: tab.icon,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+            _HomeAppTabBar(
+              watcher: _watcher,
+              selectedTabIndex: _selectedTabIndex,
+              onTabSelected: (index) => setState(() => _selectedTabIndex = index),
+            ),
             const SizedBox(height: 12),
             Expanded(
               child: _HomeRecordsList(
@@ -152,21 +93,74 @@ class _HomePageState extends State<HomePage> {
                 formatter: _formatter,
               ),
             ),
-        ],
+          ],
         ),
       ),
     );
   }
 }
 
-class _AppTab {
-  const _AppTab({
-    required this.packageName,
-    required this.icon,
+class _HomeAppTabBar extends StatelessWidget {
+  const _HomeAppTabBar({
+    required this.watcher,
+    required this.selectedTabIndex,
+    required this.onTabSelected,
   });
 
-  final String packageName;
-  final Uint8List? icon;
+  final WatcherStore watcher;
+  final int selectedTabIndex;
+  final ValueChanged<int> onTabSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SignalBuilder(
+      builder: (context) {
+        final apps = watcher.detectedApps.value;
+        if (apps.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final safeIndex = selectedTabIndex.clamp(0, apps.length - 1);
+
+        return SizedBox(
+          height: 52,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: apps.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final app = apps[index];
+              final selected = index == safeIndex;
+              return GestureDetector(
+                onTap: () => onTabSelected(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected ? primaryColor : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: const Color.fromARGB(255, 250, 249, 249),
+                    child: AppIconImage(
+                      width: 22,
+                      height: 22,
+                      bytes: app.icon,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _HomeRecordsList extends StatelessWidget {
@@ -186,11 +180,12 @@ class _HomeRecordsList extends StatelessWidget {
       builder: (context) {
         watcher.recordsRevision.value;
         final apps = watcher.detectedApps.value;
-        if (apps.isEmpty || selectedTabIndex >= apps.length) {
+        if (apps.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        final element = apps[selectedTabIndex];
+        final safeIndex = selectedTabIndex.clamp(0, apps.length - 1);
+        final element = apps[safeIndex];
         final records = watcher.getRecords(packageName: element.packageName);
 
         return ListView.builder(

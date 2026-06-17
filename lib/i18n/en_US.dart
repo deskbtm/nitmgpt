@@ -63,7 +63,7 @@ const Map<String, String> en_US = {
   'Latest version': 'You are on the latest version',
   'Unable to reach GitHub. Check your network.':
       'Unable to reach GitHub. Check your network connection.',
-  'Model configuration': 'Model configuration',
+  'Local models': 'Local models',
   'Add model': 'Add model',
   'Model download URL': 'Model download URL',
   'Local file': 'Local file',
@@ -103,12 +103,14 @@ const Map<String, String> en_US = {
   'Unsupported model file type': 'Unsupported model file type',
   'Not enough storage space': 'Not enough storage space',
   'Detected file type': 'Detected file type',
-  'Test chat': 'Test chat',
-  'Gemma test chat': 'Gemma test chat',
+  'Chat': 'Chat',
   'Try on-device inference': 'Try on-device inference',
   'No active model for chat': 'No active model. Set a model as active first.',
   'Type a message': 'Type a message',
   'Stop': 'Stop',
   'Clear chat': 'Clear chat',
+  'Send': 'Send',
   'Failed to load model': 'Failed to load model',
+  'LiteRT models are not supported on Android emulators':
+      'LiteRT models are not supported on Android emulators. Use a physical arm64 device or a MediaPipe .task model.',
 };

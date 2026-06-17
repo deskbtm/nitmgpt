@@ -35,7 +35,7 @@ class NotificationTitle extends StatelessWidget {
     final frostColor = isDark
         ? surfaceColor.withValues(alpha: 0.72)
         : surfaceColor.withValues(alpha: 0.68);
-    final borderColor = Colors.white.withValues(alpha: isDark ? 0.12 : 0.28);
+    final borderColor = Colors.white.withValues(alpha: isDark ? 0.12 : 0.5);
 
     return RepaintBoundary(
       child: Container(

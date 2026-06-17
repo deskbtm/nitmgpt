@@ -12,6 +12,7 @@ import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/core/realm_signal.dart';
+import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/notification_utils.dart';
@@ -87,11 +88,13 @@ class SettingsStore {
       asyncWrite: true,
     );
 
-    appLocale.value = localeFromLanguageCode(settings.language);
+    setAppLocale(localeFromLanguageCode(settings.language));
     proxyUriController.text = proxyUri.value;
 
     final packageInfo = await PackageInfo.fromPlatform();
-    currentVersion.value = Version.parse(packageInfo.version);
+    safeSignalWrite(
+      () => currentVersion.value = Version.parse(packageInfo.version),
+    );
   }
 
   void dispose() {
@@ -343,10 +346,12 @@ class SettingsStore {
         ),
       ),
       onConfirm: (dialogContext) async {
-        isVerifyLoading.value = true;
+        safeSignalWrite(() => isVerifyLoading.value = true);
         final verified = await _accessApp();
-        isVerifyLoading.value = false;
-        ownedApp.value = verified;
+        safeSignalWrite(() {
+          isVerifyLoading.value = false;
+          ownedApp.value = verified;
+        });
         popDialog(dialogContext);
       },
     );

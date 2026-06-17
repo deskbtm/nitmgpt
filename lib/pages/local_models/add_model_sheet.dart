@@ -7,8 +7,8 @@ import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/platform/model_file_picker.dart';
-import 'package:nitmgpt/state/gemma_model_helpers.dart';
-import 'package:nitmgpt/state/gemma_model_store.dart';
+import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/theme.dart';
 
 enum _ActivePicker { none, modelType, fileType }
@@ -17,7 +17,7 @@ enum _AddModelSource { network, local }
 
 Future<void> showAddModelSheet({
   required BuildContext context,
-  required GemmaModelStore store,
+  required LocalModelStore store,
 }) {
   return CupertinoScaffold.showCupertinoModalBottomSheet<void>(
     context: context,
@@ -36,7 +36,7 @@ class _AddModelSheet extends StatefulWidget {
     required this.onClose,
   });
 
-  final GemmaModelStore store;
+  final LocalModelStore store;
   final VoidCallback onClose;
 
   @override

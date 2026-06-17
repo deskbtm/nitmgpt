@@ -1,7 +1,7 @@
-// Pure helpers for Gemma model URL parsing and validation.
+// Pure helpers for local model URL parsing and validation.
 // Kept free of flutter_gemma so unit tests stay fast and offline.
 
-enum GemmaModelFileKind {
+enum LocalModelFileKind {
   task,
   litertlm,
   binary,
@@ -21,11 +21,16 @@ String filenameFromPath(String path) {
   return path.split(RegExp(r'[/\\]')).last;
 }
 
-GemmaModelFileKind inferFileKind(String filename) {
+/// Strips leading newlines from streamed assistant text (common model artifact).
+String normalizeAssistantStreamText(String text) {
+  return text.replaceFirst(RegExp(r'^(?:\r?\n)+'), '');
+}
+
+LocalModelFileKind inferFileKind(String filename) {
   final lower = filename.toLowerCase();
-  if (lower.endsWith('.task')) return GemmaModelFileKind.task;
-  if (lower.endsWith('.litertlm')) return GemmaModelFileKind.litertlm;
-  return GemmaModelFileKind.binary;
+  if (lower.endsWith('.task')) return LocalModelFileKind.task;
+  if (lower.endsWith('.litertlm')) return LocalModelFileKind.litertlm;
+  return LocalModelFileKind.binary;
 }
 
 String? validateModelUrl(String url) {

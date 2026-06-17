@@ -8,7 +8,7 @@ We decided to keep liquid glass on **two surfaces only**: the root **Bottom Bar*
 
 ## Considered Options
 
-- **Glass everywhere (status quo)** — Rejected: unnecessary shader work on lists, dialogs, and toolbars; inconsistent with opaque content already used on Settings and Gemma Models.
+- **Glass everywhere (status quo)** — Rejected: unnecessary shader work on lists, dialogs, and toolbars; inconsistent with opaque content already used on Settings and Local models.
 - **Bottom Bar only, opaque back button** — Rejected: user wanted glass on secondary-page back navigation for visual continuity with the pill bar.
 - **Remove adaptive quality cache** — Rejected: keep startup probing and cached quality for the remaining glass surfaces; full-app wrap is simpler than local scoping.
 - **Replace wallpaper with flat color** — Rejected: wallpaper is cheap to draw and supports Bottom Bar aesthetics.
@@ -17,5 +17,5 @@ We decided to keep liquid glass on **two surfaces only**: the root **Bottom Bar*
 
 - `GlassScaffold`, `GlassAppBar`, `GlassToolbarLayer`, `GlassTabShell`, and content glass controls (`GlassButton`, `GlassSwitch`, `GlassChip`) should be removed or replaced outside the two allowed surfaces.
 - Modals (`GlassDialog`, `GlassSheet`) become standard opaque dialogs and bottom sheets.
-- Secondary pages (Add Rules, Gemma Models, etc.) share one layout pattern: wallpaper Stack + transparent Scaffold + fixed glass back button (44×44pt), with large title scrolled inside the body.
+- Secondary pages (Add Rules, Local models, etc.) share one layout pattern: wallpaper Stack + transparent Scaffold + fixed glass back button (44×44pt), with large title scrolled inside the body.
 - Domain terms for this UI model live in `CONTEXT.md` at the repo root.

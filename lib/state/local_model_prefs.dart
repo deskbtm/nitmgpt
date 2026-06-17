@@ -1,9 +1,10 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:nitmgpt/core/prefs_signal.dart';
-import 'package:nitmgpt/state/gemma_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_helpers.dart';
 
-/// SharedPreferences-backed Gemma model identity (type + file format per filename).
-class GemmaModelIdentityPrefs {
+/// SharedPreferences-backed local model identity (type + file format per filename).
+class LocalModelIdentityPrefs {
+  // Legacy key prefixes — keep for existing installs.
   static const modelTypeKeyPrefix = 'nitmgpt_gemma_model_type_';
   static const fileTypeKeyPrefix = 'nitmgpt_gemma_file_type_';
 
@@ -41,11 +42,11 @@ class GemmaModelIdentityPrefs {
     await removePref('$fileTypeKeyPrefix$id');
   }
 
-  static ModelFileType fileTypeFromKind(GemmaModelFileKind kind) {
+  static ModelFileType fileTypeFromKind(LocalModelFileKind kind) {
     return switch (kind) {
-      GemmaModelFileKind.task => ModelFileType.task,
-      GemmaModelFileKind.litertlm => ModelFileType.litertlm,
-      GemmaModelFileKind.binary => ModelFileType.binary,
+      LocalModelFileKind.task => ModelFileType.task,
+      LocalModelFileKind.litertlm => ModelFileType.litertlm,
+      LocalModelFileKind.binary => ModelFileType.binary,
     };
   }
 }

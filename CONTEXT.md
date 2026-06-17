@@ -25,7 +25,7 @@ The static mint gradient background (`kAppGlassBackground`) behind all screens. 
 _Avoid_: Background, glass background
 
 **Secondary page**:
-A full-screen page pushed on top of the tab shell (e.g. Gemma Models, Add Rules). Uses wallpaper Stack + transparent Scaffold + standard opaque AppBar — same layout pattern throughout.
+A full-screen page pushed on top of the tab shell (e.g. Local models, Add Rules). Uses wallpaper Stack + transparent Scaffold + standard opaque AppBar — same layout pattern throughout.
 _Avoid_: Sub-page, detail page, pushed route
 
 **Back button**:

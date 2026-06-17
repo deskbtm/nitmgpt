@@ -1,7 +1,7 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nitmgpt/core/prefs_signal.dart';
-import 'package:nitmgpt/state/gemma_model_prefs.dart';
+import 'package:nitmgpt/state/local_model_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -39,9 +39,9 @@ void main() {
     });
   });
 
-  group('GemmaModelIdentityPrefs', () {
+  group('LocalModelIdentityPrefs', () {
     test('writes and reads model identity', () async {
-      final prefs = GemmaModelIdentityPrefs();
+      final prefs = LocalModelIdentityPrefs();
 
       await prefs.write(
         id: 'gemma-3-270m.task',
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('remove clears stored identity', () async {
-      final prefs = GemmaModelIdentityPrefs();
+      final prefs = LocalModelIdentityPrefs();
 
       await prefs.write(
         id: 'model.litertlm',

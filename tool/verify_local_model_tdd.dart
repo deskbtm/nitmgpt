@@ -1,6 +1,6 @@
 import 'package:nitmgpt/i18n/en_US.dart';
 import 'package:nitmgpt/i18n/zh_CN.dart';
-import 'package:nitmgpt/state/gemma_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_helpers.dart';
 
 /// Offline TDD verification — avoids flutter_gemma native init in flutter test.
 void main() {
@@ -19,13 +19,13 @@ void main() {
         'gemma-3-270m.task',
     'filenameFromUrl',
   );
-  _check(inferFileKind('model.task') == GemmaModelFileKind.task, 'inferFileKind task');
+  _check(inferFileKind('model.task') == LocalModelFileKind.task, 'inferFileKind task');
   _check(
-    inferFileKind('model.litertlm') == GemmaModelFileKind.litertlm,
+    inferFileKind('model.litertlm') == LocalModelFileKind.litertlm,
     'inferFileKind litertlm',
   );
   _check(
-    inferFileKind('model.bin') == GemmaModelFileKind.binary,
+    inferFileKind('model.bin') == LocalModelFileKind.binary,
     'inferFileKind binary',
   );
   _check(validateModelUrl('') == 'Model URL is required', 'validateModelUrl empty');

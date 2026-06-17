@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:nitmgpt/state/gemma_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_helpers.dart';
 
 class PickedModelFile {
   const PickedModelFile({
@@ -164,8 +164,8 @@ String? validatePickedModelFile(PickedModelFile? picked) {
 
 String detectedFileTypeLabel(String filename) {
   return switch (inferFileKind(filename)) {
-    GemmaModelFileKind.task => 'task',
-    GemmaModelFileKind.litertlm => 'litertlm',
-    GemmaModelFileKind.binary => 'binary',
+    LocalModelFileKind.task => 'task',
+    LocalModelFileKind.litertlm => 'litertlm',
+    LocalModelFileKind.binary => 'binary',
   };
 }

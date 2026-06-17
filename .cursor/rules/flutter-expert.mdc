@@ -36,7 +36,7 @@ When implementing or modifying Flutter/Dart code in this project:
 
 ## Testing
 
-- [ ] Pure logic in testable helpers (see `lib/state/gemma_model_helpers.dart`)
+- [ ] Pure logic in testable helpers (see `lib/state/local_model_helpers.dart`)
 - [ ] Widget tests with `flutter_test`; offline checks via `dart run tool/verify_*.dart` when native deps block `flutter test`
 
 ## Must Not

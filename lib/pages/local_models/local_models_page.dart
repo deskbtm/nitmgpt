@@ -6,24 +6,24 @@ import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/pages/gemma_models/add_model_sheet.dart';
-import 'package:nitmgpt/pages/gemma_models/gemma_test_chat_sheet.dart';
-import 'package:nitmgpt/state/gemma_model_helpers.dart';
-import 'package:nitmgpt/state/gemma_model_store.dart';
+import 'package:nitmgpt/pages/local_models/add_model_sheet.dart';
+import 'package:nitmgpt/pages/local_models/local_model_test_chat_sheet.dart';
+import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 
 /// Secondary settings page — opaque content on [SecondaryPageScaffold] pattern.
-class GemmaModelsPage extends StatefulWidget {
-  const GemmaModelsPage({super.key});
+class LocalModelsPage extends StatefulWidget {
+  const LocalModelsPage({super.key});
 
   @override
-  State<GemmaModelsPage> createState() => _GemmaModelsPageState();
+  State<LocalModelsPage> createState() => _LocalModelsPageState();
 }
 
-class _GemmaModelsPageState extends State<GemmaModelsPage> {
-  late GemmaModelStore _store;
+class _LocalModelsPageState extends State<LocalModelsPage> {
+  late LocalModelStore _store;
   bool _ready = false;
 
   @override
@@ -31,7 +31,7 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
     super.didChangeDependencies();
     if (!_ready) {
       _ready = true;
-      _store = AppScope.of(context).gemmaModels;
+      _store = AppScope.of(context).localModels;
       _store.init();
     }
   }
@@ -63,10 +63,11 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
   }
 
   Future<void> _showTestChatSheet(BuildContext modalHostContext) {
-    return showGemmaTestChatSheet(context: modalHostContext, store: _store);
+    return showLocalModelTestChatSheet(
+        context: modalHostContext, store: _store);
   }
 
-  Future<void> _confirmUninstall(GemmaModelEntry entry) async {
+  Future<void> _confirmUninstall(LocalModelEntry entry) async {
     await showAppAlertDialog(
       context: context,
       title: 'Uninstall model'.tr,
@@ -118,7 +119,7 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
           child: ListView(
             padding: EdgeInsets.fromLTRB(16, topInset, 16, 96),
             children: [
-              SecondaryPageScaffold.largeTitle('Model configuration'.tr),
+              SecondaryPageScaffold.largeTitle('Local models'.tr),
               const SizedBox(height: 16),
               if (installing)
                 OpaqueGroupedSection(
@@ -169,8 +170,9 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
                   ),
                   if (hasActive)
                     ListTile(
-                      leading: Icon(UniconsLine.comment_alt_lines, color: primaryColor),
-                      title: Text('Test chat'.tr),
+                      leading: Icon(UniconsLine.comment_alt_lines,
+                          color: primaryColor),
+                      title: Text('Chat'.tr),
                       subtitle: Text('Try on-device inference'.tr),
                       trailing: const Icon(UniconsLine.angle_right, size: 18),
                       onTap: () => _showTestChatSheet(modalHostContext),

@@ -52,3 +52,6 @@ node_modules
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+
+# CodeGraph — local index per machine
+.codegraph/

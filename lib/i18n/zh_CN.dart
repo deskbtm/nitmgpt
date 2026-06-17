@@ -61,7 +61,7 @@ Map<String, String> zh_CN = {
   'Latest version': '已是最新版本',
   'Unable to reach GitHub. Check your network.':
       '无法连接 GitHub，请检查网络后重试',
-  'Model configuration': '模型配置',
+  'Local models': '本地模型',
   'Add model': '添加模型',
   'Model download URL': '模型下载地址',
   'Local file': '本地文件',
@@ -101,12 +101,14 @@ Map<String, String> zh_CN = {
   'Unsupported model file type': '不支持的模型文件类型',
   'Not enough storage space': '存储空间不足',
   'Detected file type': '识别到的文件类型',
-  'Test chat': '测试聊天',
-  'Gemma test chat': 'Gemma 测试聊天',
+  'Chat': '聊天',
   'Try on-device inference': '测试本地推理',
   'No active model for chat': '没有激活的模型，请先设置一个活跃模型',
   'Type a message': '输入消息',
   'Stop': '停止',
   'Clear chat': '清空对话',
+  'Send': '发送',
   'Failed to load model': '模型加载失败',
+  'LiteRT models are not supported on Android emulators':
+      'Android 模拟器不支持 LiteRT 模型。请使用真机（arm64），或改用 MediaPipe .task 模型。',
 };

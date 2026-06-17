@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nitmgpt/state/gemma_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_helpers.dart';
 
 void main() {
   group('displayNameFromFilename', () {
@@ -44,15 +44,15 @@ void main() {
 
   group('inferFileKind', () {
     test('detects task files', () {
-      expect(inferFileKind('model.task'), GemmaModelFileKind.task);
+      expect(inferFileKind('model.task'), LocalModelFileKind.task);
     });
 
     test('detects litertlm files', () {
-      expect(inferFileKind('model.litertlm'), GemmaModelFileKind.litertlm);
+      expect(inferFileKind('model.litertlm'), LocalModelFileKind.litertlm);
     });
 
     test('defaults to binary for unknown extensions', () {
-      expect(inferFileKind('model.bin'), GemmaModelFileKind.binary);
+      expect(inferFileKind('model.bin'), LocalModelFileKind.binary);
     });
   });
 

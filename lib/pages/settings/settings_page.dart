@@ -73,9 +73,9 @@ class SettingsPage extends StatelessWidget {
                         onTap: () => context.push(AppRoutes.rules),
                       ),
                       OpaqueListTile(
-                        title: Text('Model configuration'.tr),
+                        title: Text('Local models'.tr),
                         showChevron: true,
-                        onTap: () => context.push(AppRoutes.gemmaModels),
+                        onTap: () => context.push(AppRoutes.localModels),
                       ),
                       OpaqueListTile(
                         title: Text('Bug report'.tr),
