@@ -86,7 +86,7 @@ class _IndexPageState extends State<IndexPage> {
   Widget _buildBottomBar(BuildContext context) {
     final sysBottom = MediaQuery.paddingOf(context).bottom;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const tabWidth = 99.0;
+    const tabWidth = 88.0;
     final isHomeTab = widget.navigationShell.currentIndex == 0;
     const iconSize = 28.0;
     final selectedIconColor = primaryColor;
@@ -128,6 +128,7 @@ class _IndexPageState extends State<IndexPage> {
           autocorrect: false,
           enableSuggestions: false,
           textInputAction: TextInputAction.search,
+          // searchIconColor: Colors.transparent,
           searchIcon: Icon(
             UniconsLine.search,
             color: unselectedIconColor,
