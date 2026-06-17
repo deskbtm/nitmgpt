@@ -42,6 +42,35 @@ String? validateModelFilePath(String path) {
   return null;
 }
 
+String? validateModelFilename(String filename) {
+  final lower = filename.trim().toLowerCase();
+  if (lower.endsWith('.task') ||
+      lower.endsWith('.litertlm') ||
+      lower.endsWith('.bin') ||
+      lower.endsWith('.tflite')) {
+    return null;
+  }
+  return 'Unsupported model file type';
+}
+
 bool shouldSkipConcurrentInstall({required bool isInstalling}) {
   return isInstalling;
+}
+
+/// Resolves the on-disk path for an installed model.
+///
+/// Local imports register [fileSourcePath] or [externalPath]; network downloads
+/// land under [documentsPath].
+String resolveInstalledModelFilePath({
+  String? fileSourcePath,
+  String? externalPath,
+  required String documentsPath,
+}) {
+  if (fileSourcePath != null && fileSourcePath.isNotEmpty) {
+    return fileSourcePath;
+  }
+  if (externalPath != null && externalPath.isNotEmpty) {
+    return externalPath;
+  }
+  return documentsPath;
 }

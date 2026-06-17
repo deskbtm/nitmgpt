@@ -194,11 +194,11 @@ class _HomeRecordsList extends StatelessWidget {
         final records = watcher.getRecords(packageName: element.packageName);
 
         return ListView.builder(
-          padding: const EdgeInsets.only(
+          padding: EdgeInsets.only(
             top: 5,
             left: 10,
             right: 10,
-            bottom: 20,
+            bottom: TabPageShell.scrollBottomPadding(context),
           ),
           itemCount: records.length,
           itemBuilder: (BuildContext context, int index) {

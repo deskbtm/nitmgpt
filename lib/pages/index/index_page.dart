@@ -65,7 +65,8 @@ class _IndexPageState extends State<IndexPage> {
           child: GlassBottomBar(
             tabWidth: tabWidth,
             horizontalPadding: 0,
-            verticalPadding: 8,
+            verticalPadding: kBottomBarVerticalPadding,
+            barHeight: kBottomBarHeight,
             enableBlend: true,
             selectedIndex: widget.navigationShell.currentIndex,
             onTabSelected: _onDestinationSelected,

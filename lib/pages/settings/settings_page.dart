@@ -33,7 +33,7 @@ class SettingsPage extends StatelessWidget {
               21,
               TabPageShell.scrollTopPadding(context),
               21,
-              32,
+              TabPageShell.scrollBottomPadding(context),
             ),
             children: [
               SecondaryPageScaffold.largeTitle('Settings'.tr),

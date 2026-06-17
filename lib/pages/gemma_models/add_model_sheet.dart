@@ -1,11 +1,12 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gemma/core/model.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/platform/model_file_picker.dart';
 import 'package:nitmgpt/state/gemma_model_helpers.dart';
 import 'package:nitmgpt/state/gemma_model_store.dart';
 import 'package:nitmgpt/theme.dart';
@@ -53,7 +54,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   ModelFileType _selectedFileType = ModelFileType.task;
   _ActivePicker _activePicker = _ActivePicker.none;
   String? _urlError;
-  String? _localFilePath;
+  PickedModelFile? _localFile;
   String? _localFileError;
 
   @override
@@ -95,12 +96,11 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     };
   }
 
-  ModelFileType _fileTypeFromFilename(String filename) {
-    return switch (inferFileKind(filename)) {
-      GemmaModelFileKind.task => ModelFileType.task,
-      GemmaModelFileKind.litertlm => ModelFileType.litertlm,
-      GemmaModelFileKind.binary => ModelFileType.binary,
-    };
+  String? _localFileTypeError() {
+    if (_localFile == null) {
+      return null;
+    }
+    return validateModelFilename(_localFile!.name);
   }
 
   bool _validateNetworkForm() {
@@ -119,8 +119,9 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   }
 
   bool _validateLocalForm() {
-    if (_localFilePath == null || _localFilePath!.trim().isEmpty) {
-      setState(() => _localFileError = 'Model file is required'.tr);
+    final error = validatePickedModelFile(_localFile);
+    if (error != null) {
+      setState(() => _localFileError = error.tr);
       return false;
     }
     setState(() => _localFileError = null);
@@ -128,31 +129,26 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   }
 
   Future<void> _pickLocalFile() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['task', 'litertlm', 'bin', 'tflite'],
-      allowMultiple: false,
-    );
-    if (!mounted) return;
-    if (result == null || result.files.isEmpty) return;
+    try {
+      final picked = await ModelFilePicker.pick();
+      if (!mounted) return;
+      if (picked == null) return;
 
-    final path = result.files.single.path;
-    if (path == null || path.isEmpty) {
+      final validationError = validateModelFilename(picked.name);
       setState(() {
-        _localFileError = 'Could not read selected file'.tr;
+        _localFile = picked;
+        _localFileError = validationError?.tr;
       });
-      return;
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _localFileError = switch (error.code) {
+          'enospc' => 'Not enough storage space'.tr,
+          'invalid_file' => 'Could not read selected file'.tr,
+          _ => 'Could not read selected file'.tr,
+        };
+      });
     }
-
-    final filename = filenameFromPath(path);
-    setState(() {
-      _localFilePath = path;
-      _localFileError = null;
-      _selectedFileType = _fileTypeFromFilename(filename);
-      _fileTypePickerController.jumpToItem(
-        ModelFileType.values.indexOf(_selectedFileType),
-      );
-    });
   }
 
   Future<void> _submit() async {
@@ -172,10 +168,9 @@ class _AddModelSheetState extends State<_AddModelSheet> {
 
     if (!_validateLocalForm()) return;
     widget.onClose();
-    await widget.store.installFromFile(
-      path: _localFilePath!,
+    await widget.store.installFromPickedFile(
+      picked: _localFile!,
       modelType: _selectedType,
-      fileType: _selectedFileType,
     );
   }
 
@@ -257,9 +252,11 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   }
 
   Widget _localFilePicker() {
-    final selectedName = _localFilePath == null
+    final selectedName = _localFile?.name;
+    final detectedType = selectedName == null
         ? null
-        : filenameFromPath(_localFilePath!);
+        : detectedFileTypeLabel(selectedName);
+    final typeError = _localFileTypeError();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -293,6 +290,28 @@ class _AddModelSheetState extends State<_AddModelSheet> {
             ],
           ),
         ),
+        if (detectedType != null && typeError == null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                '${'Detected file type'.tr}: ',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+              Text(
+                detectedType,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ],
         if (_localFileError != null) ...[
           const SizedBox(height: 6),
           Text(
@@ -362,6 +381,9 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                             _activePicker = _ActivePicker.none;
                             _urlError = null;
                             _localFileError = null;
+                            if (value == _AddModelSource.network) {
+                              _localFile = null;
+                            }
                           });
                         },
                       ),
@@ -396,11 +418,12 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                             trailing: Text(_modelTypeLabel(_selectedType)),
                             onTap: () => _togglePicker(_ActivePicker.modelType),
                           ),
-                          OpaqueListTile(
-                            title: Text('File type'.tr),
-                            trailing: Text(_selectedFileType.name),
-                            onTap: () => _togglePicker(_ActivePicker.fileType),
-                          ),
+                          if (_source == _AddModelSource.network)
+                            OpaqueListTile(
+                              title: Text('File type'.tr),
+                              trailing: Text(_selectedFileType.name),
+                              onTap: () => _togglePicker(_ActivePicker.fileType),
+                            ),
                         ],
                       ),
                       if (_activePicker == _ActivePicker.modelType) ...[
@@ -419,7 +442,8 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                           ),
                         ),
                       ],
-                      if (_activePicker == _ActivePicker.fileType) ...[
+                      if (_source == _AddModelSource.network &&
+                          _activePicker == _ActivePicker.fileType) ...[
                         const SizedBox(height: 8),
                         SizedBox(
                           height: 180,

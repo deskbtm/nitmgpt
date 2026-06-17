@@ -7,6 +7,7 @@ import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/gemma_models/add_model_sheet.dart';
+import 'package:nitmgpt/pages/gemma_models/gemma_test_chat_sheet.dart';
 import 'package:nitmgpt/state/gemma_model_helpers.dart';
 import 'package:nitmgpt/state/gemma_model_store.dart';
 import 'package:nitmgpt/theme.dart';
@@ -59,6 +60,10 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
 
   Future<void> _showAddModelDialog(BuildContext modalHostContext) {
     return showAddModelSheet(context: modalHostContext, store: _store);
+  }
+
+  Future<void> _showTestChatSheet(BuildContext modalHostContext) {
+    return showGemmaTestChatSheet(context: modalHostContext, store: _store);
   }
 
   Future<void> _confirmUninstall(GemmaModelEntry entry) async {
@@ -162,6 +167,14 @@ class _GemmaModelsPageState extends State<GemmaModelsPage> {
                           : 'Download and select a model below'.tr,
                     ),
                   ),
+                  if (hasActive)
+                    ListTile(
+                      leading: Icon(UniconsLine.comment_alt_lines, color: primaryColor),
+                      title: Text('Test chat'.tr),
+                      subtitle: Text('Try on-device inference'.tr),
+                      trailing: const Icon(UniconsLine.angle_right, size: 18),
+                      onTap: () => _showTestChatSheet(modalHostContext),
+                    ),
                 ],
               ),
               OpaqueGroupedSection(

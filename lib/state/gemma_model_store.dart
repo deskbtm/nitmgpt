@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_gemma/core/di/service_registry.dart';
 import 'package:flutter_gemma/core/domain/model_source.dart';
-import 'package:flutter_gemma/core/services/model_repository.dart' as model_repo;
+import 'package:flutter_gemma/core/services/model_repository.dart'
+    as model_repo;
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:nitmgpt/platform/model_file_picker.dart';
 import 'package:nitmgpt/state/gemma_model_helpers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nitmgpt/state/gemma_model_prefs.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class GemmaModelEntry {
@@ -33,8 +36,10 @@ class GemmaModelEntry {
 }
 
 class GemmaModelStore {
-  static const _modelTypeKeyPrefix = 'nitmgpt_gemma_model_type_';
-  static const _fileTypeKeyPrefix = 'nitmgpt_gemma_file_type_';
+  GemmaModelStore({GemmaModelIdentityPrefs? identityPrefs})
+      : _identityPrefs = identityPrefs ?? GemmaModelIdentityPrefs();
+
+  final GemmaModelIdentityPrefs _identityPrefs;
 
   final isLoading = signal(false);
   final isInstalling = signal(false);
@@ -66,9 +71,7 @@ class GemmaModelStore {
       String? activeId;
       final activeSpec = manager.activeInferenceModel;
       if (activeSpec is InferenceModelSpec) {
-        activeId = activeSpec.files
-            .firstWhere((f) => f.isRequired)
-            .filename;
+        activeId = activeSpec.files.firstWhere((f) => f.isRequired).filename;
       }
       activeModelId.value = activeId;
 
@@ -79,12 +82,11 @@ class GemmaModelStore {
           .toList()
         ..sort((a, b) => b.installedAt.compareTo(a.installedAt));
 
-      final prefs = await SharedPreferences.getInstance();
       final entries = <GemmaModelEntry>[];
 
       for (final info in inferenceModels) {
-        final modelType = _readModelType(prefs, info.id);
-        final fileType = _readFileType(prefs, info.id);
+        final modelType = _identityPrefs.readModelType(info.id);
+        final fileType = _identityPrefs.readFileType(info.id);
         entries.add(
           GemmaModelEntry(
             id: info.id,
@@ -149,6 +151,65 @@ class GemmaModelStore {
     }
   }
 
+  Future<void> installFromPickedFile({
+    required PickedModelFile picked,
+    required ModelType modelType,
+  }) async {
+    if (shouldSkipConcurrentInstall(isInstalling: isInstalling.value)) {
+      return;
+    }
+
+    final validationError = validateModelFilename(picked.name);
+    if (validationError != null) {
+      errorMessage.value = validationError;
+      return;
+    }
+
+    final filename = picked.name;
+    final effectiveFileType =
+        GemmaModelIdentityPrefs.fileTypeFromKind(inferFileKind(filename));
+
+    isInstalling.value = true;
+    installProgress.value = 0;
+    errorMessage.value = null;
+
+    try {
+      final path = await ModelFilePicker.ensureFilesystemPath(
+        picked: picked,
+        onProgress: (progress) => installProgress.value = progress,
+      );
+
+      if (!File(path).existsSync()) {
+        errorMessage.value = 'Model file not found';
+        return;
+      }
+
+      await FlutterGemma.installModel(
+        modelType: modelType,
+        fileType: effectiveFileType,
+      )
+          .fromFile(path)
+          .withProgress((progress) => installProgress.value = progress)
+          .install();
+
+      await _persistModelIdentity(filename, modelType, effectiveFileType);
+      await refresh();
+    } on PlatformException catch (error) {
+      if (error.code == 'enospc') {
+        errorMessage.value = 'Not enough storage space';
+      } else if (error.message != null && error.message!.isNotEmpty) {
+        errorMessage.value = error.message!;
+      } else {
+        errorMessage.value = 'Could not read selected file';
+      }
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isInstalling.value = false;
+      installProgress.value = null;
+    }
+  }
+
   Future<void> installFromFile({
     required String path,
     required ModelType modelType,
@@ -171,8 +232,8 @@ class GemmaModelStore {
     }
 
     final filename = filenameFromPath(trimmedPath);
-    final effectiveFileType =
-        fileType ?? _fileTypeFromKind(inferFileKind(filename));
+    final effectiveFileType = fileType ??
+        GemmaModelIdentityPrefs.fileTypeFromKind(inferFileKind(filename));
 
     isInstalling.value = true;
     installProgress.value = 0;
@@ -207,12 +268,21 @@ class GemmaModelStore {
         throw StateError('Model not found: $modelId');
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      final modelType = _readModelType(prefs, modelId);
-      final fileType = _readFileType(prefs, modelId);
+      final modelType = _identityPrefs.readModelType(modelId);
+      final fileType = _identityPrefs.readFileType(modelId);
 
-      final filePath = await ServiceRegistry.instance.fileSystemService
-          .getReadTargetPath(modelId);
+      final registry = ServiceRegistry.instance;
+      final fileSourcePath =
+          info.source is FileSource ? (info.source as FileSource).path : null;
+      final externalPath =
+          await registry.protectedFilesRegistry.getExternalPath(modelId);
+      final documentsPath =
+          await registry.fileSystemService.getReadTargetPath(modelId);
+      final filePath = resolveInstalledModelFilePath(
+        fileSourcePath: fileSourcePath,
+        externalPath: externalPath,
+        documentsPath: documentsPath,
+      );
       if (!File(filePath).existsSync()) {
         throw StateError('Model file missing on disk: $modelId');
       }
@@ -238,9 +308,7 @@ class GemmaModelStore {
 
     try {
       await FlutterGemma.uninstallModel(modelId);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('$_modelTypeKeyPrefix$modelId');
-      await prefs.remove('$_fileTypeKeyPrefix$modelId');
+      await _identityPrefs.remove(modelId);
       await refresh();
     } catch (e) {
       errorMessage.value = e.toString();
@@ -266,37 +334,11 @@ class GemmaModelStore {
     String filename,
     ModelType modelType,
     ModelFileType fileType,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('$_modelTypeKeyPrefix$filename', modelType.name);
-    await prefs.setString('$_fileTypeKeyPrefix$filename', fileType.name);
-  }
-
-  ModelType _readModelType(SharedPreferences prefs, String id) {
-    final stored = prefs.getString('$_modelTypeKeyPrefix$id');
-    if (stored != null) {
-      try {
-        return ModelType.values.byName(stored);
-      } catch (_) {}
-    }
-    return ModelType.general;
-  }
-
-  ModelFileType _readFileType(SharedPreferences prefs, String id) {
-    final stored = prefs.getString('$_fileTypeKeyPrefix$id');
-    if (stored != null) {
-      try {
-        return ModelFileType.values.byName(stored);
-      } catch (_) {}
-    }
-    return _fileTypeFromKind(inferFileKind(id));
-  }
-
-  static ModelFileType _fileTypeFromKind(GemmaModelFileKind kind) {
-    return switch (kind) {
-      GemmaModelFileKind.task => ModelFileType.task,
-      GemmaModelFileKind.litertlm => ModelFileType.litertlm,
-      GemmaModelFileKind.binary => ModelFileType.binary,
-    };
+  ) {
+    return _identityPrefs.write(
+      id: filename,
+      modelType: modelType,
+      fileType: fileType,
+    );
   }
 }

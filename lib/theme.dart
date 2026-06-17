@@ -7,7 +7,8 @@ var primaryColor = const Color(0xFF74AA9C);
 
 /// Shared corner radius for tiles, grouped lists, and modal sheets.
 const kTileBorderRadius = 24.0;
-const kTileBorderRadiusAll = BorderRadius.all(Radius.circular(kTileBorderRadius));
+const kTileBorderRadiusAll =
+    BorderRadius.all(Radius.circular(kTileBorderRadius));
 const kTileTopBorderRadius =
     BorderRadius.vertical(top: Radius.circular(kTileBorderRadius));
 
@@ -97,6 +98,12 @@ LiquidGlassSettings tileGlassSettings({required bool isDark}) {
   );
 }
 
+/// Vertical padding around [GlassBottomBar] in [IndexPage] — keep in sync.
+const kBottomBarVerticalPadding = 8.0;
+
+/// Default [GlassBottomBar.barHeight] used in [IndexPage].
+const kBottomBarHeight = 64.0;
+
 /// Opaque tab page shell — scrollable body inside the root scaffold.
 class TabPageShell extends StatelessWidget {
   const TabPageShell({
@@ -112,6 +119,9 @@ class TabPageShell extends StatelessWidget {
   static double scrollTopPadding(BuildContext context) {
     return MediaQuery.paddingOf(context).top + 12;
   }
+
+  /// Bottom inset for scrollable tab pages above [IndexPage]'s glass bottom bar.
+  static double scrollBottomPadding(BuildContext context) => kBottomBarHeight;
 
   @override
   Widget build(BuildContext context) {
