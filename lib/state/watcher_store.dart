@@ -39,6 +39,12 @@ class WatcherStore {
   final notificationSearchQuery = signal('');
   final recordsRevision = signal(0);
 
+  int _recordsCacheRevision = -1;
+  List<Record>? _allRecordsCache;
+  final Map<String, List<Record>> _recordsByPackageCache = {};
+  String? _searchCacheQuery;
+  List<Record>? _searchResultsCache;
+
   late Settings settings;
   int _iconLoadToken = 0;
 
@@ -459,23 +465,45 @@ class WatcherStore {
     return apps;
   }
 
+  void _ensureRecordsCacheFresh() {
+    final revision = recordsRevision.value;
+    if (_recordsCacheRevision == revision) {
+      return;
+    }
+    _recordsCacheRevision = revision;
+    _allRecordsCache = null;
+    _recordsByPackageCache.clear();
+    _searchResultsCache = null;
+    _searchCacheQuery = null;
+  }
+
   List<Record> getRecords({String? packageName}) {
+    _ensureRecordsCacheFresh();
+
     if (packageName == null) {
-      return realm
+      return _allRecordsCache ??= realm
           .all<RecordedApp>()
           .expand((element) => element.records)
           .toList();
     }
 
-    final result =
-        realm.query<RecordedApp>('packageName == \$0', [packageName]);
-    return result.first.records.toList();
+    return _recordsByPackageCache.putIfAbsent(packageName, () {
+      final result =
+          realm.query<RecordedApp>('packageName == \$0', [packageName]);
+      return result.first.records.toList();
+    });
   }
 
   List<Record> getRecordsMatchingSearch(String query) {
     final normalized = query.trim();
     if (normalized.isEmpty) {
       return [];
+    }
+
+    _ensureRecordsCacheFresh();
+
+    if (_searchResultsCache != null && _searchCacheQuery == normalized) {
+      return _searchResultsCache!;
     }
 
     final matches = getRecords()
@@ -486,6 +514,8 @@ class WatcherStore {
       final bTime = b.createTime ?? DateTime.fromMillisecondsSinceEpoch(0);
       return bTime.compareTo(aTime);
     });
+    _searchCacheQuery = normalized;
+    _searchResultsCache = matches;
     return matches;
   }
 

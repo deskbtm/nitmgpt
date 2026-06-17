@@ -22,6 +22,10 @@ class AppIconImage extends StatelessWidget {
       return Icon(Icons.android, size: width * 0.75);
     }
 
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cacheWidth = (width * dpr).round();
+    final cacheHeight = (height * dpr).round();
+
     return Image.memory(
       bytes!,
       width: width,
@@ -29,6 +33,8 @@ class AppIconImage extends StatelessWidget {
       fit: fit,
       gaplessPlayback: true,
       filterQuality: FilterQuality.medium,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
     );
   }
 }

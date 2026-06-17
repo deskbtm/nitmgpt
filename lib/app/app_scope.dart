@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
-import 'package:signals_flutter/signals_flutter.dart';
 
 class AppScope extends InheritedWidget {
   const AppScope({
@@ -66,12 +64,7 @@ class _AppScopeHostState extends State<AppScopeHost> {
       settings: _settings,
       watcher: _watcher,
       localModels: _localModels,
-      child: SignalBuilder(
-        builder: (context) {
-          appLocale.value;
-          return widget.child;
-        },
-      ),
+      child: widget.child,
     );
   }
 }

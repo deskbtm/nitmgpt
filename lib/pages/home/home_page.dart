@@ -49,7 +49,6 @@ class _HomePageState extends State<HomePage> {
     }
     if (!mounted) return;
     _watcher.refreshDetectedApps();
-    setState(() {});
   }
 
   void _onForegroundTaskData(Object data) {
@@ -216,6 +215,7 @@ class _HomeSearchResultsList extends StatelessWidget {
             right: 10,
             bottom: TabPageShell.scrollBottomPadding(context),
           ),
+          addAutomaticKeepAlives: false,
           itemCount: records.length,
           itemBuilder: (BuildContext context, int index) {
             final record = records[index];
@@ -275,6 +275,7 @@ class _HomeRecordsList extends StatelessWidget {
             right: 10,
             bottom: TabPageShell.scrollBottomPadding(context),
           ),
+          addAutomaticKeepAlives: false,
           itemCount: records.length,
           itemBuilder: (BuildContext context, int index) {
             final r = records[index];

@@ -75,8 +75,12 @@ class _IndexPageState extends State<IndexPage> {
           Scaffold(
             backgroundColor: Colors.transparent,
             extendBody: true,
-            body: widget.navigationShell,
-            bottomNavigationBar: _buildBottomBar(context),
+            body: RepaintBoundary(
+              child: widget.navigationShell,
+            ),
+            bottomNavigationBar: RepaintBoundary(
+              child: _buildBottomBar(context),
+            ),
           ),
         ],
       ),

@@ -8,12 +8,14 @@ const Widget kAppGlassBackground = RepaintBoundary(
 class AppGlassBackground extends StatelessWidget {
   const AppGlassBackground({super.key});
 
+  static final _painter = _ReferenceBackgroundPainter();
+
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Color(0xFFC8E4DD),
+    return ColoredBox(
+      color: const Color(0xFFC8E4DD),
       child: CustomPaint(
-        painter: _ReferenceBackgroundPainter(),
+        painter: _painter,
         isComplex: true,
         willChange: false,
       ),
@@ -22,7 +24,10 @@ class AppGlassBackground extends StatelessWidget {
 }
 
 class _ReferenceBackgroundPainter extends CustomPainter {
-  const _ReferenceBackgroundPainter();
+  _ReferenceBackgroundPainter();
+
+  Size? _cachedSize;
+  Path? _cachedWhitePath;
 
   // Sampled from reference image (473×1024).
   // Mint gradient range sampled from reference bottom block.
@@ -104,12 +109,18 @@ class _ReferenceBackgroundPainter extends CustomPainter {
   }
 
   Path _whiteOverlayPath(Size size) {
+    if (_cachedSize == size && _cachedWhitePath != null) {
+      return _cachedWhitePath!;
+    }
+
     final path = Path()
       ..moveTo(0, 0)
       ..lineTo(_whiteBoundary.first.dx * size.width, 0);
 
     _appendSmoothSpline(path, _whiteBoundary, size);
     path.close();
+    _cachedSize = size;
+    _cachedWhitePath = path;
     return path;
   }
 

@@ -1,8 +1,8 @@
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/components/app_icon.dart';
+import 'package:nitmgpt/core/frosted_glass.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/theme.dart';
 
@@ -47,7 +47,7 @@ class NotificationTitle extends StatelessWidget {
         child: ClipRRect(
           borderRadius: kTileBorderRadiusAll,
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            filter: kFrostedGlassBlurFilter,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: frostColor,

@@ -43,7 +43,9 @@ class SecondaryPageScaffold extends StatelessWidget {
           floatingActionButton: floatingActionButton,
           body: Stack(
             children: [
-              Positioned.fill(child: body),
+              Positioned.fill(
+                child: RepaintBoundary(child: body),
+              ),
               Positioned(
                 top: top,
                 left: 8,
