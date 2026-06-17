@@ -24,7 +24,17 @@ class GlassQualityCache {
     }
   }
 
+  static Future<void> upgradeLegacyCache() async {
+    final cached = await load();
+    if (cached != GlassQuality.premium) {
+      await save(GlassQuality.premium);
+    }
+  }
+
   static Future<void> save(GlassQuality quality) async {
+    if (quality != GlassQuality.premium) {
+      return;
+    }
     _memory = quality;
     try {
       final dir = await getApplicationSupportDirectory();

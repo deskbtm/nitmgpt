@@ -37,15 +37,15 @@ class LocalModelTestChatStore {
       errorMessage.value = null;
     });
 
-    if (!FlutterGemma.hasActiveModel()) {
-      safeSignalWrite(() {
-        isInitializing.value = false;
-        errorMessage.value = 'No active model for chat';
-      });
-      return;
-    }
-
     try {
+      if (!FlutterGemma.hasActiveModel()) {
+        safeSignalWrite(() {
+          isInitializing.value = false;
+          errorMessage.value = 'No active model for chat';
+        });
+        return;
+      }
+
       final activeSpec =
           FlutterGemmaPlugin.instance.modelManager.activeInferenceModel;
       if (activeSpec is InferenceModelSpec &&
@@ -122,10 +122,6 @@ class LocalModelTestChatStore {
     await _chat?.stopGeneration();
     if (_disposed) return;
     safeSignalWrite(() => isGenerating.value = false);
-  }
-
-  void setErrorMessage(String? message) {
-    safeSignalWrite(() => errorMessage.value = message);
   }
 
   Future<void> sendMessage(String text) async {

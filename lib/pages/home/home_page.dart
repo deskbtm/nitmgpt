@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
+import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/permanent_listener_service/main.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
 import 'package:nitmgpt/theme.dart';
@@ -77,23 +78,37 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.only(
           top: TabPageShell.scrollTopPadding(context),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _HomeAppTabBar(
-              watcher: _watcher,
-              selectedTabIndex: _selectedTabIndex,
-              onTabSelected: (index) => setState(() => _selectedTabIndex = index),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: _HomeRecordsList(
+        child: SignalBuilder(
+          builder: (context) {
+            final searchQuery = _watcher.notificationSearchQuery.value;
+            if (searchQuery.trim().isNotEmpty) {
+              return _HomeSearchResultsList(
                 watcher: _watcher,
-                selectedTabIndex: _selectedTabIndex,
+                searchQuery: searchQuery,
                 formatter: _formatter,
-              ),
-            ),
-          ],
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _HomeAppTabBar(
+                  watcher: _watcher,
+                  selectedTabIndex: _selectedTabIndex,
+                  onTabSelected: (index) =>
+                      setState(() => _selectedTabIndex = index),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _HomeRecordsList(
+                    watcher: _watcher,
+                    selectedTabIndex: _selectedTabIndex,
+                    formatter: _formatter,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -157,6 +172,72 @@ class _HomeAppTabBar extends StatelessWidget {
               );
             },
           ),
+        );
+      },
+    );
+  }
+}
+
+class _HomeSearchResultsList extends StatelessWidget {
+  const _HomeSearchResultsList({
+    required this.watcher,
+    required this.searchQuery,
+    required this.formatter,
+  });
+
+  final WatcherStore watcher;
+  final String searchQuery;
+  final DateFormat formatter;
+
+  @override
+  Widget build(BuildContext context) {
+    return SignalBuilder(
+      builder: (context) {
+        watcher.recordsRevision.value;
+        final records = watcher.getRecordsMatchingSearch(searchQuery);
+        if (records.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'No matching notifications'.tr,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: EdgeInsets.only(
+            top: 5,
+            left: 10,
+            right: 10,
+            bottom: TabPageShell.scrollBottomPadding(context),
+          ),
+          itemCount: records.length,
+          itemBuilder: (BuildContext context, int index) {
+            final record = records[index];
+            final app = watcher.appIconForPackage(record.packageName);
+
+            return NotificationTitle(
+              key: ValueKey(
+                'search-${record.packageName}-${record.createTime}-$index',
+              ),
+              title: record.notificationTitle,
+              subtitle: record.notificationText,
+              appName: record.appName ?? app?.appName,
+              icon: app?.icon,
+              tileKey: record.packageName,
+              adProbability: record.adProbability,
+              spamProbability: record.spamProbability,
+              dateTime: record.createTime != null
+                  ? formatter.format(record.createTime!)
+                  : '',
+            );
+          },
         );
       },
     );

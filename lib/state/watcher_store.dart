@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
@@ -13,10 +14,12 @@ import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
+import 'package:nitmgpt/state/app_icon_loader.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/mock/home_mock_data.dart';
+import 'package:nitmgpt/state/notification_search_helpers.dart';
 import 'package:nitmgpt/permanent_listener_service/main.dart';
 import 'package:nitmgpt/app/app_navigator.dart';
 import 'package:nitmgpt/state/settings_store.dart';
@@ -33,13 +36,17 @@ class WatcherStore {
   final deviceAppsMap = signal<Map<String, ApplicationWithIcon>>({});
   final isListening = signal(false);
   final detectedApps = signal<List<ApplicationWithIcon>>([]);
+  final notificationSearchQuery = signal('');
   final recordsRevision = signal(0);
 
   late Settings settings;
+  int _iconLoadToken = 0;
 
   Future<void> init() async {
     final context = rootNavigatorContext;
     if (context == null) return;
+
+    settings = _settingsStore.settings;
 
     final hasPermission = await _initPermission(context);
 
@@ -60,7 +67,7 @@ class WatcherStore {
       }
     }
 
-    deviceApps.value = await getDeviceApps();
+    deviceApps.value = await getDeviceApps(includeAppIcons: false);
     await seedHomeMockDataIfEmpty();
     refreshDetectedApps();
   }
@@ -145,8 +152,7 @@ class WatcherStore {
   }
 
   void _onForegroundTaskData(Object data) {
-    if (data is Map &&
-        data['action'] == ForegroundTaskAction.updateRecords) {
+    if (data is Map && data['action'] == ForegroundTaskAction.updateRecords) {
       onForegroundTaskRecordsUpdated();
     }
   }
@@ -211,21 +217,107 @@ class WatcherStore {
     return true;
   }
 
-  Future<List<ApplicationWithIcon>> getDeviceApps() async {
+  Future<List<ApplicationWithIcon>> getDeviceApps({
+    bool includeAppIcons = false,
+  }) async {
     final apps = await DeviceApps.getInstalledApplications(
-      includeAppIcons: true,
+      includeAppIcons: includeAppIcons,
     );
 
     final map = <String, ApplicationWithIcon>{};
-    final list = apps.map((e) {
-      final app = e as ApplicationWithIcon;
+    final list = <ApplicationWithIcon>[];
+    for (final app in apps) {
       map[app.packageName] = app;
-      return app;
-    }).toList();
+      list.add(app);
+    }
 
     HomeMockData.mergeMockAppsInto(map);
     deviceAppsMap.value = map;
+    deviceApps.value = list;
+
+    if (!includeAppIcons) {
+      unawaited(_loadAppIconsInBackground());
+    }
+
     return list;
+  }
+
+  Iterable<String> _iconPriorityPackages() {
+    final packages = <String>{
+      for (final app in detectedApps.value) app.packageName,
+      for (final package in settings.ignoredApps) package,
+    };
+    return packages;
+  }
+
+  bool _appHasIcon(String packageName) {
+    final icon = deviceAppsMap.value[packageName]?.icon;
+    return icon != null && icon.isNotEmpty;
+  }
+
+  void _applyIconPatches(Map<String, Uint8List> icons) {
+    if (icons.isEmpty) return;
+
+    final map = Map<String, ApplicationWithIcon>.from(deviceAppsMap.value);
+    var list = List<ApplicationWithIcon>.from(deviceApps.value);
+    var mapChanged = false;
+    var listChanged = false;
+
+    icons.forEach((packageName, icon) {
+      final existing = map[packageName];
+      if (existing == null) return;
+      final updated = copyAppWithIcon(existing, icon);
+      map[packageName] = updated;
+      mapChanged = true;
+
+      final index = list.indexWhere((app) => app.packageName == packageName);
+      if (index >= 0) {
+        list[index] = updated;
+        listChanged = true;
+      }
+    });
+
+    if (mapChanged) {
+      deviceAppsMap.value = map;
+    }
+    if (listChanged) {
+      deviceApps.value = list;
+    }
+
+    final detected = detectedApps.value;
+    if (detected.isNotEmpty &&
+        detected.any((app) => icons.containsKey(app.packageName))) {
+      detectedApps.value = [
+        for (final app in detected)
+          icons[app.packageName] != null
+              ? copyAppWithIcon(app, icons[app.packageName]!)
+              : app,
+      ];
+    }
+  }
+
+  Future<void> _loadMissingIconsFor(Iterable<String> packageNames) async {
+    await loadAppIconsInBatches(
+      packageNames: packageNames,
+      isCancelled: () => false,
+      alreadyHasIcon: _appHasIcon,
+      onBatchLoaded: _applyIconPatches,
+    );
+  }
+
+  Future<void> _loadAppIconsInBackground() async {
+    final token = ++_iconLoadToken;
+    final packages = orderPackagesForIconLoad(
+      allPackages: deviceAppsMap.value.keys,
+      priorityPackages: _iconPriorityPackages(),
+    );
+
+    await loadAppIconsInBatches(
+      packageNames: packages,
+      isCancelled: () => token != _iconLoadToken,
+      alreadyHasIcon: _appHasIcon,
+      onBatchLoaded: _applyIconPatches,
+    );
   }
 
   Future<void> startNotificationService() async {
@@ -380,8 +472,41 @@ class WatcherStore {
     return result.first.records.toList();
   }
 
+  List<Record> getRecordsMatchingSearch(String query) {
+    final normalized = query.trim();
+    if (normalized.isEmpty) {
+      return [];
+    }
+
+    final matches = getRecords()
+        .where((record) => notificationMatchesSearch(record, normalized))
+        .toList();
+    matches.sort((a, b) {
+      final aTime = a.createTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime = b.createTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+    return matches;
+  }
+
+  ApplicationWithIcon? appIconForPackage(String? packageName) {
+    if (packageName == null) return null;
+    final mapped = deviceAppsMap.value[packageName];
+    if (mapped != null) return mapped;
+    if (HomeMockData.isMockPackage(packageName)) {
+      return HomeMockData.applicationFor(packageName);
+    }
+    return null;
+  }
+
   void refreshDetectedApps() {
     detectedApps.value = getDetectedApps();
+    final missingIcons = detectedApps.value
+        .map((app) => app.packageName)
+        .where((packageName) => !_appHasIcon(packageName));
+    if (missingIcons.isNotEmpty) {
+      unawaited(_loadMissingIconsFor(missingIcons));
+    }
   }
 
   void onForegroundTaskRecordsUpdated() {

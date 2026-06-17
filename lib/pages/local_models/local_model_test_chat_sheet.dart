@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
-import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/state/local_model_test_chat_store.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -13,14 +12,12 @@ import 'package:unicons/unicons.dart';
 
 Future<void> showLocalModelTestChatSheet({
   required BuildContext context,
-  required LocalModelStore store,
 }) {
   return CupertinoScaffold.showCupertinoModalBottomSheet<void>(
     context: context,
     expand: false,
     enableDrag: true,
     builder: (sheetContext) => _LocalModelTestChatSheet(
-      modelStore: store,
       onClose: () => Navigator.of(sheetContext).pop(),
     ),
   );
@@ -28,11 +25,9 @@ Future<void> showLocalModelTestChatSheet({
 
 class _LocalModelTestChatSheet extends StatefulWidget {
   const _LocalModelTestChatSheet({
-    required this.modelStore,
     required this.onClose,
   });
 
-  final LocalModelStore modelStore;
   final VoidCallback onClose;
 
   @override
@@ -63,7 +58,6 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
     _generatingSub =
         _chatStore.isGenerating.subscribe((_) => scrollOnChatUpdate());
     unawaited(_chatStore.init());
-    unawaited(widget.modelStore.refresh());
   }
 
   @override
@@ -243,117 +237,44 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
     );
   }
 
-  Future<void> _switchModel(String? modelId) async {
-    if (modelId == null || _chatStore.isGenerating.value) return;
-    if (widget.modelStore.activeModelId.value == modelId) return;
-
-    await widget.modelStore.setActive(modelId);
-    if (!mounted) return;
-
-    final storeError = widget.modelStore.errorMessage.value;
-    if (storeError != null) {
-      _chatStore.setErrorMessage(storeError);
-      return;
-    }
-
-    await _chatStore.reloadForActiveModel();
-  }
-
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Chat'.tr,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: widget.onClose,
-            child: Text('Cancel'.tr),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModelSelector() {
     return SignalBuilder(
       builder: (context) {
-        final models = widget.modelStore.models.value;
-        final activeId = widget.modelStore.activeModelId.value;
-        final busy =
-            _chatStore.isInitializing.value || _chatStore.isGenerating.value;
-
-        if (models.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text(
-              'No models installed'.tr,
-              style: TextStyle(
-                fontSize: 13,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-          );
-        }
-
-        final selectedId =
-            activeId != null && models.any((m) => m.id == activeId)
-                ? activeId
-                : models.first.id;
+        final label = _chatStore.modelLabel.value;
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+          child: Row(
             children: [
-              Text(
-                'Active model'.tr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Chat'.tr,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (label != null)
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: CupertinoColors.secondaryLabel
+                              .resolveFrom(context),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color:
-                      CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                  borderRadius: kTileBorderRadiusAll,
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: selectedId,
-                    icon: Icon(
-                      CupertinoIcons.chevron_down,
-                      size: 16,
-                      color:
-                          CupertinoColors.secondaryLabel.resolveFrom(context),
-                    ),
-                    items: models
-                        .map(
-                          (entry) => DropdownMenuItem<String>(
-                            value: entry.id,
-                            child: Text(
-                              entry.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: busy ? null : _switchModel,
-                  ),
-                ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: widget.onClose,
+                child: Text('Cancel'.tr),
               ),
             ],
           ),
@@ -426,8 +347,6 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
           child: Column(
             children: [
               _buildHeader(),
-              _buildModelSelector(),
-              const SizedBox(height: 4),
               SignalBuilder(
                 builder: (context) {
                   final error = _chatStore.errorMessage.value;

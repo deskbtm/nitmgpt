@@ -11,6 +11,8 @@ const Map<String, String> en_US = {
   'Listening': 'Listening',
   'Export History': 'Export history',
   'Home': 'Home',
+  'Search notifications': 'Search notifications',
+  'No matching notifications': 'No matching notifications',
   'Select app': 'Select app',
   'Match rule': 'Matching rules',
   'Enter regular expression': 'Enter a regular expression',

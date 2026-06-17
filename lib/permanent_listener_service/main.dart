@@ -6,6 +6,7 @@ import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/models/realm.dart';
@@ -22,7 +23,7 @@ class ForegroundTaskAction {
 
 const nitmForegroundServiceId = 888;
 
-late List<Application> _deviceApps;
+late List<ApplicationWithIcon> _deviceApps;
 
 void initPermanentListenerForegroundTask() {
   FlutterForegroundTask.init(
@@ -82,8 +83,10 @@ class PermanentListenerTaskHandler extends TaskHandler {
     DartPluginRegistrant.ensureInitialized();
     WidgetsFlutterBinding.ensureInitialized();
 
-    _deviceApps =
-        await DeviceApps.getInstalledApplications(includeSystemApps: true);
+    _deviceApps = await DeviceApps.getInstalledApplications(
+      includeSystemApps: true,
+      includeAppIcons: false,
+    );
 
     await NotificationsListener.initialize(
       callbackHandle: handleNotificationListener,
@@ -211,11 +214,15 @@ handleNotificationListener(NotificationEvent event) async {
       return;
     }
 
-    Application? app = _deviceApps.firstWhereOrNull(
+    final ApplicationWithIcon? app = _deviceApps.firstWhereOrNull(
         (element) => element.packageName == event.packageName);
 
-    if (app != null && app.systemApp && settings.ignoreSystemApps) {
-      return;
+    if (settings.ignoreSystemApps && event.packageName != null) {
+      final isSystemApp =
+          await InstalledApps.isSystemApp(event.packageName!) ?? false;
+      if (isSystemApp) {
+        return;
+      }
     }
 
     final notificationText =

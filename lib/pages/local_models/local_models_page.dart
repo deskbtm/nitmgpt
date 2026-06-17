@@ -63,8 +63,7 @@ class _LocalModelsPageState extends State<LocalModelsPage> {
   }
 
   Future<void> _showTestChatSheet(BuildContext modalHostContext) {
-    return showLocalModelTestChatSheet(
-        context: modalHostContext, store: _store);
+    return showLocalModelTestChatSheet(context: modalHostContext);
   }
 
   Future<void> _confirmUninstall(LocalModelEntry entry) async {

@@ -11,6 +11,8 @@ Map<String, String> zh_CN = {
   'Listening': '监听中',
   'Export History': '导出历史',
   'Home': '首页',
+  'Search notifications': '搜索通知',
+  'No matching notifications': '没有匹配的通知',
   'Select app': '选择应用',
   'Match rule': '匹配规则',
   'Enter regular expression': '输入正则表达式',

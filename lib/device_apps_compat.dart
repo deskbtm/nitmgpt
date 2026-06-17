@@ -50,7 +50,11 @@ class ApplicationWithIcon extends Application {
 }
 
 class DeviceApps {
-  static Future<List<Application>> getInstalledApplications({
+  static Future<bool> isSystemApp(String packageName) async {
+    return await InstalledApps.isSystemApp(packageName) ?? false;
+  }
+
+  static Future<List<ApplicationWithIcon>> getInstalledApplications({
     bool includeAppIcons = false,
     bool includeSystemApps = false,
   }) async {
@@ -59,28 +63,17 @@ class DeviceApps {
       includeAppIcons,
     );
 
-    if (!includeSystemApps && !includeAppIcons) {
-      return apps.map((info) => Application.fromAppInfo(info)).toList();
-    }
+    // Native side already filters system apps when [includeSystemApps] is false.
+    // Per-app [isSystemApp] calls are deferred; use [DeviceApps.isSystemApp] when needed.
+    const systemApp = false;
 
-    final results = <Application>[];
-    for (final info in apps) {
-      final systemApp =
-          await InstalledApps.isSystemApp(info.packageName) ?? false;
-
-      if (includeAppIcons) {
-        results.add(ApplicationWithIcon.fromAppInfo(
-          info,
-          systemApp: systemApp,
-        ));
-      } else {
-        results.add(Application.fromAppInfo(
-          info,
-          systemApp: systemApp,
-        ));
-      }
-    }
-
-    return results;
+    return apps
+        .map(
+          (info) => ApplicationWithIcon.fromAppInfo(
+            info,
+            systemApp: systemApp,
+          ),
+        )
+        .toList();
   }
 }

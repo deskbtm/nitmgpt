@@ -24,7 +24,7 @@ void main() async {
   );
   await initAppPrefs();
 
-  final savedGlassQuality = await GlassQualityCache.load();
+  await GlassQualityCache.upgradeLegacyCache();
 
   Map<Permission, PermissionStatus> statuses = await [
     Permission.notification,
@@ -37,10 +37,15 @@ void main() async {
         adaptiveQuality: true,
         theme: glassThemeData,
         adaptiveConfig: GlassAdaptiveScopeConfig(
-          initialQuality: savedGlassQuality ?? GlassQuality.premium,
-          minQuality: GlassQuality.standard,
+          minQuality: GlassQuality.premium,
+          maxQuality: GlassQuality.premium,
+          initialQuality: GlassQuality.premium,
           allowStepUp: true,
-          onQualityChanged: (_, quality) => GlassQualityCache.save(quality),
+          onQualityChanged: (_, quality) {
+            if (quality == GlassQuality.premium) {
+              GlassQualityCache.save(quality);
+            }
+          },
         ),
       ),
     );
