@@ -3,6 +3,7 @@ import 'package:nitmgpt/app/app_navigator.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/app/routes.dart';
 import 'package:nitmgpt/pages/add_rules/add_rules_page.dart';
+import 'package:nitmgpt/pages/local_models/local_model_inference_settings_page.dart';
 import 'package:nitmgpt/pages/local_models/local_models_page.dart';
 import 'package:nitmgpt/pages/home/home_page.dart';
 import 'package:nitmgpt/pages/index/index_page.dart';
@@ -50,6 +51,15 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.localModels,
           builder: (context, state) => const LocalModelsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.localModelSettings,
+          builder: (context, state) {
+            final modelId = Uri.decodeComponent(
+              state.pathParameters['modelId'] ?? '',
+            );
+            return LocalModelInferenceSettingsPage(modelId: modelId);
+          },
         ),
         GoRoute(
           path: AppRoutes.permissions,

@@ -1,11 +1,11 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:nitmgpt/components/frosted_glass_surface.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:unicons/unicons.dart';
 
-/// iOS-style grouped list with white mist frosted glass tiles.
+/// iOS-style grouped list with opaque frosted surface tiles.
 class OpaqueGroupedSection extends StatelessWidget {
   const OpaqueGroupedSection({
     super.key,
@@ -47,13 +47,10 @@ class OpaqueGroupedSection extends StatelessWidget {
                     ),
               ),
             ),
-          GlassCard(
-            padding: EdgeInsets.zero,
-            shape: LiquidRoundedSuperellipse(borderRadius: kTileBorderRadius),
-            settings: tileGlassSettings(isDark: isDark),
-            useOwnLayer: true,
-            quality: GlassQuality.standard,
-            clipBehavior: Clip.antiAlias,
+          FrostedGlassSurface(
+            blurred: true,
+            fillColor: tileFrostFillColor(isDark: isDark),
+            borderColor: tileFrostBorderColor(isDark: isDark),
             child: Column(
               children: [
                 for (var i = 0; i < visibleChildren.length; i++) ...[

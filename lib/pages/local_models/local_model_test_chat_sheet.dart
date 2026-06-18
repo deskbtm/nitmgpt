@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:nitmgpt/state/local_model_test_chat_store.dart';
@@ -40,14 +41,21 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
 
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
-  late final LocalModelTestChatStore _chatStore;
+  late LocalModelTestChatStore _chatStore;
   EffectCleanup? _scrollSub;
   EffectCleanup? _generatingSub;
+  bool _chatReady = false;
 
   @override
-  void initState() {
-    super.initState();
-    _chatStore = LocalModelTestChatStore();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_chatReady) return;
+    _chatReady = true;
+
+    _chatStore = LocalModelTestChatStore(
+      inferencePrefs: AppScope.of(context).localModelInference,
+    );
+
     void scrollOnChatUpdate() {
       try {
         _scrollToBottom();
@@ -66,7 +74,9 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
     _generatingSub?.call();
     _inputController.dispose();
     _scrollController.dispose();
-    unawaited(_chatStore.dispose());
+    if (_chatReady) {
+      unawaited(_chatStore.dispose());
+    }
     super.dispose();
   }
 
@@ -339,6 +349,10 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_chatReady) {
+      return const SizedBox.shrink();
+    }
+
     return Material(
       child: SafeArea(
         top: false,

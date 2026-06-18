@@ -151,6 +151,50 @@ class PrefIntSignal extends Signal<int> with PrefsPersistedSignalMixin<int> {
   }
 }
 
+class PrefDoubleSignal extends Signal<double>
+    with PrefsPersistedSignalMixin<double> {
+  PrefDoubleSignal({
+    required SharedPreferences prefs,
+    required String prefKey,
+    required double defaultValue,
+  })  : _prefs = prefs,
+        _key = prefKey,
+        _defaultValue = defaultValue,
+        super(prefs.getDouble(prefKey) ?? defaultValue) {
+    hydrateFromPrefs();
+  }
+
+  final SharedPreferences _prefs;
+  final String _key;
+  final double _defaultValue;
+
+  @override
+  SharedPreferences get prefs => _prefs;
+
+  @override
+  String get key => _key;
+
+  @override
+  double readFrom(SharedPreferences prefs) =>
+      prefs.getDouble(_key) ?? _defaultValue;
+
+  @override
+  Future<void> writeTo(SharedPreferences prefs, double value) async {
+    await prefs.setDouble(_key, value);
+  }
+}
+
+PrefDoubleSignal prefDouble(
+  String key, {
+  required double defaultValue,
+}) {
+  return PrefDoubleSignal(
+    prefs: requireAppPrefs(),
+    prefKey: key,
+    defaultValue: defaultValue,
+  );
+}
+
 PrefStringSignal prefString(
   String key, {
   String defaultValue = '',

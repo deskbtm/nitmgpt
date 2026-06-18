@@ -49,10 +49,17 @@ class WatcherStore {
   int _iconLoadToken = 0;
 
   Future<void> init() async {
+    settings = _settingsStore.settings;
+
+    await seedHomeMockDataIfEmpty();
+    refreshDetectedApps();
+
+    scheduleMicrotask(() => unawaited(_initHeavy()));
+  }
+
+  Future<void> _initHeavy() async {
     final context = rootNavigatorContext;
     if (context == null) return;
-
-    settings = _settingsStore.settings;
 
     final hasPermission = await _initPermission(context);
 
@@ -74,7 +81,6 @@ class WatcherStore {
     }
 
     deviceApps.value = await getDeviceApps(includeAppIcons: false);
-    await seedHomeMockDataIfEmpty();
     refreshDetectedApps();
   }
 

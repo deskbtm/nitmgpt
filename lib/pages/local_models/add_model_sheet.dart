@@ -6,10 +6,12 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/pages/local_models/model_download_wizard_sheet.dart';
 import 'package:nitmgpt/platform/model_file_picker.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/theme.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 enum _ActivePicker { none, modelType, fileType }
 
@@ -22,7 +24,7 @@ Future<void> showAddModelSheet({
   return CupertinoScaffold.showCupertinoModalBottomSheet<void>(
     context: context,
     expand: false,
-    enableDrag: true,
+    enableDrag: false,
     builder: (sheetContext) => _AddModelSheet(
       store: store,
       onClose: () => Navigator.of(sheetContext).pop(),
@@ -184,44 +186,55 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     );
   }
 
+  String? get _activeFormError {
+    return _source == _AddModelSource.network ? _urlError : _localFileError;
+  }
+
+  Widget _errorBanner(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: CupertinoColors.destructiveRed.withValues(alpha: 0.1),
+        borderRadius: kTileBorderRadiusAll,
+        border: Border.all(
+          color: CupertinoColors.destructiveRed.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(
+          fontSize: 13,
+          color: CupertinoColors.destructiveRed,
+          height: 1.35,
+        ),
+      ),
+    );
+  }
+
   Widget _textField({
     required TextEditingController controller,
     required String placeholder,
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
-    String? errorText,
+    bool hasError = false,
+    VoidCallback? onChanged,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CupertinoTextField(
-          controller: controller,
-          placeholder: placeholder,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          autocorrect: false,
-          onChanged:
-              errorText != null ? (_) => setState(() => _urlError = null) : null,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-            borderRadius: kTileBorderRadiusAll,
-            border: errorText != null
-                ? Border.all(color: CupertinoColors.destructiveRed)
-                : null,
-          ),
-        ),
-        if (errorText != null) ...[
-          const SizedBox(height: 6),
-          Text(
-            errorText,
-            style: const TextStyle(
-              fontSize: 12,
-              color: CupertinoColors.destructiveRed,
-            ),
-          ),
-        ],
-      ],
+    return CupertinoTextField(
+      controller: controller,
+      placeholder: placeholder,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      autocorrect: false,
+      onChanged: onChanged == null ? null : (_) => onChanged(),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+        borderRadius: kTileBorderRadiusAll,
+        border: hasError
+            ? Border.all(color: CupertinoColors.destructiveRed)
+            : null,
+      ),
     );
   }
 
@@ -267,7 +280,14 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
           borderRadius: kTileBorderRadiusAll,
           onPressed: _pickLocalFile,
-          child: Row(
+          child: Container(
+            decoration: _localFileError != null
+                ? BoxDecoration(
+                    borderRadius: kTileBorderRadiusAll,
+                    border: Border.all(color: CupertinoColors.destructiveRed),
+                  )
+                : null,
+            child: Row(
             children: [
               Expanded(
                 child: Text(
@@ -288,6 +308,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
               ),
             ],
+            ),
           ),
         ),
         if (detectedType != null && typeError == null) ...[
@@ -312,26 +333,70 @@ class _AddModelSheetState extends State<_AddModelSheet> {
             ],
           ),
         ],
-        if (_localFileError != null) ...[
-          const SizedBox(height: 6),
-          Text(
-            _localFileError!,
-            style: const TextStyle(
-              fontSize: 12,
-              color: CupertinoColors.destructiveRed,
-            ),
-          ),
-        ],
       ],
+    );
+  }
+
+  Widget _pickerPanel({
+    required FixedExtentScrollController controller,
+    required List<Widget> children,
+    required ValueChanged<int> onSelectedItemChanged,
+  }) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (_) => true,
+      child: SizedBox(
+        height: 180,
+        child: CupertinoPicker(
+          scrollController: controller,
+          itemExtent: 36,
+          onSelectedItemChanged: onSelectedItemChanged,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildModelTypePicker() {
+    if (_activePicker != _ActivePicker.modelType) return null;
+    return _pickerPanel(
+      controller: _modelTypePickerController,
+      onSelectedItemChanged: (index) {
+        setState(() => _selectedType = ModelType.values[index]);
+      },
+      children: ModelType.values
+          .map((t) => Center(child: Text(_modelTypeLabel(t))))
+          .toList(),
+    );
+  }
+
+  Widget? _buildFileTypePicker() {
+    if (_source != _AddModelSource.network ||
+        _activePicker != _ActivePicker.fileType) {
+      return null;
+    }
+    return _pickerPanel(
+      controller: _fileTypePickerController,
+      onSelectedItemChanged: (index) {
+        setState(() => _selectedFileType = ModelFileType.values[index]);
+      },
+      children: ModelFileType.values
+          .map((t) => Center(child: Text(t.name)))
+          .toList(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final scrollController = ModalScrollController.of(context);
 
-    return Material(
+    return SignalBuilder(
+      builder: (context) {
+        appLocale.value;
+
+        final modelTypePicker = _buildModelTypePicker();
+        final fileTypePicker = _buildFileTypePicker();
+
+        return Material(
       child: SafeArea(
         top: false,
         child: Padding(
@@ -363,7 +428,6 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                 ),
                 Expanded(
                   child: ListView(
-                    controller: scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     children: [
                       CupertinoSlidingSegmentedControl<_AddModelSource>(
@@ -388,13 +452,29 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                         },
                       ),
                       const SizedBox(height: 16),
+                      if (_activeFormError != null) ...[
+                        _errorBanner(_activeFormError!),
+                        const SizedBox(height: 12),
+                      ],
                       if (_source == _AddModelSource.network) ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => showModelDownloadWizardSheet(
+                              context: context,
+                            ),
+                            child: Text('How to get a download URL?'.tr),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
                         _fieldLabel('Model download URL'.tr),
                         _textField(
                           controller: _urlController,
                           placeholder: 'https://...',
                           keyboardType: TextInputType.url,
-                          errorText: _urlError,
+                          hasError: _urlError != null,
+                          onChanged: () => setState(() => _urlError = null),
                         ),
                         const SizedBox(height: 16),
                         _fieldLabel('HuggingFace token (optional)'.tr),
@@ -418,49 +498,16 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                             trailing: Text(_modelTypeLabel(_selectedType)),
                             onTap: () => _togglePicker(_ActivePicker.modelType),
                           ),
+                          if (modelTypePicker != null) modelTypePicker,
                           if (_source == _AddModelSource.network)
                             OpaqueListTile(
                               title: Text('File type'.tr),
                               trailing: Text(_selectedFileType.name),
                               onTap: () => _togglePicker(_ActivePicker.fileType),
                             ),
+                          if (fileTypePicker != null) fileTypePicker,
                         ],
                       ),
-                      if (_activePicker == _ActivePicker.modelType) ...[
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 180,
-                          child: CupertinoPicker(
-                            scrollController: _modelTypePickerController,
-                            itemExtent: 36,
-                            onSelectedItemChanged: (index) {
-                              setState(() => _selectedType = ModelType.values[index]);
-                            },
-                            children: ModelType.values
-                                .map((t) => Center(child: Text(_modelTypeLabel(t))))
-                                .toList(),
-                          ),
-                        ),
-                      ],
-                      if (_source == _AddModelSource.network &&
-                          _activePicker == _ActivePicker.fileType) ...[
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 180,
-                          child: CupertinoPicker(
-                            scrollController: _fileTypePickerController,
-                            itemExtent: 36,
-                            onSelectedItemChanged: (index) {
-                              setState(
-                                () => _selectedFileType = ModelFileType.values[index],
-                              );
-                            },
-                            children: ModelFileType.values
-                                .map((t) => Center(child: Text(t.name)))
-                                .toList(),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -483,6 +530,8 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

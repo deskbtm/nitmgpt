@@ -64,6 +64,44 @@ Map<String, String> zh_CN = {
   'Unable to reach GitHub. Check your network.':
       '无法连接 GitHub，请检查网络后重试',
   'Local models': '本地模型',
+  'Get a model': '获取模型',
+  'Model download guide': '模型下载向导',
+  'ModelScope (China) or Hugging Face': '魔搭（国内）或 Hugging Face',
+  'Choose where to download based on your network.':
+      '根据你的网络环境选择下载来源。',
+  'ModelScope (China)': '魔搭 ModelScope',
+  'Hugging Face': 'Hugging Face',
+  'ModelScope (China) label': '魔搭 ModelScope（国内）',
+  'Recommended for users in mainland China.': '推荐中国大陆用户使用。',
+  'Recommended for users outside mainland China.':
+      '推荐中国大陆以外用户使用。',
+  'Open ModelScope': '打开魔搭 ModelScope',
+  'Open Hugging Face': '打开 Hugging Face',
+  'Continue to download': '继续下载',
+  'Close': '关闭',
+  'How to get a download URL?': '如何获取下载链接？',
+  'Wizard step: open ModelScope': '打开 modelscope.cn，搜索可在手机端运行的模型。',
+  'Wizard step: pick on-device model':
+      '选择提供 .task 或 .litertlm 文件的模型（如 Gemma、Qwen 等）。',
+  'Wizard step: copy ModelScope file URL':
+      '在模型「文件」页复制模型文件的直链 HTTPS 地址。',
+  'Wizard step: paste URL in app':
+      '返回本应用，点 +，粘贴链接，选择对应模型类型后开始下载。',
+  'Wizard step: open Hugging Face':
+      '打开 huggingface.co/models，搜索兼容的端侧模型。',
+  'Wizard step: pick gated model':
+      '进入模型仓库；若需授权，请先登录并同意许可协议。',
+  'Wizard step: copy Hugging Face file URL':
+      '在 Files 中打开原始文件，复制 resolve/main 下载链接。',
+  'Wizard step: paste URL and token':
+      '在「添加模型」中粘贴链接；若模型受限，请填写 Hugging Face Token。',
+  'Wizard tip: ModelScope file types':
+      '支持 .task（MediaPipe）、.litertlm（LiteRT）、.bin、.tflite。',
+  'Wizard tip: ModelScope mirror': '魔搭提供众多热门模型镜像，国内下载更快。',
+  'Wizard tip: Hugging Face file types':
+      '端侧推理请使用 .task 或 .litertlm；超大模型可能无法在手机上运行。',
+  'Wizard tip: Hugging Face token':
+      '受限模型可在 huggingface.co/settings/tokens 创建只读 Token。',
   'Add model': '添加模型',
   'Model download URL': '模型下载地址',
   'Local file': '本地文件',
@@ -98,6 +136,28 @@ Map<String, String> zh_CN = {
   'Removed orphaned files': '已清理孤立文件',
   'Storage cleanup completed': '存储清理完成',
   'Model settings': '模型设置',
+  'Max tokens, temperature, and sampling': '最大 Token、温度与采样',
+  'Inference settings apply to on-device chat and classification. Lower temperature and top K improve consistency for notification filtering.':
+      '推理参数用于本地聊天与分类。较低的温度和 Top K 有助于通知过滤结果更稳定。',
+  'Inference settings for this model only. Lower temperature and top K improve consistency for notification filtering.':
+      '以下参数仅对当前模型生效。较低的温度和 Top K 有助于通知过滤结果更稳定。',
+  'Generation': '生成',
+  'Max tokens': '最大 Token',
+  'Maximum output length per request': '单次请求的最大输出长度',
+  'Temperature': '温度',
+  'Lower values make classification more deterministic': '较低值使分类结果更确定',
+  'Top K': 'Top K',
+  '1 = greedy decoding (recommended for filtering)': '1 = 贪心解码（推荐用于过滤）',
+  'Top P': 'Top P',
+  'Nucleus sampling threshold': '核采样阈值',
+  'Session': '会话',
+  'Token buffer': 'Token 缓冲',
+  'Reserved context space for chat history': '为对话历史预留的上下文空间',
+  'Random seed': '随机种子',
+  'Fixed seed for reproducible outputs': '固定种子以获得可复现输出',
+  'Reset to defaults': '恢复默认',
+  'Restore settings tuned for notification filtering':
+      '恢复为适合通知过滤的默认参数',
   'Model URL is required': '请填写模型下载地址',
   'Enter a valid model URL': '请输入有效的 HTTPS 模型地址',
   'Unsupported model file type': '不支持的模型文件类型',

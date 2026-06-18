@@ -5,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:nitmgpt/app/app_router.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/notification_utils.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -17,12 +16,6 @@ class NITM extends StatefulWidget {
 }
 
 class _NITMState extends State<NITM> {
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    LocalNotification.init();
-  }
-
   @override
   Widget build(BuildContext context) {
     log('Root re-render', name: 'NITM');

@@ -32,7 +32,7 @@ class AppIconImage extends StatelessWidget {
       height: height,
       fit: fit,
       gaplessPlayback: true,
-      filterQuality: FilterQuality.medium,
+      filterQuality: width <= 24 ? FilterQuality.low : FilterQuality.medium,
       cacheWidth: cacheWidth,
       cacheHeight: cacheHeight,
     );

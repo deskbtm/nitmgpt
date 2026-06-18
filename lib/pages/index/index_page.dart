@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:nitmgpt/app/app_scope.dart';
+import 'package:nitmgpt/components/bottom_bar/bottom_bar_models.dart';
+import 'package:nitmgpt/components/bottom_bar/frosted_searchable_bottom_bar.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/double_pop_exit.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
@@ -21,7 +22,16 @@ class IndexPage extends StatefulWidget {
 class _IndexPageState extends State<IndexPage> {
   final _searchController = TextEditingController();
   bool _isSearchActive = false;
+  bool _bottomBarReady = false;
   WatcherStore? _watcher;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _bottomBarReady = true);
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -78,9 +88,13 @@ class _IndexPageState extends State<IndexPage> {
             body: RepaintBoundary(
               child: widget.navigationShell,
             ),
-            bottomNavigationBar: RepaintBoundary(
-              child: _buildBottomBar(context),
-            ),
+            bottomNavigationBar: _bottomBarReady
+                ? RepaintBoundary(
+                    child: _buildBottomBar(context),
+                  )
+                : SizedBox(
+                    height: kBottomBarHeight + kBottomBarVerticalPadding * 2,
+                  ),
           ),
         ],
       ),
@@ -103,13 +117,12 @@ class _IndexPageState extends State<IndexPage> {
 
     return Padding(
       padding: EdgeInsets.only(bottom: sysBottom),
-      child: GlassSearchableBottomBar(
+      child: FrostedSearchableBottomBar(
         tabWidth: tabWidth,
         horizontalPadding: kBottomBarHorizontalPadding,
         verticalPadding: kBottomBarVerticalPadding,
         barHeight: kBottomBarHeight,
         searchBarHeight: kBottomBarHeight,
-        enableBlend: true,
         selectedIndex: widget.navigationShell.currentIndex,
         onTabSelected: _onDestinationSelected,
         isSearchActive: isHomeTab && _isSearchActive,
@@ -119,11 +132,7 @@ class _IndexPageState extends State<IndexPage> {
         iconSize: iconSize,
         iconLabelSpacing: 0,
         indicatorColor: indicatorColor,
-        indicatorSettings: bottomBarIndicatorGlassSettings(isDark: isDark),
-        quality: GlassQuality.premium,
-        interactionBehavior: GlassInteractionBehavior.full,
-        settings: bottomBarGlassSettings(isDark: isDark),
-        searchConfig: GlassSearchBarConfig(
+        searchConfig: SearchBarConfig(
           hintText: 'Search notifications'.tr,
           controller: _searchController,
           onSearchToggle: _onSearchToggle,
@@ -141,12 +150,12 @@ class _IndexPageState extends State<IndexPage> {
           showsCancelButton: false,
         ),
         tabs: [
-          GlassBottomBarTab(
+          BottomBarTab(
             label: 'Home'.tr,
             icon: const Icon(UniconsLine.monitor_heart_rate),
             activeIcon: const Icon(UniconsLine.monitor_heart_rate),
           ),
-          GlassBottomBarTab(
+          BottomBarTab(
             label: 'Settings'.tr,
             icon: const Icon(UniconsLine.setting),
             activeIcon: const Icon(UniconsLine.setting),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gemma/core/model.dart';
+import 'package:go_router/go_router.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:nitmgpt/app/routes.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
@@ -8,6 +10,7 @@ import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/local_models/add_model_sheet.dart';
 import 'package:nitmgpt/pages/local_models/local_model_test_chat_sheet.dart';
+import 'package:nitmgpt/pages/local_models/model_download_wizard_sheet.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/theme.dart';
@@ -56,6 +59,13 @@ class _LocalModelsPageState extends State<LocalModelsPage> {
       ModelType.phi => 'Phi',
       ModelType.general => 'General',
     };
+  }
+
+  Future<void> _showDownloadWizard(BuildContext modalHostContext) {
+    return showModelDownloadWizardSheet(
+      context: modalHostContext,
+      onContinueDownload: () => _showAddModelDialog(modalHostContext),
+    );
   }
 
   Future<void> _showAddModelDialog(BuildContext modalHostContext) {
@@ -120,6 +130,17 @@ class _LocalModelsPageState extends State<LocalModelsPage> {
             children: [
               SecondaryPageScaffold.largeTitle('Local models'.tr),
               const SizedBox(height: 16),
+              if (error != null)
+                OpaqueGroupedSection(
+                  children: [
+                    ListTile(
+                      title: Text(
+                        error.tr,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
               if (installing)
                 OpaqueGroupedSection(
                   children: [
@@ -132,26 +153,37 @@ class _LocalModelsPageState extends State<LocalModelsPage> {
                     ),
                   ],
                 ),
-              if (error != null)
-                OpaqueGroupedSection(
-                  children: [
-                    ListTile(
-                      title: Text(
-                        error.tr,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+              OpaqueGroupedSection(
+                header: 'Get a model'.tr,
+                headerStyle: sectionHeaderStyle,
+                children: [
+                  OpaqueListTile(
+                    leading: Icon(
+                      UniconsLine.book_open,
+                      size: 18,
+                      color: primaryColor,
                     ),
-                  ],
-                ),
+                    title: Text('Model download guide'.tr),
+                    subtitle: Text(
+                      'ModelScope (China) or Hugging Face'.tr,
+                    ),
+                    showChevron: true,
+                    horizontalTitleGap: 8,
+                    minLeadingWidth: 22,
+                    onTap: () => _showDownloadWizard(modalHostContext),
+                  ),
+                ],
+              ),
               OpaqueGroupedSection(
                 header: 'Active model'.tr,
                 headerStyle: sectionHeaderStyle,
                 children: [
-                  ListTile(
+                  OpaqueListTile(
                     leading: Icon(
                       hasActive
                           ? UniconsLine.check_circle
                           : UniconsLine.times_circle,
+                      size: 18,
                       color: hasActive ? primaryColor : Colors.grey,
                     ),
                     title: Text(
@@ -166,14 +198,39 @@ class _LocalModelsPageState extends State<LocalModelsPage> {
                           ? 'Ready for on-device inference'.tr
                           : 'Download and select a model below'.tr,
                     ),
+                    horizontalTitleGap: 8,
+                    minLeadingWidth: 22,
                   ),
+                  if (hasActive && activeId != null)
+                    OpaqueListTile(
+                      leading: Icon(
+                        UniconsLine.sliders_v,
+                        size: 18,
+                        color: primaryColor,
+                      ),
+                      title: Text('Model settings'.tr),
+                      subtitle: Text(
+                        'Max tokens, temperature, and sampling'.tr,
+                      ),
+                      showChevron: true,
+                      horizontalTitleGap: 8,
+                      minLeadingWidth: 22,
+                      onTap: () => context.push(
+                        AppRoutes.localModelSettingsFor(activeId),
+                      ),
+                    ),
                   if (hasActive)
-                    ListTile(
-                      leading: Icon(UniconsLine.comment_alt_lines,
-                          color: primaryColor),
+                    OpaqueListTile(
+                      leading: Icon(
+                        UniconsLine.comment_alt_lines,
+                        size: 18,
+                        color: primaryColor,
+                      ),
                       title: Text('Chat'.tr),
                       subtitle: Text('Try on-device inference'.tr),
-                      trailing: const Icon(UniconsLine.angle_right, size: 18),
+                      showChevron: true,
+                      horizontalTitleGap: 8,
+                      minLeadingWidth: 22,
                       onTap: () => _showTestChatSheet(modalHostContext),
                     ),
                 ],
@@ -196,31 +253,50 @@ class _LocalModelsPageState extends State<LocalModelsPage> {
                           '${_formatSize(entry.sizeMb)} · '
                           '${entry.fileType.name}',
                         ),
-                        trailing: entry.isActive
-                            ? Icon(UniconsLine.check, color: primaryColor)
-                            : PopupMenuButton<String>(
-                                onSelected: (action) async {
-                                  if (action == 'activate') {
-                                    await _store.setActive(entry.id);
-                                  } else if (action == 'uninstall') {
-                                    await _confirmUninstall(entry);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'activate',
-                                    enabled: !entry.isActive,
-                                    child: Text('Set as active'.tr),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'uninstall',
-                                    child: Text(
-                                      'Uninstall'.tr,
-                                      style: const TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (entry.isActive)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Icon(
+                                  UniconsLine.check,
+                                  color: primaryColor,
+                                ),
                               ),
+                            PopupMenuButton<String>(
+                              onSelected: (action) async {
+                                if (action == 'settings') {
+                                  context.push(
+                                    AppRoutes.localModelSettingsFor(entry.id),
+                                  );
+                                } else if (action == 'activate') {
+                                  await _store.setActive(entry.id);
+                                } else if (action == 'uninstall') {
+                                  await _confirmUninstall(entry);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'settings',
+                                  child: Text('Model settings'.tr),
+                                ),
+                                PopupMenuItem(
+                                  value: 'activate',
+                                  enabled: !entry.isActive,
+                                  child: Text('Set as active'.tr),
+                                ),
+                                PopupMenuItem(
+                                  value: 'uninstall',
+                                  child: Text(
+                                    'Uninstall'.tr,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                         onTap: entry.isActive
                             ? null
                             : () => _store.setActive(entry.id),

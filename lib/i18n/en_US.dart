@@ -66,6 +66,47 @@ const Map<String, String> en_US = {
   'Unable to reach GitHub. Check your network.':
       'Unable to reach GitHub. Check your network connection.',
   'Local models': 'Local models',
+  'Get a model': 'Get a model',
+  'Model download guide': 'Model download guide',
+  'ModelScope (China) or Hugging Face': 'ModelScope (China) or Hugging Face',
+  'Choose where to download based on your network.':
+      'Choose where to download based on your network.',
+  'ModelScope (China)': 'ModelScope (China)',
+  'Hugging Face': 'Hugging Face',
+  'ModelScope (China) label': 'ModelScope (China)',
+  'Recommended for users in mainland China.':
+      'Recommended for users in mainland China.',
+  'Recommended for users outside mainland China.':
+      'Recommended for users outside mainland China.',
+  'Open ModelScope': 'Open ModelScope',
+  'Open Hugging Face': 'Open Hugging Face',
+  'Continue to download': 'Continue to download',
+  'Close': 'Close',
+  'How to get a download URL?': 'How to get a download URL?',
+  'Wizard step: open ModelScope':
+      'Open modelscope.cn and search for a mobile on-device model.',
+  'Wizard step: pick on-device model':
+      'Pick a model that provides a .task or .litertlm file (Gemma, Qwen, etc.).',
+  'Wizard step: copy ModelScope file URL':
+      'On the model Files tab, copy the direct HTTPS link of the model file.',
+  'Wizard step: paste URL in app':
+      'Return here, tap +, paste the URL, choose the matching model type, then download.',
+  'Wizard step: open Hugging Face':
+      'Open huggingface.co/models and search for a compatible on-device model.',
+  'Wizard step: pick gated model':
+      'Open the model repo. Sign in and accept the license if the model is gated.',
+  'Wizard step: copy Hugging Face file URL':
+      'In Files, open the raw file and copy the resolve/main download URL.',
+  'Wizard step: paste URL and token':
+      'Paste the URL in Add model. Add your Hugging Face token if the model requires it.',
+  'Wizard tip: ModelScope file types':
+      'Supported files: .task (MediaPipe), .litertlm (LiteRT), .bin, .tflite.',
+  'Wizard tip: ModelScope mirror':
+      'ModelScope hosts many mirrors of popular models with faster downloads in China.',
+  'Wizard tip: Hugging Face file types':
+      'Use .task or .litertlm for on-device inference. Very large LLMs may not run on phone.',
+  'Wizard tip: Hugging Face token':
+      'Create a read token at huggingface.co/settings/tokens for gated models.',
   'Add model': 'Add model',
   'Model download URL': 'Model download URL',
   'Local file': 'Local file',
@@ -100,6 +141,32 @@ const Map<String, String> en_US = {
   'Removed orphaned files': 'Removed orphaned files',
   'Storage cleanup completed': 'Storage cleanup completed',
   'Model settings': 'Model settings',
+  'Max tokens, temperature, and sampling':
+      'Max tokens, temperature, and sampling',
+  'Inference settings apply to on-device chat and classification. Lower temperature and top K improve consistency for notification filtering.':
+      'Inference settings apply to on-device chat and classification. Lower temperature and top K improve consistency for notification filtering.',
+  'Inference settings for this model only. Lower temperature and top K improve consistency for notification filtering.':
+      'Inference settings for this model only. Lower temperature and top K improve consistency for notification filtering.',
+  'Generation': 'Generation',
+  'Max tokens': 'Max tokens',
+  'Maximum output length per request': 'Maximum output length per request',
+  'Temperature': 'Temperature',
+  'Lower values make classification more deterministic':
+      'Lower values make classification more deterministic',
+  'Top K': 'Top K',
+  '1 = greedy decoding (recommended for filtering)':
+      '1 = greedy decoding (recommended for filtering)',
+  'Top P': 'Top P',
+  'Nucleus sampling threshold': 'Nucleus sampling threshold',
+  'Session': 'Session',
+  'Token buffer': 'Token buffer',
+  'Reserved context space for chat history':
+      'Reserved context space for chat history',
+  'Random seed': 'Random seed',
+  'Fixed seed for reproducible outputs': 'Fixed seed for reproducible outputs',
+  'Reset to defaults': 'Reset to defaults',
+  'Restore settings tuned for notification filtering':
+      'Restore settings tuned for notification filtering',
   'Model URL is required': 'Model URL is required',
   'Enter a valid model URL': 'Enter a valid HTTPS model URL',
   'Unsupported model file type': 'Unsupported model file type',

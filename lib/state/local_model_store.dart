@@ -6,10 +6,12 @@ import 'package:flutter_gemma/core/domain/model_source.dart';
 import 'package:flutter_gemma/core/services/model_repository.dart'
     as model_repo;
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/platform/litert_backend.dart';
 import 'package:nitmgpt/platform/model_file_picker.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/state/local_model_inference_prefs.dart';
 import 'package:nitmgpt/state/local_model_prefs.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -38,10 +40,14 @@ class LocalModelEntry {
 }
 
 class LocalModelStore {
-  LocalModelStore({LocalModelIdentityPrefs? identityPrefs})
-      : _identityPrefs = identityPrefs ?? LocalModelIdentityPrefs();
+  LocalModelStore({
+    LocalModelIdentityPrefs? identityPrefs,
+    LocalModelInferencePrefs? inferencePrefs,
+  })  : _identityPrefs = identityPrefs ?? LocalModelIdentityPrefs(),
+        _inferencePrefs = inferencePrefs;
 
   final LocalModelIdentityPrefs _identityPrefs;
+  final LocalModelInferencePrefs? _inferencePrefs;
 
   final isLoading = signal(false);
   final isInstalling = signal(false);
@@ -54,6 +60,8 @@ class LocalModelStore {
 
   bool _initialized = false;
 
+  Future<void> _ensureGemmaReady() => ensureFlutterGemmaInitialized();
+
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
@@ -61,6 +69,7 @@ class LocalModelStore {
   }
 
   Future<void> refresh() async {
+    await _ensureGemmaReady();
     safeSignalWrite(() {
       isLoading.value = true;
       errorMessage.value = null;
@@ -90,11 +99,12 @@ class LocalModelStore {
       for (final info in inferenceModels) {
         final modelType = _identityPrefs.readModelType(info.id);
         final fileType = _identityPrefs.readFileType(info.id);
+        final sizeBytes = await _resolveSizeBytes(info);
         entries.add(
           LocalModelEntry(
             id: info.id,
             name: displayNameFromFilename(info.id),
-            sizeBytes: info.sizeBytes,
+            sizeBytes: sizeBytes,
             installedAt: info.installedAt,
             modelType: modelType,
             fileType: fileType,
@@ -104,7 +114,15 @@ class LocalModelStore {
         );
       }
 
-      final stats = await manager.getStorageInfo();
+      final pluginStats = await manager.getStorageInfo();
+      final modelTotalBytes =
+          entries.fold<int>(0, (sum, entry) => sum + entry.sizeBytes);
+      final stats = StorageStats(
+        totalFiles: entries.isNotEmpty ? entries.length : pluginStats.totalFiles,
+        totalSizeBytes:
+            modelTotalBytes > 0 ? modelTotalBytes : pluginStats.totalSizeBytes,
+        orphanedFiles: pluginStats.orphanedFiles,
+      );
       safeSignalWrite(() {
         hasActiveModel.value = hasActive;
         activeModelId.value = activeId;
@@ -124,6 +142,7 @@ class LocalModelStore {
     ModelFileType fileType = ModelFileType.task,
     String? token,
   }) async {
+    await _ensureGemmaReady();
     if (shouldSkipConcurrentInstall(isInstalling: isInstalling.value)) {
       return;
     }
@@ -168,6 +187,7 @@ class LocalModelStore {
     required PickedModelFile picked,
     required ModelType modelType,
   }) async {
+    await _ensureGemmaReady();
     if (shouldSkipConcurrentInstall(isInstalling: isInstalling.value)) {
       return;
     }
@@ -236,6 +256,7 @@ class LocalModelStore {
     required ModelType modelType,
     ModelFileType? fileType,
   }) async {
+    await _ensureGemmaReady();
     if (shouldSkipConcurrentInstall(isInstalling: isInstalling.value)) {
       return;
     }
@@ -285,6 +306,7 @@ class LocalModelStore {
   }
 
   Future<void> setActive(String modelId) async {
+    await _ensureGemmaReady();
     safeSignalWrite(() => errorMessage.value = null);
 
     try {
@@ -337,11 +359,13 @@ class LocalModelStore {
   }
 
   Future<void> uninstall(String modelId) async {
+    await _ensureGemmaReady();
     safeSignalWrite(() => errorMessage.value = null);
 
     try {
       await FlutterGemma.uninstallModel(modelId);
       await _identityPrefs.remove(modelId);
+      await _inferencePrefs?.remove(modelId);
       await refresh();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
@@ -360,6 +384,29 @@ class LocalModelStore {
       safeSignalWrite(() => errorMessage.value = e.toString());
       return 0;
     }
+  }
+
+  Future<int> _resolveSizeBytes(model_repo.ModelInfo info) async {
+    try {
+      final registry = ServiceRegistry.instance;
+      final fileSourcePath =
+          info.source is FileSource ? (info.source as FileSource).path : null;
+      final externalPath =
+          await registry.protectedFilesRegistry.getExternalPath(info.id);
+      final documentsPath =
+          await registry.fileSystemService.getReadTargetPath(info.id);
+      final filePath = resolveInstalledModelFilePath(
+        fileSourcePath: fileSourcePath,
+        externalPath: externalPath,
+        documentsPath: documentsPath,
+      );
+      final file = File(filePath);
+      if (file.existsSync()) {
+        return file.lengthSync();
+      }
+    } catch (_) {}
+
+    return info.sizeBytes > 0 ? info.sizeBytes : 0;
   }
 
   Future<void> _persistModelIdentity(

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/platform/litert_backend.dart';
+import 'package:nitmgpt/state/local_model_inference_prefs.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -19,6 +21,9 @@ class ChatBubble {
 }
 
 class LocalModelTestChatStore {
+  LocalModelTestChatStore({required this.inferencePrefs});
+
+  final LocalModelInferencePrefs inferencePrefs;
   final isInitializing = signal(true);
   final isGenerating = signal(false);
   final errorMessage = signal<String?>(null);
@@ -38,6 +43,7 @@ class LocalModelTestChatStore {
     });
 
     try {
+      await ensureFlutterGemmaInitialized();
       if (!FlutterGemma.hasActiveModel()) {
         safeSignalWrite(() {
           isInitializing.value = false;
@@ -53,21 +59,31 @@ class LocalModelTestChatStore {
         await ensureLitertLmRuntimeSupported();
       }
 
+      String? activeModelId;
       if (activeSpec is InferenceModelSpec) {
-        final label = displayNameFromFilename(
-          activeSpec.files.firstWhere((f) => f.isRequired).filename,
-        );
+        activeModelId =
+            activeSpec.files.firstWhere((f) => f.isRequired).filename;
+        final label = displayNameFromFilename(activeModelId);
         safeSignalWrite(() => modelLabel.value = label);
       }
 
+      final config = activeModelId == null
+          ? LocalModelInferenceConfig.defaults
+          : inferencePrefs.read(activeModelId);
+
       final model = await FlutterGemma.getActiveModel(
-        maxTokens: 1024,
+        maxTokens: config.maxTokens,
         preferredBackend: await preferredLitertBackend(),
       );
       final chat = await model.createChat(
         modelType: activeSpec is InferenceModelSpec
             ? activeSpec.modelType
             : ModelType.general,
+        temperature: config.temperature,
+        topK: config.topK,
+        topP: config.topP,
+        randomSeed: config.randomSeed,
+        tokenBuffer: config.tokenBuffer,
       );
 
       if (_disposed) {

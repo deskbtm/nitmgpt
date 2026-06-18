@@ -4,8 +4,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 class LocalNotification {
   static late FlutterLocalNotificationsPlugin plugin;
   static late NotificationDetails androidDetails;
+  static bool _initialized = false;
 
   static Future<void> init() async {
+    if (_initialized) return;
+    _initialized = true;
+
     plugin = FlutterLocalNotificationsPlugin();
     const android = AndroidInitializationSettings('notification');
     const initSettings = InitializationSettings(android: android);
