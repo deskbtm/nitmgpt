@@ -107,6 +107,17 @@ const kBottomBarVerticalPadding = 8.0;
 /// Default [GlassBottomBar.barHeight] used in [IndexPage] (iOS 26 tab bar ~62pt).
 const kBottomBarHeight = 62.0;
 
+/// Extra scroll gap so the last list row clears the floating glass bar edge.
+const kBottomBarScrollGap = 12.0;
+
+/// Total layout height of [IndexPage]'s glass bottom bar — keep in sync with
+/// [_IndexPageState._buildBottomBar] (bar + vertical padding + safe area).
+double tabBottomBarLayoutHeight(BuildContext context) {
+  return kBottomBarHeight +
+      (kBottomBarVerticalPadding * 2) +
+      MediaQuery.paddingOf(context).bottom;
+}
+
 /// Opaque tab page shell — scrollable body inside the root scaffold.
 class TabPageShell extends StatelessWidget {
   const TabPageShell({
@@ -124,7 +135,8 @@ class TabPageShell extends StatelessWidget {
   }
 
   /// Bottom inset for scrollable tab pages above [IndexPage]'s glass bottom bar.
-  static double scrollBottomPadding(BuildContext context) => kBottomBarHeight;
+  static double scrollBottomPadding(BuildContext context) =>
+      tabBottomBarLayoutHeight(context) + kBottomBarScrollGap;
 
   @override
   Widget build(BuildContext context) {
