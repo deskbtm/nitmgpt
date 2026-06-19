@@ -7,10 +7,10 @@ import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/device_apps_compat.dart';
-import 'package:nitmgpt/permanent_listener_service/main.dart';
+import 'package:nitmgpt/services/device_apps.dart';
+import 'package:nitmgpt/services/permanent_listener/background_service_host.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class HomePage extends StatefulWidget {

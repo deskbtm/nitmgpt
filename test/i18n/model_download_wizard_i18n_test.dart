@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nitmgpt/i18n/en_US.dart';
 import 'package:nitmgpt/i18n/zh_CN.dart';
-import 'package:nitmgpt/state/model_download_guide.dart';
+import 'package:nitmgpt/utils/model_download_guide.dart';
 
 void main() {
   final wizardKeys = <String>[

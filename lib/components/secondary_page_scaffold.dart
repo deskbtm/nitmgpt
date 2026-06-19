@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/components/back_button.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 
 /// Secondary page layout per ADR-0001: wallpaper, fixed glass back button,
 /// large title scrolled inside [body].

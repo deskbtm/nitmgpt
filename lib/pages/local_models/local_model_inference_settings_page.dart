@@ -3,9 +3,9 @@ import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 import 'package:nitmgpt/state/local_model_inference_kv.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 

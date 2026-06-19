@@ -1,6 +1,6 @@
 import 'package:nitmgpt/i18n/en_US.dart';
 import 'package:nitmgpt/i18n/zh_CN.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 
 /// Offline TDD verification — avoids flutter_gemma native init in flutter test.
 void main() {

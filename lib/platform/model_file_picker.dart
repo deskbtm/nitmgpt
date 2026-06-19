@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 
 class PickedModelFile {
   const PickedModelFile({

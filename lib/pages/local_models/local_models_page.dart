@@ -11,9 +11,9 @@ import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/local_models/add_model_sheet.dart';
 import 'package:nitmgpt/pages/local_models/local_model_test_chat_sheet.dart';
 import 'package:nitmgpt/pages/local_models/model_download_wizard_sheet.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 import 'package:nitmgpt/state/local_model_store.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 

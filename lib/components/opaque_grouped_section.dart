@@ -2,7 +2,7 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/components/frosted_glass_surface.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:unicons/unicons.dart';
 
 /// iOS-style grouped list with opaque frosted surface tiles.

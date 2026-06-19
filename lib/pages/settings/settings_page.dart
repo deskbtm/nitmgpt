@@ -7,13 +7,13 @@ import 'package:nitmgpt/app/routes.dart';
 import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
-import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/core/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/settings/developer_hidden_entry.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
-import 'package:nitmgpt/theme.dart';
-import 'package:nitmgpt/utils.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
+import 'package:nitmgpt/utils/url.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 
 typedef DialogCallback = Future<void> Function(BuildContext dialogContext);
 

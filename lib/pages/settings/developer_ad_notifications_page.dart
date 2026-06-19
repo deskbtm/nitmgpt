@@ -4,7 +4,7 @@ import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/dev/developer_ad_notification_samples.dart';
 import 'package:nitmgpt/dev/developer_ad_notification_sender.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 

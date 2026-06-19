@@ -17,6 +17,7 @@ dynamic looseJSONParse(String content) {
   }
 }
 
+/// Strips leading newlines from streamed assistant text (common model artifact).
 String normalizeAssistantStreamText(String text) {
   return text.replaceFirst(RegExp(r'^(?:\r?\n)+'), '');
 }

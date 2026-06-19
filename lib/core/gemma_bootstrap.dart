@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
-import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/core/constants.dart';
+import 'package:nitmgpt/services/active_local_model_resolver.dart';
 
 Completer<void>? _gemmaInitCompleter;
 
@@ -29,4 +30,13 @@ Future<void> ensureFlutterGemmaInitialized() {
   });
 
   return completer.future;
+}
+
+/// Whether a local inference model is selected for background classification.
+Future<bool> hasActiveLocalModelForListener() async {
+  await ensurePersistedActiveLocalModel();
+  await ensureFlutterGemmaInitialized();
+  final manager = FlutterGemmaPlugin.instance.modelManager;
+  await manager.ensureInitialized();
+  return FlutterGemma.hasActiveModel();
 }

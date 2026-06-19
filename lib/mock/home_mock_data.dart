@@ -1,4 +1,4 @@
-import 'package:nitmgpt/device_apps_compat.dart';
+import 'package:nitmgpt/services/device_apps.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:realm/realm.dart';

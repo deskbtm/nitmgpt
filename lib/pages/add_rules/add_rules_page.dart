@@ -5,14 +5,14 @@ import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/device_apps_compat.dart';
+import 'package:nitmgpt/services/device_apps.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 

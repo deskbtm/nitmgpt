@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:nitmgpt/state/local_model_test_chat_store.dart';
-import 'package:nitmgpt/theme.dart';
-import 'package:nitmgpt/utils.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
+import 'package:nitmgpt/utils/json.dart';
+import 'package:nitmgpt/utils/url.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 
@@ -63,9 +62,7 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
     if (_chatReady) return;
     _chatReady = true;
 
-    _chatStore = LocalModelTestChatStore(
-      inferenceKv: AppScope.of(context).localModelInference,
-    );
+    _chatStore = LocalModelTestChatStore();
 
     void scrollOnChatUpdate() {
       try {

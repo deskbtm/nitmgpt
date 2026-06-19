@@ -2,7 +2,7 @@ import 'package:flutter_notification_listener/flutter_notification_listener.dart
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/dev/developer_ad_notification_samples.dart';
-import 'package:nitmgpt/notification_utils.dart';
+import 'package:nitmgpt/services/local_notification.dart';
 
 Future<bool> sendDeveloperAdNotification(
   DeveloperAdNotificationSample sample,

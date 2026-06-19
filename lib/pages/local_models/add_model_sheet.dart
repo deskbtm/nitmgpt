@@ -4,13 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gemma/core/model.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/components/opaque_grouped_section.dart';
-import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/core/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/pages/local_models/model_download_wizard_sheet.dart';
 import 'package:nitmgpt/platform/model_file_picker.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 import 'package:nitmgpt/state/local_model_store.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 enum _ActivePicker { none, modelType, fileType }

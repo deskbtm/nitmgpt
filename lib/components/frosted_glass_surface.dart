@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/core/frosted_glass.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 
 /// Frosted surface — [BackdropFilter] blur plus semi-opaque fill and soft border.
 class FrostedGlassSurface extends StatelessWidget {

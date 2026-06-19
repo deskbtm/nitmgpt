@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-export 'components/app_background.dart' show kAppGlassBackground;
+export 'package:nitmgpt/components/app_background.dart' show kAppGlassBackground;
 
 var primaryColor = const Color(0xFF74AA9C);
 

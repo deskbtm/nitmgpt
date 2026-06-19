@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 
 import 'bottom_bar_models.dart';
 import 'bottom_bar_tab_item.dart';

@@ -6,9 +6,9 @@ import 'package:nitmgpt/components/bottom_bar/bottom_bar_models.dart';
 import 'package:nitmgpt/components/bottom_bar/frosted_searchable_bottom_bar.dart';
 import 'package:nitmgpt/core/idle_scheduler.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/double_pop_exit.dart';
+import 'package:nitmgpt/components/double_pop_exit.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 import 'package:unicons/unicons.dart';
 
 class IndexPage extends StatefulWidget {

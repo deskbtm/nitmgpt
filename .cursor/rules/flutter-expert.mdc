@@ -10,7 +10,7 @@ When implementing or modifying Flutter/Dart code in this project:
 
 ## Architecture
 
-- [ ] Follow existing layout: `lib/app/` (router, scope), `lib/state/` (stores), `lib/pages/`, `lib/components/`
+- [ ] Follow existing layout: `lib/app/` (router, scope), `lib/state/` (stores), `lib/pages/`, `lib/components/`, `lib/utils/` (pure helpers), `lib/services/` (imperative services), `lib/core/` (bootstrap, kv, signals)
 - [ ] App-wide state in Signals stores (`signal`, `computed`, `listSignal`); expose via `AppScope`
 - [ ] Navigation with `go_router`; routes in `lib/app/routes.dart`
 - [ ] User strings via `.tr` and `lib/i18n/` — no hardcoded UI copy
@@ -36,7 +36,7 @@ When implementing or modifying Flutter/Dart code in this project:
 
 ## Testing
 
-- [ ] Pure logic in testable helpers (see `lib/state/local_model_helpers.dart`)
+- [ ] Pure logic in testable helpers (see `lib/utils/local_model.dart`)
 - [ ] Widget tests with `flutter_test`; offline checks via `dart run tool/verify_*.dart` when native deps block `flutter test`
 
 ## Must Not

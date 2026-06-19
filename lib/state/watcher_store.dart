@@ -11,17 +11,18 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nitmgpt/components/dialog.dart';
-import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/core/constants.dart';
+import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/idle_scheduler.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/device_apps_compat.dart';
-import 'package:nitmgpt/state/app_icon_loader.dart';
+import 'package:nitmgpt/services/device_apps.dart';
+import 'package:nitmgpt/services/app_icon_loader.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:nitmgpt/mock/home_mock_data.dart';
-import 'package:nitmgpt/state/notification_search_helpers.dart';
-import 'package:nitmgpt/permanent_listener_service/main.dart';
+import 'package:nitmgpt/utils/notification_search.dart';
+import 'package:nitmgpt/services/permanent_listener/background_service_host.dart';
 import 'package:nitmgpt/app/app_navigator.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:path_provider/path_provider.dart';
@@ -68,7 +69,9 @@ class WatcherStore {
     if (hasPermission) {
       log('Start permanent service android notification listener service');
       await _startPermanentService();
-      await startNotificationService();
+      if (await hasActiveLocalModelForListener()) {
+        await startNotificationService();
+      }
 
       deviceApps.value = await getDeviceApps(
         includeAppIcons: false,
@@ -184,6 +187,7 @@ class WatcherStore {
     await configurePermanentListenerBackgroundService(
       autoStartOnBoot: _settingsStore.bootAutoStart.value,
     );
+    await syncPermanentListenerBackgroundService();
 
     _backgroundServiceSub?.cancel();
     _backgroundServiceSub = FlutterBackgroundService()
@@ -353,6 +357,19 @@ class WatcherStore {
   }
 
   Future<void> startNotificationService() async {
+    if (!await hasActiveLocalModelForListener()) {
+      log(
+        'Notification listener not started — no active local model',
+        name: 'NotificationService',
+      );
+      return;
+    }
+
+    await configurePermanentListenerBackgroundService(
+      autoStartOnBoot: _settingsStore.bootAutoStart.value,
+    );
+    await syncPermanentListenerBackgroundService();
+
     final isRunning = await NotificationsListener.isRunning ?? false;
 
     if (!isRunning) {

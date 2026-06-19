@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_gemma/flutter_gemma.dart';
-import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/platform/litert_backend.dart';
-import 'package:nitmgpt/state/local_model_inference_kv.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/services/active_local_model_resolver.dart';
+import 'package:nitmgpt/utils/json.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class ChatBubble {
@@ -21,9 +20,6 @@ class ChatBubble {
 }
 
 class LocalModelTestChatStore {
-  LocalModelTestChatStore({required this.inferenceKv});
-
-  final LocalModelInferenceKv inferenceKv;
   final isInitializing = signal(true);
   final isGenerating = signal(false);
   final errorMessage = signal<String?>(null);
@@ -43,8 +39,8 @@ class LocalModelTestChatStore {
     });
 
     try {
-      await ensureFlutterGemmaInitialized();
-      if (!FlutterGemma.hasActiveModel()) {
+      final context = await resolveActiveLocalModelContext();
+      if (context == null) {
         safeSignalWrite(() {
           isInitializing.value = false;
           errorMessage.value = 'No active model for chat';
@@ -52,39 +48,10 @@ class LocalModelTestChatStore {
         return;
       }
 
-      final activeSpec =
-          FlutterGemmaPlugin.instance.modelManager.activeInferenceModel;
-      if (activeSpec is InferenceModelSpec &&
-          activeSpec.fileType == ModelFileType.litertlm) {
-        await ensureLitertLmRuntimeSupported();
-      }
+      safeSignalWrite(() => modelLabel.value = context.displayLabel);
 
-      String? activeModelId;
-      if (activeSpec is InferenceModelSpec) {
-        activeModelId =
-            activeSpec.files.firstWhere((f) => f.isRequired).filename;
-        final label = displayNameFromFilename(activeModelId);
-        safeSignalWrite(() => modelLabel.value = label);
-      }
-
-      final config = activeModelId == null
-          ? LocalModelInferenceConfig.defaults
-          : inferenceKv.read(activeModelId);
-
-      final model = await FlutterGemma.getActiveModel(
-        maxTokens: config.maxTokens,
-        preferredBackend: await preferredLitertBackend(),
-      );
-      final chat = await model.createChat(
-        modelType: activeSpec is InferenceModelSpec
-            ? activeSpec.modelType
-            : ModelType.general,
-        temperature: config.temperature,
-        topK: config.topK,
-        topP: config.topP,
-        randomSeed: config.randomSeed,
-        tokenBuffer: config.tokenBuffer,
-      );
+      final model = await openActiveInferenceModel(context);
+      final chat = await openActiveInferenceChat(model: model, context: context);
 
       if (_disposed) {
         await chat.close();

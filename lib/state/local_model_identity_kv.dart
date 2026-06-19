@@ -1,6 +1,6 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:nitmgpt/core/realm_kv.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 
 /// Realm KV-backed local model identity (type + file format per filename).
 class LocalModelIdentityKv {

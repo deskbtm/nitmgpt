@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nitmgpt/state/model_download_guide.dart';
+import 'package:nitmgpt/utils/model_download_guide.dart';
 
 void main() {
   group('ModelDownloadGuide', () {

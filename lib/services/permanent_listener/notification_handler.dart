@@ -1,14 +1,42 @@
-import 'dart:developer';
-
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/settings.dart';
-import 'package:nitmgpt/permanent_listener_service/background_settings.dart';
-import 'package:nitmgpt/permanent_listener_service/gemma_classifier.dart';
-import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
+import 'package:nitmgpt/services/permanent_listener/background_settings.dart';
+import 'package:nitmgpt/services/permanent_listener/gemma_classifier.dart';
+import 'package:nitmgpt/services/permanent_listener/gpt_response.dart';
+import 'package:nitmgpt/services/permanent_listener/permanent_listener_actions.dart';
 import 'package:realm/realm.dart';
+
+String _truncateLog(String? value, {int maxLen = 120}) {
+  if (value == null || value.isEmpty) {
+    return '';
+  }
+  if (value.length <= maxLen) {
+    return value;
+  }
+  return '${value.substring(0, maxLen)}…';
+}
+
+/// Logs a raw notification event as soon as the background callback receives it.
+void logNotificationReceived(NotificationEvent event) {
+  logPermanentListener(
+    'Notification received: '
+    'package=${event.packageName} '
+    'id=${event.id} '
+    'uid=${event.uid} '
+    'key=${event.key} '
+    'channel=${event.channelId} '
+    'title=${_truncateLog(event.title)} '
+    'text=${_truncateLog(event.text)}',
+  );
+}
+
+void _logNotificationSkipped(String reason, {String? packageName}) {
+  final suffix = packageName == null ? '' : ' package=$packageName';
+  logPermanentListener('Notification skipped:$suffix reason=$reason');
+}
 
 final PermanentListenerGemmaClassifier permanentListenerGemmaClassifier =
     PermanentListenerGemmaClassifier();
@@ -16,7 +44,7 @@ final Map<String, bool> _systemAppCache = {};
 
 Future<void> initPermanentListenerRuntime() async {
   await permanentListenerGemmaClassifier.init();
-  log('Permanent listener service ready', name: 'permanent_listener_service');
+  logPermanentListener('Permanent listener service ready');
 }
 
 Future<void> disposePermanentListenerRuntime() async {
@@ -38,52 +66,21 @@ Future<bool> _isSystemApp(String packageName) async {
 }
 
 Future<bool> _limited(Settings settings) async {
-  final noLimit = settings.limitTimestamp == null;
-  final overLimitTime = !noLimit &&
-      DateTime.now().difference(settings.limitTimestamp!) >
-          const Duration(hours: 24);
-  if (noLimit || overLimitTime) {
+  final limitTimestamp = settings.limitTimestamp;
+  if (limitTimestamp == null ||
+      DateTime.now().difference(limitTimestamp) > const Duration(hours: 24)) {
     await realm.writeAsync(() {
       settings.limitTimestamp = DateTime.now();
       settings.limitCounter = 0;
     });
   }
 
-  if (settings.limitCounter != null &&
-      settings.limitCounter! > settings.presetLimit) {
-    return true;
-  }
-
-  return false;
+  final counter = settings.limitCounter;
+  return counter != null && counter > settings.presetLimit;
 }
 
-bool _determineRemove(GPTResponse answer, Settings? settings) {
-  var adRemoved = false;
-  var spamRemoved = false;
-  final adProbability = settings?.presetAdProbability;
-  final spamProbability = settings?.presetSpamProbability;
-
-  if (answer.isAd != null && answer.isAd!) {
-    if (adProbability != null &&
-        answer.adProbability != null &&
-        answer.adProbability! > adProbability) {
-      adRemoved = false;
-    }
-
-    adRemoved = true;
-  }
-
-  if (answer.isSpam != null && answer.isSpam!) {
-    if (spamProbability != null &&
-        answer.spamProbability != null &&
-        answer.spamProbability! > spamProbability) {
-      spamRemoved = false;
-    }
-
-    spamRemoved = true;
-  }
-
-  return adRemoved || spamRemoved;
+bool _determineRemove(GPTResponse answer) {
+  return answer.isAd == true || answer.isSpam == true;
 }
 
 Future<void> handlePermanentListenerNotification(
@@ -95,18 +92,22 @@ Future<void> handlePermanentListenerNotification(
 
     final packageName = event.packageName;
     if (packageName == null) {
+      _logNotificationSkipped('missing packageName');
       return;
     }
 
     if (settings.ignoredApps.contains(packageName)) {
+      _logNotificationSkipped('ignored app', packageName: packageName);
       return;
     }
 
     if (await _limited(settings)) {
+      _logNotificationSkipped('daily limit reached', packageName: packageName);
       return;
     }
 
     if (settings.ignoreSystemApps && await _isSystemApp(packageName)) {
+      _logNotificationSkipped('system app', packageName: packageName);
       return;
     }
 
@@ -114,12 +115,14 @@ Future<void> handlePermanentListenerNotification(
         '${event.title ?? ''} ${event.text ?? ''}'.trim();
 
     if (!permanentListenerGemmaClassifier.isReady) {
-      log(
-        'Gemma classifier not ready — notification skipped',
-        name: 'permanent_listener_service',
-      );
+      _logNotificationSkipped('classifier not ready', packageName: packageName);
       return;
     }
+
+    logPermanentListener(
+      'Notification processing: package=$packageName '
+      'text=${_truncateLog(notificationText)}',
+    );
 
     final answer = await permanentListenerGemmaClassifier.classifyNotification(
       notificationText: notificationText,
@@ -127,16 +130,24 @@ Future<void> handlePermanentListenerNotification(
     );
 
     if (answer == null) {
+      _logNotificationSkipped('classification returned null', packageName: packageName);
       return;
     }
 
+    logPermanentListener(
+      'Notification classified: package=$packageName '
+      'isAd=${answer.isAd} adProb=${answer.adProbability} '
+      'isSpam=${answer.isSpam} spamProb=${answer.spamProbability}',
+    );
+
     await realm.writeAsync(() {
-      settings.limitCounter =
-          settings.limitCounter == null ? 0 : settings.limitCounter! + 1;
+      settings.limitCounter = (settings.limitCounter ?? 0) + 1;
     });
 
-    final isRemoved = _determineRemove(answer, settings);
-    log('Notification removed: $isRemoved', name: 'permanent_listener_service');
+    final isRemoved = _determineRemove(answer);
+    logPermanentListener(
+      'Notification remove decision: package=$packageName removed=$isRemoved',
+    );
 
     if (!isRemoved) {
       return;
@@ -176,8 +187,11 @@ Future<void> handlePermanentListenerNotification(
     });
 
     onRecordsUpdated();
+    logPermanentListener(
+      'Notification record saved: package=$packageName key=$key',
+    );
   } catch (error, stackTrace) {
-    log('$error', name: 'permanent_listener_service');
-    log('$stackTrace', name: 'permanent_listener_service');
+    logPermanentListener('Notification handler error: $error');
+    logPermanentListener('$stackTrace');
   }
 }

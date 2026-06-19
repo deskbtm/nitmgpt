@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:installed_apps/installed_apps.dart';
-import 'package:nitmgpt/device_apps_compat.dart';
+import 'package:nitmgpt/services/device_apps.dart';
 
 const int kAppIconLoadBatchSize = 6;
 

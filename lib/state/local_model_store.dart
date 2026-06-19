@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_gemma/core/di/service_registry.dart';
 import 'package:flutter_gemma/core/domain/model_source.dart';
 import 'package:flutter_gemma/core/services/model_repository.dart'
@@ -11,8 +10,10 @@ import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/platform/litert_backend.dart';
 import 'package:nitmgpt/platform/model_file_picker.dart';
-import 'package:nitmgpt/permanent_listener_service/main.dart';
-import 'package:nitmgpt/state/local_model_helpers.dart';
+import 'package:nitmgpt/services/permanent_listener/background_service_host.dart';
+import 'package:nitmgpt/services/active_local_model_resolver.dart';
+import 'package:nitmgpt/state/local_model_active_kv.dart';
+import 'package:nitmgpt/utils/local_model.dart';
 import 'package:nitmgpt/state/local_model_inference_kv.dart';
 import 'package:nitmgpt/state/local_model_identity_kv.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -45,11 +46,14 @@ class LocalModelStore {
   LocalModelStore({
     LocalModelIdentityKv? identityKv,
     LocalModelInferenceKv? inferenceKv,
+    LocalModelActiveKv? activeKv,
   })  : _identityKv = identityKv ?? LocalModelIdentityKv(),
-        _inferenceKv = inferenceKv;
+        _inferenceKv = inferenceKv,
+        _activeKv = activeKv ?? LocalModelActiveKv();
 
   final LocalModelIdentityKv _identityKv;
   final LocalModelInferenceKv? _inferenceKv;
+  final LocalModelActiveKv _activeKv;
 
   final isLoading = signal(false);
   final isInstalling = signal(false);
@@ -68,6 +72,7 @@ class LocalModelStore {
     if (_initialized) return;
     _initialized = true;
     await refresh();
+    await _restoreOrActivateDefaultModel();
   }
 
   Future<void> refresh() async {
@@ -175,6 +180,7 @@ class LocalModelStore {
       final filename = filenameFromUrl(trimmedUrl);
       _persistModelIdentity(filename, modelType, fileType);
       await refresh();
+      await _restoreOrActivateDefaultModel();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
     } finally {
@@ -233,6 +239,7 @@ class LocalModelStore {
 
       _persistModelIdentity(filename, modelType, effectiveFileType);
       await refresh();
+      await _restoreOrActivateDefaultModel();
     } on PlatformException catch (error) {
       safeSignalWrite(() {
         if (error.code == 'enospc') {
@@ -297,6 +304,7 @@ class LocalModelStore {
 
       _persistModelIdentity(filename, modelType, effectiveFileType);
       await refresh();
+      await _restoreOrActivateDefaultModel();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
     } finally {
@@ -312,45 +320,13 @@ class LocalModelStore {
     safeSignalWrite(() => errorMessage.value = null);
 
     try {
-      final repository = ServiceRegistry.instance.modelRepository;
-      final info = await repository.loadModel(modelId);
-      if (info == null) {
-        throw StateError('Model not found: $modelId');
-      }
-
-      final modelType = _identityKv.readModelType(modelId);
-      final fileType = _identityKv.readFileType(modelId);
-
-      if (fileType == ModelFileType.litertlm) {
-        await ensureLitertLmRuntimeSupported();
-      }
-
-      final registry = ServiceRegistry.instance;
-      final fileSourcePath =
-          info.source is FileSource ? (info.source as FileSource).path : null;
-      final externalPath =
-          await registry.protectedFilesRegistry.getExternalPath(modelId);
-      final documentsPath =
-          await registry.fileSystemService.getReadTargetPath(modelId);
-      final filePath = resolveInstalledModelFilePath(
-        fileSourcePath: fileSourcePath,
-        externalPath: externalPath,
-        documentsPath: documentsPath,
+      await activateLocalModel(
+        modelId,
+        activeKv: _activeKv,
+        identityKv: _identityKv,
       );
-      if (!File(filePath).existsSync()) {
-        throw StateError('Model file missing on disk: $modelId');
-      }
-
-      final spec = InferenceModelSpec(
-        name: displayNameFromFilename(modelId),
-        modelSource: FileSource(filePath),
-        modelType: modelType,
-        fileType: fileType,
-      );
-
-      final manager = FlutterGemmaPlugin.instance.modelManager;
-      await manager.ensureModelReadyFromSpec(spec);
-      FlutterBackgroundService().invoke(BackgroundServiceAction.reloadGemma);
+      await configurePermanentListenerBackgroundService();
+      await syncPermanentListenerBackgroundService();
       await refresh();
     } catch (e) {
       final message = e is UnsupportedError &&
@@ -366,10 +342,17 @@ class LocalModelStore {
     safeSignalWrite(() => errorMessage.value = null);
 
     try {
+      final wasActive =
+          _activeKv.read() == modelId || activeModelId.value == modelId;
       await FlutterGemma.uninstallModel(modelId);
       _identityKv.remove(modelId);
       await _inferenceKv?.remove(modelId);
+      if (wasActive) {
+        _activeKv.clear();
+      }
       await refresh();
+      await configurePermanentListenerBackgroundService();
+      await syncPermanentListenerBackgroundService();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
     }
@@ -422,5 +405,21 @@ class LocalModelStore {
       modelType: modelType,
       fileType: fileType,
     );
+  }
+
+  Future<void> _restoreOrActivateDefaultModel() async {
+    final restored = await ensurePersistedActiveLocalModel(
+      activeKv: _activeKv,
+      identityKv: _identityKv,
+    );
+    if (restored != null) {
+      await refresh();
+      return;
+    }
+
+    final installed = models.value;
+    if (installed.length == 1 && _activeKv.read() == null) {
+      await setActive(installed.first.id);
+    }
   }
 }

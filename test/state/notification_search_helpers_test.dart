@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nitmgpt/models/record.dart';
-import 'package:nitmgpt/state/notification_search_helpers.dart';
+import 'package:nitmgpt/utils/notification_search.dart';
 import 'package:realm/realm.dart';
 
 void main() {

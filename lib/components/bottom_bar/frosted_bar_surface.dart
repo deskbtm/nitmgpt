@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/core/frosted_glass.dart';
-import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 
 /// Frosted pill surface for the bottom navigation bar.
 class FrostedBarSurface extends StatelessWidget {

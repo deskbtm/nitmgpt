@@ -6,15 +6,6 @@ import 'package:nitmgpt/components/frosted_glass_surface.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 
 class NotificationTitle extends StatelessWidget {
-  final String? title;
-  final String? subtitle;
-  final String? appName;
-  final String? tileKey;
-  final String? dateTime;
-  final double? adProbability;
-  final double? spamProbability;
-  final Uint8List? icon;
-
   const NotificationTitle({
     super.key,
     this.title,
@@ -27,8 +18,27 @@ class NotificationTitle extends StatelessWidget {
     this.spamProbability = .0,
   });
 
+  final String? title;
+  final String? subtitle;
+  final String? appName;
+  final String? tileKey;
+  final String? dateTime;
+  final double? adProbability;
+  final double? spamProbability;
+  final Uint8List? icon;
+
+  static const _subtitleStyle = TextStyle(fontSize: 12, color: Colors.black87);
+  static const _dateTimeStyle = TextStyle(color: Color.fromARGB(255, 0, 53, 2));
+  static const _boldStyle = TextStyle(fontWeight: FontWeight.bold);
+  static const _detailSubtitleStyle = TextStyle(fontSize: 12);
+
   @override
   Widget build(BuildContext context) {
+    final displayTitle = title ?? '';
+    final displaySubtitle = subtitle ?? '';
+    final adPercent = (adProbability ?? 0) * 100;
+    final spamPercent = (spamProbability ?? 0) * 100;
+
     return RepaintBoundary(
       child: FrostedGlassSurface(
         margin: const EdgeInsets.only(bottom: 8),
@@ -63,24 +73,14 @@ class NotificationTitle extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        title ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    _ellipsis(displayTitle),
                     const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        appName ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                    _ellipsis(
+                      appName ?? '',
+                      style: TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontSize: 12,
+                        color: Colors.grey[400],
                       ),
                     ),
                   ],
@@ -89,65 +89,32 @@ class NotificationTitle extends StatelessWidget {
               subtitle: RichText(
                 maxLines: 2,
                 text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black87,
-                  ),
+                  style: _subtitleStyle,
                   children: [
-                    TextSpan(
-                      text: dateTime ?? '',
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 0, 53, 2),
-                      ),
-                    ),
+                    TextSpan(text: dateTime ?? '', style: _dateTimeStyle),
                     const TextSpan(text: ' : '),
-                    TextSpan(
-                      text: subtitle ?? '',
-                      style: const TextStyle(fontSize: 12),
-                    ),
+                    TextSpan(text: displaySubtitle),
                   ],
                 ),
               ),
-              children: <Widget>[
-                Container(
+              children: [
+                Padding(
                   padding: const EdgeInsets.all(15),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (title != null && title!.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title ?? '',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      Text(
-                        subtitle ?? '',
-                        style: const TextStyle(fontSize: 12),
-                      ),
+                      if (displayTitle.isNotEmpty) ...[
+                        Text(displayTitle, style: _boldStyle),
+                        const SizedBox(height: 10),
+                      ],
+                      Text(displaySubtitle, style: _detailSubtitleStyle),
                       const SizedBox(height: 10),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            '${'Ad'.tr}: ${adProbability! * 100}%',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('${'Ad'.tr}: $adPercent%', style: _boldStyle),
                           const SizedBox(width: 20),
-                          Text(
-                            '${'Spam'.tr}: ${spamProbability! * 100}%',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('${'Spam'.tr}: $spamPercent%', style: _boldStyle),
                         ],
                       ),
                     ],
@@ -160,4 +127,13 @@ class NotificationTitle extends StatelessWidget {
       ),
     );
   }
+
+  static Widget _ellipsis(String text, {TextStyle? style}) => Flexible(
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+        ),
+      );
 }

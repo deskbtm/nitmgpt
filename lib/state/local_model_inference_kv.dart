@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:nitmgpt/core/realm_kv.dart';
 import 'package:signals/signals.dart';
 
-/// Defaults tuned for on-device notification classification (short JSON output).
+/// Defaults tuned for on-device inference (chat + notification classification).
 class LocalModelInferenceConfig {
   const LocalModelInferenceConfig({
     required this.maxTokens,
@@ -73,16 +73,44 @@ class LocalModelInferenceConfig {
   }
 }
 
+const localModelInferenceStoreKey = 'nitmgpt_local_model_inference_configs';
+
+/// Reads per-model inference params from Realm KV (UI and background service).
+LocalModelInferenceConfig readLocalModelInferenceConfig(String modelId) {
+  final raw = readKvString(localModelInferenceStoreKey);
+  if (raw == null || raw.isEmpty) {
+    return LocalModelInferenceConfig.defaults;
+  }
+
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) {
+      return LocalModelInferenceConfig.defaults;
+    }
+
+    final entry = decoded[modelId];
+    if (entry is! Map) {
+      return LocalModelInferenceConfig.defaults;
+    }
+
+    return LocalModelInferenceConfig.fromJson(
+      Map<String, dynamic>.from(entry),
+    );
+  } catch (_) {
+    return LocalModelInferenceConfig.defaults;
+  }
+}
+
 /// Per-model inference parameters persisted in Realm KV.
 class LocalModelInferenceKv {
-  static const _storeKey = 'nitmgpt_local_model_inference_configs';
+  static const _storeKey = localModelInferenceStoreKey;
 
   Map<String, LocalModelInferenceConfig>? _cache;
   final revision = signal(0);
 
   LocalModelInferenceConfig read(String modelId) {
     _ensureLoaded();
-    return _cache![modelId] ?? LocalModelInferenceConfig.defaults;
+    return _cache![modelId] ?? readLocalModelInferenceConfig(modelId);
   }
 
   void write(String modelId, LocalModelInferenceConfig config) {

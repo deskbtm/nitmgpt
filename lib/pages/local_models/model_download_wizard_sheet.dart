@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
-import 'package:nitmgpt/state/model_download_guide.dart';
-import 'package:nitmgpt/theme.dart';
-import 'package:nitmgpt/utils.dart';
+import 'package:nitmgpt/utils/model_download_guide.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
+import 'package:nitmgpt/utils/url.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 

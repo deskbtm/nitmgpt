@@ -21,11 +21,6 @@ String filenameFromPath(String path) {
   return path.split(RegExp(r'[/\\]')).last;
 }
 
-/// Strips leading newlines from streamed assistant text (common model artifact).
-String normalizeAssistantStreamText(String text) {
-  return text.replaceFirst(RegExp(r'^(?:\r?\n)+'), '');
-}
-
 LocalModelFileKind inferFileKind(String filename) {
   final lower = filename.toLowerCase();
   if (lower.endsWith('.task')) return LocalModelFileKind.task;
