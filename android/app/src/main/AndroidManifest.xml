@@ -79,9 +79,10 @@
     </service>
 
     <service
-      android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+      android:name="id.flutter.flutter_background_service.BackgroundService"
       android:foregroundServiceType="dataSync|remoteMessaging"
-      android:exported="false" />
+      android:exported="false"
+      tools:replace="android:exported" />
 
     <provider
       android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"

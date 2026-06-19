@@ -7,11 +7,12 @@ import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_archive/flutter_archive.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nitmgpt/components/dialog.dart';
 import 'package:nitmgpt/constants.dart';
+import 'package:nitmgpt/core/idle_scheduler.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/device_apps_compat.dart';
 import 'package:nitmgpt/state/app_icon_loader.dart';
@@ -47,6 +48,7 @@ class WatcherStore {
 
   late Settings settings;
   int _iconLoadToken = 0;
+  StreamSubscription<Map<String, dynamic>?>? _backgroundServiceSub;
 
   Future<void> init() async {
     settings = _settingsStore.settings;
@@ -54,7 +56,7 @@ class WatcherStore {
     await seedHomeMockDataIfEmpty();
     refreshDetectedApps();
 
-    scheduleMicrotask(() => unawaited(_initHeavy()));
+    scheduleIdleStartupTask(_initHeavy);
   }
 
   Future<void> _initHeavy() async {
@@ -68,6 +70,12 @@ class WatcherStore {
       await _startPermanentService();
       await startNotificationService();
 
+      deviceApps.value = await getDeviceApps(
+        includeAppIcons: false,
+        prefetchAllIconsInBackground: false,
+      );
+      refreshDetectedApps();
+
       settings = _settingsStore.settings;
 
       if (settings.ownedApp == null) {
@@ -78,10 +86,19 @@ class WatcherStore {
           }
         });
       }
+    } else {
+      deviceApps.value = await getDeviceApps(
+        includeAppIcons: false,
+        prefetchAllIconsInBackground: false,
+      );
+      refreshDetectedApps();
     }
-
-    deviceApps.value = await getDeviceApps(includeAppIcons: false);
-    refreshDetectedApps();
+    // Deferred full icon catalog prefetch disabled — only on-screen apps load
+    // icons via refreshDetectedApps → _loadMissingIconsFor.
+    // scheduleIdleStartupTask(
+    //   _loadAppIconsInBackground,
+    //   delay: const Duration(seconds: 4),
+    // );
   }
 
   Future<void> seedHomeMockDataIfEmpty() async {
@@ -125,7 +142,7 @@ class WatcherStore {
   }
 
   void dispose() {
-    FlutterForegroundTask.removeTaskDataCallback(_onForegroundTaskData);
+    _backgroundServiceSub?.cancel();
   }
 
   static Future<void> showNecessaryPermissionDialog({
@@ -159,19 +176,21 @@ class WatcherStore {
   }
 
   Future<void> exitAllServices() async {
-    await stopPermanentListenerForegroundTask();
+    await stopPermanentListenerBackgroundService();
     await SystemNavigator.pop();
   }
 
-  void _onForegroundTaskData(Object data) {
-    if (data is Map && data['action'] == ForegroundTaskAction.updateRecords) {
-      onForegroundTaskRecordsUpdated();
-    }
-  }
-
   Future<void> _startPermanentService() async {
-    FlutterForegroundTask.addTaskDataCallback(_onForegroundTaskData);
-    await startPermanentListenerForegroundTask();
+    await configurePermanentListenerBackgroundService(
+      autoStartOnBoot: _settingsStore.bootAutoStart.value,
+    );
+
+    _backgroundServiceSub?.cancel();
+    _backgroundServiceSub = FlutterBackgroundService()
+        .on(BackgroundServiceAction.updateRecords)
+        .listen((_) {
+      onBackgroundServiceRecordsUpdated();
+    });
   }
 
   Future<bool> hasNotificationListenerPermission() async {
@@ -231,6 +250,7 @@ class WatcherStore {
 
   Future<List<ApplicationWithIcon>> getDeviceApps({
     bool includeAppIcons = false,
+    bool prefetchAllIconsInBackground = true,
   }) async {
     final apps = await DeviceApps.getInstalledApplications(
       includeAppIcons: includeAppIcons,
@@ -247,7 +267,7 @@ class WatcherStore {
     deviceAppsMap.value = map;
     deviceApps.value = list;
 
-    if (!includeAppIcons) {
+    if (!includeAppIcons && prefetchAllIconsInBackground) {
       unawaited(_loadAppIconsInBackground());
     }
 
@@ -545,7 +565,7 @@ class WatcherStore {
     }
   }
 
-  void onForegroundTaskRecordsUpdated() {
+  void onBackgroundServiceRecordsUpdated() {
     final nextApps = getDetectedApps();
     final current = detectedApps.value;
     if (current.length != nextApps.length ||

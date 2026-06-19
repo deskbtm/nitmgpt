@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:nitmgpt/state/local_model_inference_prefs.dart';
+import 'package:nitmgpt/state/local_model_inference_kv.dart';
 import 'package:nitmgpt/state/local_model_store.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
@@ -19,7 +19,7 @@ class AppScope extends InheritedWidget {
   final SettingsStore settings;
   final WatcherStore watcher;
   final LocalModelStore localModels;
-  final LocalModelInferencePrefs localModelInference;
+  final LocalModelInferenceKv localModelInference;
 
   static AppScope of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
@@ -43,10 +43,10 @@ class AppScopeHost extends StatefulWidget {
 class _AppScopeHostState extends State<AppScopeHost> {
   late final SettingsStore _settings = SettingsStore();
   late final WatcherStore _watcher = WatcherStore(_settings);
-  late final LocalModelInferencePrefs _localModelInference =
-      LocalModelInferencePrefs();
+  late final LocalModelInferenceKv _localModelInference =
+      LocalModelInferenceKv();
   late final LocalModelStore _localModels = LocalModelStore(
-    inferencePrefs: _localModelInference,
+    inferenceKv: _localModelInference,
   );
 
   @override

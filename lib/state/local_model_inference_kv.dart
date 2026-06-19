@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:nitmgpt/core/prefs_signal.dart';
+import 'package:nitmgpt/core/realm_kv.dart';
 import 'package:signals/signals.dart';
 
 /// Defaults tuned for on-device notification classification (short JSON output).
@@ -73,8 +73,8 @@ class LocalModelInferenceConfig {
   }
 }
 
-/// Per-model inference parameters persisted in SharedPreferences.
-class LocalModelInferencePrefs {
+/// Per-model inference parameters persisted in Realm KV.
+class LocalModelInferenceKv {
   static const _storeKey = 'nitmgpt_local_model_inference_configs';
 
   Map<String, LocalModelInferenceConfig>? _cache;
@@ -104,11 +104,11 @@ class LocalModelInferencePrefs {
   }
 
   void _ensureLoaded() {
-    _cache ??= _loadFromDisk();
+    _cache ??= _loadFromKv();
   }
 
-  Map<String, LocalModelInferenceConfig> _loadFromDisk() {
-    final raw = readPrefString(_storeKey);
+  Map<String, LocalModelInferenceConfig> _loadFromKv() {
+    final raw = readKvString(_storeKey);
     if (raw == null || raw.isEmpty) {
       return {};
     }
@@ -136,6 +136,6 @@ class LocalModelInferencePrefs {
     final encoded = <String, dynamic>{
       for (final entry in _cache!.entries) entry.key: entry.value.toJson(),
     };
-    await writePrefString(_storeKey, jsonEncode(encoded));
+    await writeKvStringAsync(_storeKey, jsonEncode(encoded));
   }
 }

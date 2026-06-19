@@ -67,6 +67,7 @@ android {
         }
 
         debug {
+            applicationIdSuffix ".debug"
             minifyEnabled = false
             signingConfig = signingConfigs.debug
         }

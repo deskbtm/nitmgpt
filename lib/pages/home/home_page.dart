@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:intl/intl.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
@@ -23,11 +25,17 @@ class _HomePageState extends State<HomePage> {
   int _selectedTabIndex = 0;
   late WatcherStore _watcher;
   bool _watcherReady = false;
+  StreamSubscription<Map<String, dynamic>?>? _backgroundServiceSub;
 
   @override
   void initState() {
     super.initState();
-    FlutterForegroundTask.addTaskDataCallback(_onForegroundTaskData);
+    _backgroundServiceSub = FlutterBackgroundService()
+        .on(BackgroundServiceAction.updateRecords)
+        .listen((_) {
+      if (!_watcherReady) return;
+      _watcher.onBackgroundServiceRecordsUpdated();
+    });
   }
 
   @override
@@ -39,17 +47,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _onForegroundTaskData(Object data) {
-    if (!_watcherReady) return;
-    if (data is Map &&
-        data['action'] == ForegroundTaskAction.updateRecords) {
-      _watcher.onForegroundTaskRecordsUpdated();
-    }
-  }
-
   @override
   void dispose() {
-    FlutterForegroundTask.removeTaskDataCallback(_onForegroundTaskData);
+    _backgroundServiceSub?.cancel();
     super.dispose();
   }
 

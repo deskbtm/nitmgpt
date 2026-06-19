@@ -9,6 +9,7 @@ class AppBarBackButton extends StatelessWidget {
 
   static const _size = 44.0;
   static const _iconSize = 20.0;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

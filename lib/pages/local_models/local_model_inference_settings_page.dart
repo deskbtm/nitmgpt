@@ -4,7 +4,7 @@ import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
-import 'package:nitmgpt/state/local_model_inference_prefs.dart';
+import 'package:nitmgpt/state/local_model_inference_kv.dart';
 import 'package:nitmgpt/theme.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
@@ -24,7 +24,7 @@ class LocalModelInferenceSettingsPage extends StatefulWidget {
 
 class _LocalModelInferenceSettingsPageState
     extends State<LocalModelInferenceSettingsPage> {
-  late LocalModelInferencePrefs _prefs;
+  late LocalModelInferenceKv _inferenceKv;
   late LocalModelInferenceConfig _config;
   bool _ready = false;
 
@@ -33,13 +33,13 @@ class _LocalModelInferenceSettingsPageState
     super.didChangeDependencies();
     if (_ready) return;
     _ready = true;
-    _prefs = AppScope.of(context).localModelInference;
-    _config = _prefs.read(widget.modelId);
+    _inferenceKv = AppScope.of(context).localModelInference;
+    _config = _inferenceKv.read(widget.modelId);
   }
 
   void _update(LocalModelInferenceConfig Function(LocalModelInferenceConfig) fn) {
     final next = fn(_config);
-    _prefs.write(widget.modelId, next);
+    _inferenceKv.write(widget.modelId, next);
     setState(() => _config = next);
   }
 

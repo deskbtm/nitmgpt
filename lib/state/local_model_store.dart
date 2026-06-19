@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_gemma/core/di/service_registry.dart';
 import 'package:flutter_gemma/core/domain/model_source.dart';
 import 'package:flutter_gemma/core/services/model_repository.dart'
@@ -10,9 +11,10 @@ import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/platform/litert_backend.dart';
 import 'package:nitmgpt/platform/model_file_picker.dart';
+import 'package:nitmgpt/permanent_listener_service/main.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
-import 'package:nitmgpt/state/local_model_inference_prefs.dart';
-import 'package:nitmgpt/state/local_model_prefs.dart';
+import 'package:nitmgpt/state/local_model_inference_kv.dart';
+import 'package:nitmgpt/state/local_model_identity_kv.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class LocalModelEntry {
@@ -41,13 +43,13 @@ class LocalModelEntry {
 
 class LocalModelStore {
   LocalModelStore({
-    LocalModelIdentityPrefs? identityPrefs,
-    LocalModelInferencePrefs? inferencePrefs,
-  })  : _identityPrefs = identityPrefs ?? LocalModelIdentityPrefs(),
-        _inferencePrefs = inferencePrefs;
+    LocalModelIdentityKv? identityKv,
+    LocalModelInferenceKv? inferenceKv,
+  })  : _identityKv = identityKv ?? LocalModelIdentityKv(),
+        _inferenceKv = inferenceKv;
 
-  final LocalModelIdentityPrefs _identityPrefs;
-  final LocalModelInferencePrefs? _inferencePrefs;
+  final LocalModelIdentityKv _identityKv;
+  final LocalModelInferenceKv? _inferenceKv;
 
   final isLoading = signal(false);
   final isInstalling = signal(false);
@@ -97,8 +99,8 @@ class LocalModelStore {
       final entries = <LocalModelEntry>[];
 
       for (final info in inferenceModels) {
-        final modelType = _identityPrefs.readModelType(info.id);
-        final fileType = _identityPrefs.readFileType(info.id);
+        final modelType = _identityKv.readModelType(info.id);
+        final fileType = _identityKv.readFileType(info.id);
         final sizeBytes = await _resolveSizeBytes(info);
         entries.add(
           LocalModelEntry(
@@ -171,7 +173,7 @@ class LocalModelStore {
           .install();
 
       final filename = filenameFromUrl(trimmedUrl);
-      await _persistModelIdentity(filename, modelType, fileType);
+      _persistModelIdentity(filename, modelType, fileType);
       await refresh();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
@@ -200,7 +202,7 @@ class LocalModelStore {
 
     final filename = picked.name;
     final effectiveFileType =
-        LocalModelIdentityPrefs.fileTypeFromKind(inferFileKind(filename));
+        LocalModelIdentityKv.fileTypeFromKind(inferFileKind(filename));
 
     isInstalling.value = true;
     installProgress.value = 0;
@@ -229,7 +231,7 @@ class LocalModelStore {
           )
           .install();
 
-      await _persistModelIdentity(filename, modelType, effectiveFileType);
+      _persistModelIdentity(filename, modelType, effectiveFileType);
       await refresh();
     } on PlatformException catch (error) {
       safeSignalWrite(() {
@@ -275,7 +277,7 @@ class LocalModelStore {
 
     final filename = filenameFromPath(trimmedPath);
     final effectiveFileType = fileType ??
-        LocalModelIdentityPrefs.fileTypeFromKind(inferFileKind(filename));
+        LocalModelIdentityKv.fileTypeFromKind(inferFileKind(filename));
 
     isInstalling.value = true;
     installProgress.value = 0;
@@ -293,7 +295,7 @@ class LocalModelStore {
           )
           .install();
 
-      await _persistModelIdentity(filename, modelType, effectiveFileType);
+      _persistModelIdentity(filename, modelType, effectiveFileType);
       await refresh();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
@@ -316,8 +318,8 @@ class LocalModelStore {
         throw StateError('Model not found: $modelId');
       }
 
-      final modelType = _identityPrefs.readModelType(modelId);
-      final fileType = _identityPrefs.readFileType(modelId);
+      final modelType = _identityKv.readModelType(modelId);
+      final fileType = _identityKv.readFileType(modelId);
 
       if (fileType == ModelFileType.litertlm) {
         await ensureLitertLmRuntimeSupported();
@@ -348,6 +350,7 @@ class LocalModelStore {
 
       final manager = FlutterGemmaPlugin.instance.modelManager;
       await manager.ensureModelReadyFromSpec(spec);
+      FlutterBackgroundService().invoke(BackgroundServiceAction.reloadGemma);
       await refresh();
     } catch (e) {
       final message = e is UnsupportedError &&
@@ -364,8 +367,8 @@ class LocalModelStore {
 
     try {
       await FlutterGemma.uninstallModel(modelId);
-      await _identityPrefs.remove(modelId);
-      await _inferencePrefs?.remove(modelId);
+      _identityKv.remove(modelId);
+      await _inferenceKv?.remove(modelId);
       await refresh();
     } catch (e) {
       safeSignalWrite(() => errorMessage.value = e.toString());
@@ -409,12 +412,12 @@ class LocalModelStore {
     return info.sizeBytes > 0 ? info.sizeBytes : 0;
   }
 
-  Future<void> _persistModelIdentity(
+  void _persistModelIdentity(
     String filename,
     ModelType modelType,
     ModelFileType fileType,
   ) {
-    return _identityPrefs.write(
+    _identityKv.write(
       id: filename,
       modelType: modelType,
       fileType: fileType,

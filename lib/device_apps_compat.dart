@@ -49,6 +49,62 @@ class ApplicationWithIcon extends Application {
   }
 }
 
+/// Loads the full installed-app catalog once (worker isolate only).
+///
+/// Uses two native queries so [systemApp] is known without per-package calls.
+Future<Map<String, ApplicationWithIcon>> loadDeviceAppCatalog() async {
+  final userApps = await InstalledApps.getInstalledApps(true, false);
+  final allApps = await InstalledApps.getInstalledApps(false, false);
+  final userPackages = userApps.map((app) => app.packageName).toSet();
+
+  final catalog = <String, ApplicationWithIcon>{};
+  for (final info in allApps) {
+    catalog[info.packageName] = ApplicationWithIcon(
+      appName: info.name,
+      packageName: info.packageName,
+      systemApp: !userPackages.contains(info.packageName),
+    );
+  }
+  return catalog;
+}
+
+List<Map<String, dynamic>> deviceAppCatalogToMaps(
+  Iterable<ApplicationWithIcon> apps,
+) {
+  return [
+    for (final app in apps)
+      {
+        'packageName': app.packageName,
+        'appName': app.appName,
+        'systemApp': app.systemApp,
+      },
+  ];
+}
+
+List<ApplicationWithIcon> deviceAppCatalogFromMaps(
+  Iterable<dynamic> raw, {
+  bool includeSystemApps = false,
+}) {
+  final apps = <ApplicationWithIcon>[];
+  for (final entry in raw) {
+    if (entry is! Map) continue;
+    final packageName = entry['packageName'];
+    final appName = entry['appName'];
+    if (packageName is! String || appName is! String) continue;
+    final systemApp = entry['systemApp'] == true;
+    if (!includeSystemApps && systemApp) continue;
+    apps.add(
+      ApplicationWithIcon(
+        appName: appName,
+        packageName: packageName,
+        systemApp: systemApp,
+      ),
+    );
+  }
+  apps.sort((a, b) => a.appName.compareTo(b.appName));
+  return apps;
+}
+
 class DeviceApps {
   static Future<bool> isSystemApp(String packageName) async {
     return await InstalledApps.isSystemApp(packageName) ?? false;
@@ -64,7 +120,6 @@ class DeviceApps {
     );
 
     // Native side already filters system apps when [includeSystemApps] is false.
-    // Per-app [isSystemApp] calls are deferred; use [DeviceApps.isSystemApp] when needed.
     const systemApp = false;
 
     return apps

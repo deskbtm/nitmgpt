@@ -1,15 +1,14 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
-import 'package:nitmgpt/core/prefs_signal.dart';
+import 'package:nitmgpt/core/realm_kv.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 
-/// SharedPreferences-backed local model identity (type + file format per filename).
-class LocalModelIdentityPrefs {
-  // Legacy key prefixes — keep for existing installs.
+/// Realm KV-backed local model identity (type + file format per filename).
+class LocalModelIdentityKv {
   static const modelTypeKeyPrefix = 'nitmgpt_gemma_model_type_';
   static const fileTypeKeyPrefix = 'nitmgpt_gemma_file_type_';
 
   ModelType readModelType(String id) {
-    final stored = readPrefString('$modelTypeKeyPrefix$id');
+    final stored = readKvString('$modelTypeKeyPrefix$id');
     if (stored != null) {
       try {
         return ModelType.values.byName(stored);
@@ -19,7 +18,7 @@ class LocalModelIdentityPrefs {
   }
 
   ModelFileType readFileType(String id) {
-    final stored = readPrefString('$fileTypeKeyPrefix$id');
+    final stored = readKvString('$fileTypeKeyPrefix$id');
     if (stored != null) {
       try {
         return ModelFileType.values.byName(stored);
@@ -28,18 +27,18 @@ class LocalModelIdentityPrefs {
     return fileTypeFromKind(inferFileKind(id));
   }
 
-  Future<void> write({
+  void write({
     required String id,
     required ModelType modelType,
     required ModelFileType fileType,
-  }) async {
-    await writePrefString('$modelTypeKeyPrefix$id', modelType.name);
-    await writePrefString('$fileTypeKeyPrefix$id', fileType.name);
+  }) {
+    writeKvString('$modelTypeKeyPrefix$id', modelType.name);
+    writeKvString('$fileTypeKeyPrefix$id', fileType.name);
   }
 
-  Future<void> remove(String id) async {
-    await removePref('$modelTypeKeyPrefix$id');
-    await removePref('$fileTypeKeyPrefix$id');
+  void remove(String id) {
+    removeKvKey('$modelTypeKeyPrefix$id');
+    removeKvKey('$fileTypeKeyPrefix$id');
   }
 
   static ModelFileType fileTypeFromKind(LocalModelFileKind kind) {

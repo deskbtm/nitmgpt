@@ -6,6 +6,8 @@ const Map<String, String> en_US = {
   'permission': 'Permissions',
   'Notification listener permission': 'Notification access',
   'Auto start': 'Auto-start on boot',
+  'Boot auto-start': 'Boot start',
+  'OEM auto-start': 'OEM auto-start',
   'Battery optimization': 'Battery optimization',
   'Manufacturer specific Battery Optimization': 'OEM battery settings',
   'Listening': 'Listening',

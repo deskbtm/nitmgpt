@@ -48,7 +48,7 @@ Future<void> loadAppIconsInBatches({
     if (pending.length >= batchSize) {
       onBatchLoaded(Map<String, Uint8List>.from(pending));
       pending.clear();
-      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(const Duration(milliseconds: 48));
     }
   }
 

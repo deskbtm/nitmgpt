@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/bottom_bar/bottom_bar_models.dart';
 import 'package:nitmgpt/components/bottom_bar/frosted_searchable_bottom_bar.dart';
+import 'package:nitmgpt/core/idle_scheduler.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/double_pop_exit.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
@@ -28,9 +29,12 @@ class _IndexPageState extends State<IndexPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() => _bottomBarReady = true);
-    });
+    scheduleIdleStartupTask(
+      () async {
+        if (mounted) setState(() => _bottomBarReady = true);
+      },
+      delay: const Duration(milliseconds: 600),
+    );
   }
 
   @override

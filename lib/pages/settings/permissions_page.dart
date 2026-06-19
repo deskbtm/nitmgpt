@@ -31,7 +31,7 @@ class PermissionsPage extends StatelessWidget {
                     onTap: NotificationsListener.openPermissionSettings,
                   ),
                   OpaqueListTile(
-                    title: Text('Auto start'.tr),
+                    title: Text('OEM auto-start'.tr),
                     showChevron: true,
                     onTap: () async {
                       await DisableBatteryOptimization

@@ -6,6 +6,8 @@ Map<String, String> zh_CN = {
   'permission': '权限',
   'Notification listener permission': '通知访问权限',
   'Auto start': '开机自启',
+  'Boot auto-start': '开机自启',
+  'OEM auto-start': '厂商自启',
   'Battery optimization': '电池优化',
   'Manufacturer specific Battery Optimization': '厂商电池设置',
   'Listening': '监听中',

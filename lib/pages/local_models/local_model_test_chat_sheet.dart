@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:nitmgpt/state/local_model_test_chat_store.dart';
 import 'package:nitmgpt/theme.dart';
+import 'package:nitmgpt/utils.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:unicons/unicons.dart';
 
@@ -39,6 +42,14 @@ class _LocalModelTestChatSheet extends StatefulWidget {
 class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
   static const _sheetHeightFactor = 0.88;
 
+  static final _chatMarkdownExtensionSet = md.ExtensionSet(
+    md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+    [
+      md.EmojiSyntax(),
+      ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+    ],
+  );
+
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
   late LocalModelTestChatStore _chatStore;
@@ -53,7 +64,7 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
     _chatReady = true;
 
     _chatStore = LocalModelTestChatStore(
-      inferencePrefs: AppScope.of(context).localModelInference,
+      inferenceKv: AppScope.of(context).localModelInference,
     );
 
     void scrollOnChatUpdate() {
@@ -119,6 +130,116 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
     );
   }
 
+  MarkdownStyleSheet _assistantMarkdownStyleSheet(Color textColor) {
+    final codeBackground = textColor.withValues(alpha: 0.08);
+
+    return MarkdownStyleSheet(
+      p: TextStyle(fontSize: 15, color: textColor, height: 1.35),
+      pPadding: EdgeInsets.zero,
+      h1: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.3,
+      ),
+      h1Padding: const EdgeInsets.only(top: 4, bottom: 6),
+      h2: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.3,
+      ),
+      h2Padding: const EdgeInsets.only(top: 4, bottom: 6),
+      h3: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.3,
+      ),
+      h3Padding: const EdgeInsets.only(top: 4, bottom: 4),
+      strong: TextStyle(fontWeight: FontWeight.w600, color: textColor),
+      em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
+      code: TextStyle(
+        fontSize: 13,
+        color: textColor,
+        backgroundColor: codeBackground,
+        fontFamily: 'monospace',
+      ),
+      codeblockDecoration: BoxDecoration(
+        color: codeBackground,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      codeblockPadding: const EdgeInsets.all(10),
+      blockquote: TextStyle(
+        fontSize: 15,
+        color: textColor.withValues(alpha: 0.85),
+        fontStyle: FontStyle.italic,
+        height: 1.35,
+      ),
+      blockquoteDecoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(color: primaryColor, width: 3),
+        ),
+      ),
+      blockquotePadding: const EdgeInsets.only(left: 12, top: 2, bottom: 2),
+      listBullet: TextStyle(fontSize: 15, color: textColor),
+      listIndent: 20,
+      a: TextStyle(
+        fontSize: 15,
+        color: primaryColor,
+        decoration: TextDecoration.underline,
+      ),
+      tableHead: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+      ),
+      tableBody: TextStyle(fontSize: 14, color: textColor),
+      tableCellsPadding: const EdgeInsets.all(6),
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: textColor.withValues(alpha: 0.2)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBubbleText({
+    required ChatBubble bubble,
+    required Color textColor,
+    required TextHeightBehavior textHeightBehavior,
+  }) {
+    if (bubble.isThinking || bubble.isUser) {
+      return Text(
+        bubble.text,
+        textHeightBehavior: textHeightBehavior,
+        style: TextStyle(
+          fontSize: bubble.isThinking ? 12 : 15,
+          color: textColor,
+          fontStyle: bubble.isThinking ? FontStyle.italic : FontStyle.normal,
+        ),
+      );
+    }
+
+    final markdown = normalizeAssistantStreamText(bubble.text);
+    if (markdown.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return MarkdownBody(
+      data: markdown,
+      selectable: true,
+      shrinkWrap: true,
+      softLineBreak: true,
+      extensionSet: _chatMarkdownExtensionSet,
+      styleSheet: _assistantMarkdownStyleSheet(textColor),
+      onTapLink: (text, href, title) {
+        if (href == null) return;
+        unawaited(open(href));
+      },
+    );
+  }
+
   Widget _buildBubble(ChatBubble bubble) {
     final isUser = bubble.isUser;
     final background = bubble.isThinking
@@ -159,17 +280,10 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
                 isThinking: bubble.isThinking,
               ),
             ),
-            child: Text(
-              isUser || bubble.isThinking
-                  ? bubble.text
-                  : normalizeAssistantStreamText(bubble.text),
+            child: _buildBubbleText(
+              bubble: bubble,
+              textColor: textColor,
               textHeightBehavior: textHeightBehavior,
-              style: TextStyle(
-                fontSize: bubble.isThinking ? 12 : 15,
-                color: textColor,
-                fontStyle:
-                    bubble.isThinking ? FontStyle.italic : FontStyle.normal,
-              ),
             ),
           ),
         ],

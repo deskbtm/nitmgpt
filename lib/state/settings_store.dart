@@ -15,6 +15,7 @@ import 'package:nitmgpt/core/realm_signal.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
+import 'package:nitmgpt/permanent_listener_service/main.dart';
 import 'package:nitmgpt/notification_utils.dart';
 import 'package:nitmgpt/utils.dart';
 import 'package:ota_update/ota_update.dart';
@@ -57,12 +58,15 @@ class GithubFetchResult {
 }
 
 class SettingsStore {
+  static const bootAutoStartKvKey = 'nitmgpt_boot_auto_start';
+
   GithubRelease? githubRelease;
   late Settings settings;
 
   late final RealmStringSignal proxyUri;
   late final RealmBoolSignal ownedApp;
   late final RealmBoolSignal ignoreSystemApps;
+  late final KvBoolSignal bootAutoStart;
 
   final isVerifyLoading = signal(false);
   final currentVersion = signal<Version?>(null);
@@ -87,6 +91,15 @@ class SettingsStore {
       (s, v) => s.ignoreSystemApps = v,
       asyncWrite: true,
     );
+    bootAutoStart = kvBool(
+      bootAutoStartKvKey,
+      defaultValue: true,
+      asyncWrite: true,
+    );
+
+    if (Platform.isAndroid) {
+      await applyPermanentListenerAutoStartOnBoot(bootAutoStart.value);
+    }
 
     setAppLocale(localeFromLanguageCode(settings.language));
     proxyUriController.text = proxyUri.value;
@@ -100,6 +113,13 @@ class SettingsStore {
   void dispose() {
     proxyUriController.dispose();
     ownAppController.dispose();
+  }
+
+  Future<void> setBootAutoStart(bool enabled) async {
+    bootAutoStart.value = enabled;
+    if (Platform.isAndroid) {
+      await applyPermanentListenerAutoStartOnBoot(enabled);
+    }
   }
 
   Future<GithubFetchResult> _fetchGithubRelease(

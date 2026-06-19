@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nitmgpt/state/local_model_inference_prefs.dart';
+import 'package:nitmgpt/state/local_model_inference_kv.dart';
 
 void main() {
   group('LocalModelInferenceConfig', () {

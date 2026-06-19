@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:nitmgpt/core/realm_kv.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
 import 'package:signals/signals.dart';
@@ -175,6 +178,222 @@ RealmIntSignal realmInt(
     settings: settings,
     read: read,
     write: write,
+    asyncWrite: asyncWrite,
+  );
+}
+
+/// Realm [KvEntry]-backed persistence for arbitrary string keys.
+mixin KvPersistedSignalMixin<T> on Signal<T> {
+  String get key;
+
+  T readFromKv();
+
+  void writeToKv(T value);
+
+  bool get asyncWrite => false;
+
+  bool _hydrated = false;
+
+  void hydrateFromKv() {
+    super.value = readFromKv();
+    _hydrated = true;
+  }
+
+  @override
+  set value(T value) {
+    super.value = value;
+    if (!_hydrated) return;
+    _persist(value);
+  }
+
+  void _persist(T value) {
+    if (asyncWrite) {
+      unawaited(_persistAsync(value));
+    } else {
+      writeToKv(value);
+    }
+  }
+
+  Future<void> _persistAsync(T value) async {
+    if (value is String) {
+      await writeKvStringAsync(key, value);
+      return;
+    }
+    writeToKv(value);
+  }
+}
+
+class KvStringSignal extends Signal<String> with KvPersistedSignalMixin<String> {
+  KvStringSignal({
+    required String kvKey,
+    String defaultValue = '',
+    bool storeEmptyAsRemove = true,
+    bool asyncWrite = false,
+  })  : _key = kvKey,
+        _defaultValue = defaultValue,
+        _storeEmptyAsRemove = storeEmptyAsRemove,
+        _asyncWrite = asyncWrite,
+        super(readKvString(kvKey) ?? defaultValue) {
+    hydrateFromKv();
+  }
+
+  final String _key;
+  final String _defaultValue;
+  final bool _storeEmptyAsRemove;
+  final bool _asyncWrite;
+
+  @override
+  String get key => _key;
+
+  @override
+  bool get asyncWrite => _asyncWrite;
+
+  @override
+  String readFromKv() => readKvString(_key) ?? _defaultValue;
+
+  @override
+  void writeToKv(String value) {
+    if (_storeEmptyAsRemove && value.isEmpty) {
+      removeKvKey(_key);
+      return;
+    }
+    writeKvString(_key, value);
+  }
+}
+
+class KvBoolSignal extends Signal<bool> with KvPersistedSignalMixin<bool> {
+  KvBoolSignal({
+    required String kvKey,
+    bool defaultValue = false,
+    bool asyncWrite = false,
+  })  : _key = kvKey,
+        _defaultValue = defaultValue,
+        _asyncWrite = asyncWrite,
+        super(readKvBool(kvKey, defaultValue: defaultValue)) {
+    hydrateFromKv();
+  }
+
+  final String _key;
+  final bool _defaultValue;
+  final bool _asyncWrite;
+
+  @override
+  String get key => _key;
+
+  @override
+  bool get asyncWrite => _asyncWrite;
+
+  @override
+  bool readFromKv() => readKvBool(_key, defaultValue: _defaultValue);
+
+  @override
+  void writeToKv(bool value) => writeKvBool(_key, value);
+}
+
+class KvIntSignal extends Signal<int> with KvPersistedSignalMixin<int> {
+  KvIntSignal({
+    required String kvKey,
+    int defaultValue = 0,
+    bool asyncWrite = false,
+  })  : _key = kvKey,
+        _defaultValue = defaultValue,
+        _asyncWrite = asyncWrite,
+        super(readKvInt(kvKey, defaultValue: defaultValue)) {
+    hydrateFromKv();
+  }
+
+  final String _key;
+  final int _defaultValue;
+  final bool _asyncWrite;
+
+  @override
+  String get key => _key;
+
+  @override
+  bool get asyncWrite => _asyncWrite;
+
+  @override
+  int readFromKv() => readKvInt(_key, defaultValue: _defaultValue);
+
+  @override
+  void writeToKv(int value) => writeKvInt(_key, value);
+}
+
+class KvDoubleSignal extends Signal<double> with KvPersistedSignalMixin<double> {
+  KvDoubleSignal({
+    required String kvKey,
+    required double defaultValue,
+    bool asyncWrite = false,
+  })  : _key = kvKey,
+        _defaultValue = defaultValue,
+        _asyncWrite = asyncWrite,
+        super(readKvDouble(kvKey, defaultValue: defaultValue)) {
+    hydrateFromKv();
+  }
+
+  final String _key;
+  final double _defaultValue;
+  final bool _asyncWrite;
+
+  @override
+  String get key => _key;
+
+  @override
+  bool get asyncWrite => _asyncWrite;
+
+  @override
+  double readFromKv() => readKvDouble(_key, defaultValue: _defaultValue);
+
+  @override
+  void writeToKv(double value) => writeKvDouble(_key, value);
+}
+
+KvDoubleSignal kvDouble(
+  String key, {
+  required double defaultValue,
+  bool asyncWrite = false,
+}) {
+  return KvDoubleSignal(
+    kvKey: key,
+    defaultValue: defaultValue,
+    asyncWrite: asyncWrite,
+  );
+}
+
+KvStringSignal kvString(
+  String key, {
+  String defaultValue = '',
+  bool storeEmptyAsRemove = true,
+  bool asyncWrite = false,
+}) {
+  return KvStringSignal(
+    kvKey: key,
+    defaultValue: defaultValue,
+    storeEmptyAsRemove: storeEmptyAsRemove,
+    asyncWrite: asyncWrite,
+  );
+}
+
+KvBoolSignal kvBool(
+  String key, {
+  bool defaultValue = false,
+  bool asyncWrite = false,
+}) {
+  return KvBoolSignal(
+    kvKey: key,
+    defaultValue: defaultValue,
+    asyncWrite: asyncWrite,
+  );
+}
+
+KvIntSignal kvInt(
+  String key, {
+  int defaultValue = 0,
+  bool asyncWrite = false,
+}) {
+  return KvIntSignal(
+    kvKey: key,
+    defaultValue: defaultValue,
     asyncWrite: asyncWrite,
   );
 }

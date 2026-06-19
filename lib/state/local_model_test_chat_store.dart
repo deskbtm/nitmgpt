@@ -4,7 +4,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/platform/litert_backend.dart';
-import 'package:nitmgpt/state/local_model_inference_prefs.dart';
+import 'package:nitmgpt/state/local_model_inference_kv.dart';
 import 'package:nitmgpt/state/local_model_helpers.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -21,9 +21,9 @@ class ChatBubble {
 }
 
 class LocalModelTestChatStore {
-  LocalModelTestChatStore({required this.inferencePrefs});
+  LocalModelTestChatStore({required this.inferenceKv});
 
-  final LocalModelInferencePrefs inferencePrefs;
+  final LocalModelInferenceKv inferenceKv;
   final isInitializing = signal(true);
   final isGenerating = signal(false);
   final errorMessage = signal<String?>(null);
@@ -69,7 +69,7 @@ class LocalModelTestChatStore {
 
       final config = activeModelId == null
           ? LocalModelInferenceConfig.defaults
-          : inferencePrefs.read(activeModelId);
+          : inferenceKv.read(activeModelId);
 
       final model = await FlutterGemma.getActiveModel(
         maxTokens: config.maxTokens,

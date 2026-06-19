@@ -55,3 +55,6 @@ amplifyconfiguration*
 
 # CodeGraph — local index per machine
 .codegraph/
+
+# Local git worktrees
+.worktrees/

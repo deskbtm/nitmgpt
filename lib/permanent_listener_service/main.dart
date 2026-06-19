@@ -1,288 +1,152 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:ui';
 
-import 'package:collection/collection.dart';
-import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
-import 'package:installed_apps/installed_apps.dart';
-import 'package:nitmgpt/constants.dart';
-import 'package:nitmgpt/device_apps_compat.dart';
-import 'package:nitmgpt/models/realm.dart';
-import 'package:nitmgpt/models/record.dart';
-import 'package:nitmgpt/models/settings.dart';
-import 'package:nitmgpt/pages/add_rules/rule_fields_map.dart';
-import 'package:nitmgpt/permanent_listener_service/gpt_response.dart';
-import 'package:nitmgpt/utils.dart';
-import 'package:realm/realm.dart';
+import 'package:nitmgpt/permanent_listener_service/notification_handler.dart';
 
-class ForegroundTaskAction {
+class BackgroundServiceAction {
   static const updateRecords = 'update_records';
+  static const stopService = 'stopService';
+  static const reloadGemma = 'reload_gemma';
+  static const setAutoStartOnBoot = 'set_auto_start_on_boot';
 }
 
 const nitmForegroundServiceId = 888;
+const nitmServiceChannelId = 'nitmgpt_service';
 
-late List<ApplicationWithIcon> _deviceApps;
+late ServiceInstance _backgroundService;
+bool _backgroundServiceConfigured = false;
 
-void initPermanentListenerForegroundTask() {
-  FlutterForegroundTask.init(
-    androidNotificationOptions: AndroidNotificationOptions(
-      channelId: 'nitmgpt_service',
-      channelName: 'NITMGPT Service',
-      channelDescription: 'Keeps notification filtering running',
-      onlyAlertOnce: true,
-    ),
-    iosNotificationOptions: const IOSNotificationOptions(
-      showNotification: false,
-      playSound: false,
-    ),
-    foregroundTaskOptions: ForegroundTaskOptions(
-      eventAction: ForegroundTaskEventAction.nothing(),
-      autoRunOnBoot: true,
-      autoRunOnMyPackageReplaced: true,
-      allowWakeLock: true,
-      allowWifiLock: true,
-    ),
+AndroidConfiguration _androidConfiguration({required bool autoStartOnBoot}) {
+  return AndroidConfiguration(
+    onStart: permanentListenerServiceMain,
+    autoStart: true,
+    autoStartOnBoot: autoStartOnBoot,
+    isForegroundMode: true,
+    notificationChannelId: nitmServiceChannelId,
+    initialNotificationTitle: 'NITMGPT SERVICE',
+    initialNotificationContent: 'running...',
+    foregroundServiceNotificationId: nitmForegroundServiceId,
+    foregroundServiceTypes: [
+      AndroidForegroundType.dataSync,
+      AndroidForegroundType.remoteMessaging,
+    ],
   );
 }
 
-Future<void> startPermanentListenerForegroundTask() async {
-  initPermanentListenerForegroundTask();
-
-  if (await FlutterForegroundTask.isRunningService) {
+Future<void> configurePermanentListenerBackgroundService({
+  bool autoStartOnBoot = true,
+}) async {
+  if (_backgroundServiceConfigured) {
     return;
   }
 
-  await FlutterForegroundTask.startService(
-    serviceId: nitmForegroundServiceId,
-    notificationTitle: 'NITMGPT SERVICE',
-    notificationText: 'running...',
-    callback: permanentListenerStartCallback,
+  final service = FlutterBackgroundService();
+
+  const channel = AndroidNotificationChannel(
+    nitmServiceChannelId,
+    'NITMGPT Service',
+    description: 'Keeps notification filtering running',
+    importance: Importance.low,
   );
+
+  final notifications = FlutterLocalNotificationsPlugin();
+  await notifications
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  await service.configure(
+    androidConfiguration: _androidConfiguration(autoStartOnBoot: autoStartOnBoot),
+    iosConfiguration: IosConfiguration(
+      autoStart: false,
+    ),
+  );
+
+  _backgroundServiceConfigured = true;
 }
 
-Future<void> stopPermanentListenerForegroundTask() {
-  return FlutterForegroundTask.stopService();
+/// Persists boot auto-start in the FBS native config (SharedPreferences).
+Future<void> applyPermanentListenerAutoStartOnBoot(bool enabled) async {
+  final service = FlutterBackgroundService();
+  final running = await service.isRunning();
+  if (running) {
+    service.invoke(BackgroundServiceAction.setAutoStartOnBoot, {
+      'value': enabled,
+    });
+    return;
+  }
+
+  await service.configure(
+    androidConfiguration: _androidConfiguration(autoStartOnBoot: enabled),
+    iosConfiguration: IosConfiguration(autoStart: false),
+  );
+  _backgroundServiceConfigured = true;
+}
+
+Future<void> stopPermanentListenerBackgroundService() async {
+  FlutterBackgroundService().invoke(BackgroundServiceAction.stopService);
 }
 
 void sendUpdateRecordsToMain() {
-  FlutterForegroundTask.sendDataToMain({
-    'action': ForegroundTaskAction.updateRecords,
-  });
+  _backgroundService.invoke(BackgroundServiceAction.updateRecords);
 }
 
 @pragma('vm:entry-point')
-void permanentListenerStartCallback() {
-  FlutterForegroundTask.setTaskHandler(PermanentListenerTaskHandler());
-}
+void permanentListenerServiceMain(ServiceInstance service) async {
+  DartPluginRegistrant.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
+  _backgroundService = service;
 
-class PermanentListenerTaskHandler extends TaskHandler {
-  @override
-  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    DartPluginRegistrant.ensureInitialized();
-    WidgetsFlutterBinding.ensureInitialized();
+  if (service is AndroidServiceInstance) {
+    service.on('setAsForeground').listen((event) {
+      service.setAsForegroundService();
+    });
 
-    _deviceApps = await DeviceApps.getInstalledApplications(
-      includeSystemApps: true,
-      includeAppIcons: false,
-    );
-
-    await NotificationsListener.initialize(
-      callbackHandle: handleNotificationListener,
-    );
-  }
-
-  @override
-  void onRepeatEvent(DateTime timestamp) {}
-
-  @override
-  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
-
-  @override
-  void onReceiveData(Object data) {}
-}
-
-
-Future<GPTResponse?> _inquireGPT(String question, Settings? settings,
-    {Future<void> Function()? onRequestSuccess}) async {
-  if (openAiApiKey.isEmpty) {
-    log('OpenAI API key is not configured', name: 'permanent_listener_service');
-    return null;
-  }
-
-  final openAI = OpenAI.instance.build(
-    token: openAiApiKey,
-    baseOption: HttpSetup(
-      receiveTimeout: const Duration(seconds: 8),
-      connectTimeout: const Duration(seconds: 8),
-      proxyUrl: settings != null && settings.proxyUri != ''
-          ? settings.proxyUri
-          : null,
-    ),
-    isLogger: true,
-  );
-
-  final request = CompleteText(
-    prompt: question,
-    model: kTextDavinci3,
-    maxTokens: 200,
-  );
-
-  CTResponse? result =
-      await openAI.onCompletion(request: request).then((value) async {
-    if (onRequestSuccess != null) await onRequestSuccess();
-    return value;
-  }).catchError((err) {
-    log('$err');
-    return null;
-  });
-
-  var choicesTexts = result?.choices
-          .map((e) => e.text.replaceAll(RegExp(r'[\n\r]'), ''))
-          .toSet()
-          .toList() ??
-      [];
-  String answer = choicesTexts.join(' ');
-  Map<String, dynamic>? json = looseJSONParse(answer);
-  if (json != null) {
-    return GPTResponse.fromJson(json);
-  }
-
-  return null;
-}
-
-Future<bool> _limited(Settings settings) async {
-  bool noLimit = settings.limitTimestamp == null,
-      overLimitTime = !noLimit &&
-          DateTime.now().difference(settings.limitTimestamp!) >
-              const Duration(hours: 24);
-  if (noLimit || overLimitTime) {
-    await realm.writeAsync(() {
-      settings.limitTimestamp = DateTime.now();
-      settings.limitCounter = 0;
+    service.on('setAsBackground').listen((event) {
+      service.setAsBackgroundService();
     });
   }
 
-  if (settings.limitCounter != null &&
-      settings.limitCounter! > settings.presetLimit) {
-    return true;
-  }
+  service.on(BackgroundServiceAction.stopService).listen((event) async {
+    await disposePermanentListenerRuntime();
+    service.stopSelf();
+  });
 
-  return false;
-}
+  service.on(BackgroundServiceAction.reloadGemma).listen((event) async {
+    await reloadPermanentListenerGemma();
+  });
 
-bool _determineRemove(GPTResponse answer, Settings? settings) {
-  bool adRemoved = false, spamRemoved = false;
-  double? adProbability = settings?.presetAdProbability;
-  double? spamProbability = settings?.presetSpamProbability;
-
-  if (answer.isAd != null && answer.isAd!) {
-    if (adProbability != null &&
-        answer.adProbability != null &&
-        answer.adProbability! > adProbability) {
-      adRemoved = false;
+  service.on(BackgroundServiceAction.setAutoStartOnBoot).listen((event) async {
+    if (service is! AndroidServiceInstance) {
+      return;
     }
+    final enabled = event?['value'] == true;
+    await service.setAutoStartOnBootMode(enabled);
+  });
 
-    adRemoved = true;
+  try {
+    await initPermanentListenerRuntime();
+    await NotificationsListener.initialize(
+      callbackHandle: handleNotificationListener,
+    );
+    log('Permanent listener service started', name: 'permanent_listener_service');
+  } catch (error, stackTrace) {
+    log(
+      'Failed to start permanent listener service: $error',
+      name: 'permanent_listener_service',
+      stackTrace: stackTrace,
+    );
   }
-
-  if (answer.isSpam != null && answer.isSpam!) {
-    if (spamProbability != null &&
-        answer.spamProbability != null &&
-        answer.spamProbability! > spamProbability) {
-      spamRemoved = false;
-    }
-
-    spamRemoved = true;
-  }
-
-  bool isRemoved = adRemoved || spamRemoved;
-  return isRemoved;
 }
 
 @pragma('vm:entry-point')
-handleNotificationListener(NotificationEvent event) async {
-  try {
-    Settings settings = getSettingInstance();
-
-    if (settings.ignoredApps.contains(event.packageName)) {
-      return;
-    }
-
-    if (await _limited(settings)) {
-      return;
-    }
-
-    final ApplicationWithIcon? app = _deviceApps.firstWhereOrNull(
-        (element) => element.packageName == event.packageName);
-
-    if (settings.ignoreSystemApps && event.packageName != null) {
-      final isSystemApp =
-          await InstalledApps.isSystemApp(event.packageName!) ?? false;
-      if (isSystemApp) {
-        return;
-      }
-    }
-
-    final notificationText =
-        '${event.title ?? ''} ${event.text ?? ''}'.trim();
-    final question = buildClassificationPrompt(
-      notificationText,
-      formatFieldDefinitions(settings),
-    );
-    log(question, name: 'permanent_listener_service');
-
-    var answer = await _inquireGPT(
-      question,
-      settings,
-      onRequestSuccess: () async {
-        await realm.writeAsync(() {
-          settings.limitCounter =
-              settings.limitCounter == null ? 0 : settings.limitCounter! + 1;
-        });
-      },
-    );
-
-    if (answer != null) {
-      bool isRemoved = _determineRemove(answer, settings);
-      log("Notification removed: $isRemoved");
-
-      if (isRemoved) {
-        NotificationsListener.cancelNotification(event.key ?? '');
-        Record record = Record(
-          ObjectId(),
-          isAd: answer.isAd,
-          adProbability: answer.adProbability,
-          isSpam: answer.isSpam,
-          spamProbability: answer.spamProbability,
-          appName: app?.appName,
-          packageName: event.packageName,
-          notificationKey: event.key,
-          notificationText: event.text,
-          notificationTitle: event.title,
-          timestamp: event.timestamp,
-          createTime: event.createAt,
-          uid: event.uniqueId,
-        );
-
-        RealmResults<RecordedApp> result =
-            realm.query<RecordedApp>('packageName == \$0', [event.packageName]);
-
-        await realm.writeAsync(() {
-          if (result.isEmpty) {
-            realm.add(
-                RecordedApp(ObjectId(), event.packageName!, records: [record]));
-          } else {
-            result.first.records.insert(0, record);
-          }
-        });
-
-        sendUpdateRecordsToMain();
-      }
-    }
-  } catch (e, stackTrace) {
-    log(e.toString(), name: 'permanent_listener_service');
-    log(stackTrace.toString(), name: 'permanent_listener_service');
-  }
+void handleNotificationListener(NotificationEvent event) {
+  unawaited(
+    handlePermanentListenerNotification(event, sendUpdateRecordsToMain),
+  );
 }

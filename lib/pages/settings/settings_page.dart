@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nitmgpt/app/app_scope.dart';
@@ -120,6 +122,23 @@ class SettingsPage extends StatelessWidget {
                     showChevron: true,
                     onTap: () => context.push(AppRoutes.permissions),
                   ),
+                  if (Platform.isAndroid)
+                    OpaqueListTile(
+                      title: Text('Boot auto-start'.tr),
+                      trailing: SignalBuilder(
+                        builder: (context) => Switch.adaptive(
+                          value: settings.bootAutoStart.value,
+                          activeTrackColor: primaryColor.withValues(alpha: 0.5),
+                          thumbColor: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return primaryColor;
+                            }
+                            return null;
+                          }),
+                          onChanged: settings.setBootAutoStart,
+                        ),
+                      ),
+                    ),
                 ],
               ),
               OpaqueGroupedSection(

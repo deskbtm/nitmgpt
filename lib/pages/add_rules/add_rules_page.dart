@@ -361,7 +361,6 @@ class _AddRulesPageState extends State<AddRulesPage> {
                           children: [
                             FilledButton(
                               onPressed: () async {
-                                _watcher.deviceApps.value = [];
                                 await _watcher.getDeviceApps();
                                 await _showDeviceApps();
                               },
