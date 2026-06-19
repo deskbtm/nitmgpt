@@ -51,11 +51,15 @@ class LocalModelTestChatStore {
       safeSignalWrite(() => modelLabel.value = context.displayLabel);
 
       final model = await openActiveInferenceModel(context);
-      final chat = await openActiveInferenceChat(model: model, context: context);
+      final chat =
+          await openActiveInferenceChat(model: model, context: context);
 
       if (_disposed) {
         await chat.close();
         await model.close();
+        try {
+          await clearActiveLocalModelRuntime();
+        } catch (_) {}
         return;
       }
 
@@ -80,7 +84,7 @@ class LocalModelTestChatStore {
 
   Future<void> dispose() async {
     _disposed = true;
-    await _disposeRuntime();
+    await _disposeRuntime(clearActiveModelCache: true);
   }
 
   Future<void> clearChat() async {
@@ -213,13 +217,18 @@ class LocalModelTestChatStore {
     });
   }
 
-  Future<void> _disposeRuntime() async {
+  Future<void> _disposeRuntime({bool clearActiveModelCache = false}) async {
     try {
       await _chat?.close();
     } catch (_) {}
     try {
       await _model?.close();
     } catch (_) {}
+    if (clearActiveModelCache) {
+      try {
+        await clearActiveLocalModelRuntime();
+      } catch (_) {}
+    }
     _chat = null;
     _model = null;
   }

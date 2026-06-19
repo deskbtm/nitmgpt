@@ -237,3 +237,16 @@ Future<InferenceChat> openActiveInferenceChat({
     tokenBuffer: config.tokenBuffer,
   );
 }
+
+/// Clears Flutter Gemma's in-memory active model reference without deleting
+/// installed model files or the app's persisted active-model selection.
+Future<void> clearActiveLocalModelRuntime({
+  ModelFileManager? modelManager,
+}) async {
+  if (modelManager == null) {
+    await ensureFlutterGemmaInitialized();
+  }
+  final manager = modelManager ?? FlutterGemmaPlugin.instance.modelManager;
+  await manager.ensureInitialized();
+  await manager.clearModelCache();
+}

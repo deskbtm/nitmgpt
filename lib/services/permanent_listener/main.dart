@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:nitmgpt/services/permanent_listener/notification_handler.dart';
@@ -20,6 +21,7 @@ void sendUpdateRecordsToMain() {
 @pragma('vm:entry-point')
 void permanentListenerServiceMain(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   _backgroundService = service;
 
   if (service is AndroidServiceInstance) {

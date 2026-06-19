@@ -16,6 +16,21 @@ bool _backgroundServiceConfigured = false;
 
 final _iosConfiguration = IosConfiguration(autoStart: false);
 
+Future<void> _ensureNitmForegroundNotificationChannel() async {
+  const channel = AndroidNotificationChannel(
+    nitmServiceChannelId,
+    'NITMGPT Service',
+    description: 'Keeps notification filtering running',
+    importance: Importance.defaultImportance,
+  );
+
+  final notifications = FlutterLocalNotificationsPlugin();
+  await notifications
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+}
+
 AndroidConfiguration _androidConfiguration({required bool autoStartOnBoot}) {
   return AndroidConfiguration(
     onStart: permanentListenerServiceMain,
@@ -38,22 +53,7 @@ AndroidConfiguration _androidConfiguration({required bool autoStartOnBoot}) {
 Future<void> configurePermanentListenerBackgroundService({
   bool autoStartOnBoot = true,
 }) async {
-  if (_backgroundServiceConfigured) {
-    return;
-  }
-
-  const channel = AndroidNotificationChannel(
-    nitmServiceChannelId,
-    'NITMGPT Service',
-    description: 'Keeps notification filtering running',
-    importance: Importance.low,
-  );
-
-  final notifications = FlutterLocalNotificationsPlugin();
-  await notifications
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
+  await _ensureNitmForegroundNotificationChannel();
 
   await FlutterBackgroundService().configure(
     androidConfiguration: _androidConfiguration(autoStartOnBoot: autoStartOnBoot),
@@ -85,6 +85,8 @@ Future<void> syncPermanentListenerBackgroundService() async {
     return;
   }
 
+  await _ensureNitmForegroundNotificationChannel();
+
   if (await service.isRunning()) {
     service.invoke(BackgroundServiceAction.reloadGemma);
     logPermanentListener('Permanent listener service reload requested');
@@ -104,6 +106,8 @@ Future<void> applyPermanentListenerAutoStartOnBoot(bool enabled) async {
     });
     return;
   }
+
+  await _ensureNitmForegroundNotificationChannel();
 
   await service.configure(
     androidConfiguration: _androidConfiguration(autoStartOnBoot: enabled),

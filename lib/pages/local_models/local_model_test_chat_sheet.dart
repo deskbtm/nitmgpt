@@ -40,6 +40,7 @@ class _LocalModelTestChatSheet extends StatefulWidget {
 
 class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
   static const _sheetHeightFactor = 0.88;
+  static const _composerControlHeight = 44.0;
 
   static final _chatMarkdownExtensionSet = md.ExtensionSet(
     md.ExtensionSet.gitHubFlavored.blockSyntaxes,
@@ -322,8 +323,8 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
           onTap: onTap,
           customBorder: const CircleBorder(),
           child: SizedBox(
-            width: 40,
-            height: 40,
+            width: _composerControlHeight,
+            height: _composerControlHeight,
             child: Icon(icon, size: 20, color: fg),
           ),
         ),
@@ -348,7 +349,7 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
 
     final enabled = !initializing && ready;
     return _buildCircleIconButton(
-      icon: UniconsLine.plane_fly,
+      icon: UniconsLine.message,
       semanticsLabel: 'Send'.tr,
       onTap: enabled ? _sendMessage : null,
       backgroundColor: enabled
@@ -427,21 +428,26 @@ class _LocalModelTestChatSheetState extends State<_LocalModelTestChatSheet> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: CupertinoTextField(
-                  controller: _inputController,
-                  placeholder: 'Type a message'.tr,
-                  minLines: 1,
-                  maxLines: 4,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted:
-                      ready && !generating ? (_) => _sendMessage() : null,
-                  enabled: ready && !generating,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color:
-                        CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                    borderRadius: kTileBorderRadiusAll,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: _composerControlHeight,
+                  ),
+                  child: CupertinoTextField(
+                    controller: _inputController,
+                    placeholder: 'Type a message'.tr,
+                    minLines: 1,
+                    maxLines: 4,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted:
+                        ready && !generating ? (_) => _sendMessage() : null,
+                    enabled: ready && !generating,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.tertiarySystemFill
+                          .resolveFrom(context),
+                      borderRadius: kTileBorderRadiusAll,
+                    ),
                   ),
                 ),
               ),
