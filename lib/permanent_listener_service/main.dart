@@ -146,6 +146,11 @@ void permanentListenerServiceMain(ServiceInstance service) async {
 
 @pragma('vm:entry-point')
 void handleNotificationListener(NotificationEvent event) {
+  log(
+    'Notification received: package=${event.packageName} '
+    'title=${event.title} text=${event.text}',
+    name: 'permanent_listener_service',
+  );
   unawaited(
     handlePermanentListenerNotification(event, sendUpdateRecordsToMain),
   );

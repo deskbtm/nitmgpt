@@ -175,4 +175,17 @@ Map<String, String> zh_CN = {
   'Failed to load model': '模型加载失败',
   'LiteRT models are not supported on Android emulators':
       'Android 模拟器不支持 LiteRT 模型。请使用真机（arm64），或改用 MediaPipe .task 模型。',
+  'Developer': '开发者',
+  'Ad notifications': '广告通知',
+  'Preset ad notification samples': '内置广告通知样本',
+  'Sends a system notification and injects into the filter.':
+      '发送系统通知，由监听器接收并过滤。',
+  'Dev ad: Flash sale': '限时秒杀',
+  'Dev ad: Coupon': '优惠券',
+  'Dev ad: Loan promo': '贷款推广',
+  'Dev ad: Free gift': '免费礼包',
+  'Dev ad: Security alert': '安全提醒',
+  'Dev ad: Delivery notice': '快递通知',
+  'Notification listener is not running': '通知监听服务未运行',
+  'Ad notification sent': '广告通知已发送',
 };

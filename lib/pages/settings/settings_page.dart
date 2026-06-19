@@ -9,6 +9,7 @@ import 'package:nitmgpt/components/opaque_grouped_section.dart';
 import 'package:nitmgpt/components/secondary_page_scaffold.dart';
 import 'package:nitmgpt/constants.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/pages/settings/developer_hidden_entry.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
 import 'package:nitmgpt/theme.dart';
@@ -38,7 +39,10 @@ class SettingsPage extends StatelessWidget {
               TabPageShell.scrollBottomPadding(context),
             ),
             children: [
-              SecondaryPageScaffold.largeTitle('Settings'.tr),
+              DeveloperHiddenTapDetector(
+                onActivated: () => context.push(AppRoutes.developer),
+                child: SecondaryPageScaffold.largeTitle('Settings'.tr),
+              ),
               const SizedBox(height: 20),
               SignalBuilder(
                 builder: (context) {
@@ -188,7 +192,10 @@ class _UpdateTrailing extends StatelessWidget {
     return SignalBuilder(
       builder: (context) {
         final version = settings.currentVersion.value;
-        return Text(version != null ? 'v$version' : '');
+        return DeveloperHiddenTapDetector(
+          onActivated: () => context.push(AppRoutes.developer),
+          child: Text(version != null ? 'v$version' : ''),
+        );
       },
     );
   }

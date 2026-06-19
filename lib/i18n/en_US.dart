@@ -184,4 +184,17 @@ const Map<String, String> en_US = {
   'Failed to load model': 'Failed to load model',
   'LiteRT models are not supported on Android emulators':
       'LiteRT models are not supported on Android emulators. Use a physical arm64 device or a MediaPipe .task model.',
+  'Developer': 'Developer',
+  'Ad notifications': 'Ad notifications',
+  'Preset ad notification samples': 'Preset ad notification samples',
+  'Sends a system notification and injects into the filter.':
+      'Posts a notification for the listener to pick up.',
+  'Notification listener is not running': 'Notification listener is not running',
+  'Dev ad: Flash sale': 'Flash sale',
+  'Dev ad: Coupon': 'Coupon',
+  'Dev ad: Loan promo': 'Loan promo',
+  'Dev ad: Free gift': 'Free gift',
+  'Dev ad: Security alert': 'Security alert',
+  'Dev ad: Delivery notice': 'Delivery notice',
+  'Ad notification sent': 'Ad notification sent',
 };

@@ -7,6 +7,8 @@ import 'package:nitmgpt/pages/local_models/local_model_inference_settings_page.d
 import 'package:nitmgpt/pages/local_models/local_models_page.dart';
 import 'package:nitmgpt/pages/home/home_page.dart';
 import 'package:nitmgpt/pages/index/index_page.dart';
+import 'package:nitmgpt/pages/settings/developer_ad_notifications_page.dart';
+import 'package:nitmgpt/pages/settings/developer_page.dart';
 import 'package:nitmgpt/pages/settings/permissions_page.dart';
 import 'package:nitmgpt/pages/settings/settings_page.dart';
 
@@ -64,6 +66,14 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.permissions,
           builder: (context, state) => const PermissionsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.developer,
+          builder: (context, state) => const DeveloperPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.developerAdNotifications,
+          builder: (context, state) => const DeveloperAdNotificationsPage(),
         ),
       ],
     ),
