@@ -3,4 +3,20 @@ command = "codegraph"
 args = [
     "serve",
     "--mcp",
+    "--path",
+    ".",
 ]
+
+[mcp_servers.dart]
+command = "dart"
+args = [
+    "mcp-server",
+    "--experimental-mcp-server",
+    "--force-roots-fallback",
+]
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+
+[mcp_servers.deepwiki]
+url = "https://mcp.deepwiki.com/mcp"
