@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-export 'package:nitmgpt/components/app_background.dart' show kAppGlassBackground;
+export 'package:nitmgpt/components/app_background.dart'
+    show kAppGlassBackground;
 
 var primaryColor = const Color(0xFF74AA9C);
 
@@ -18,18 +19,15 @@ ThemeData lightThemeData = ThemeData(
   floatingActionButtonTheme: const FloatingActionButtonThemeData(elevation: 3),
 );
 
-/// White mist frosted fill for grouped list tiles on scrollable pages.
-Color tileFrostFillColor({required bool isDark}) {
-  return isDark ? const Color(0xCC2C2C2E) : const Color(0xD9FFFFFF);
+/// Semi-opaque fill for grouped list tiles and notification cards.
+Color tileFillColor({required bool isDark}) {
+  return isDark
+      ? const Color(0xCC2C2C2E)
+      : const Color.fromARGB(235, 251, 251, 251);
 }
 
-/// Light overlay on top of [FrostedGlassLayer] — keep tiles mostly transparent.
-Color tileGlassOverlayFillColor({required bool isDark}) {
-  return isDark ? const Color(0x402C2C2E) : const Color(0x45FFFFFF);
-}
-
-Color tileFrostBorderColor({required bool isDark}) {
-  return Colors.white.withValues(alpha: isDark ? 0.12 : 0.5);
+Color tileBorderColor({required bool isDark}) {
+  return Colors.white.withValues(alpha: isDark ? 0.12 : 0.9);
 }
 
 /// Frosted fill for the floating bottom navigation bar.
@@ -57,13 +55,13 @@ Color bottomBarIndicatorFrostColor({required bool isDark, Color? override}) {
   return isDark ? const Color(0x33FFFFFF) : const Color(0x55FFFFFF);
 }
 
-/// Barely visible elevation for grouped settings tiles.
-List<BoxShadow> tileFrostShadows({required bool isDark}) {
+/// Subtle elevation for grouped settings tiles and notification cards.
+List<BoxShadow> tileShadows({required bool isDark}) {
   return [
     BoxShadow(
-      color: Colors.black.withValues(alpha: isDark ? 0.07 : 0.022),
-      blurRadius: 5,
-      offset: const Offset(0, 1),
+      color: Colors.black.withValues(alpha: isDark ? 0.10 : 0.038),
+      blurRadius: 6,
+      offset: const Offset(0, 2),
     ),
   ];
 }

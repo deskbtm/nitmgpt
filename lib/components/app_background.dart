@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-/// Soft mint wallpaper base behind frosted UI.
-const kAppWallpaperMint = Color(0xFFF2FAF8);
+/// Soft mint wallpaper base behind app content.
+const kAppWallpaperMint = Color.fromARGB(255, 196, 219, 213);
 
 /// Full-screen wallpaper — light mint fill + flat rising bubbles.
 const Widget kAppGlassBackground = RepaintBoundary(
@@ -135,16 +135,16 @@ class _AppGlassBackgroundState extends State<AppGlassBackground>
   }
 }
 
-/// Theme mint tones — flat fill only.
+/// Theme mint tones — tuned for [kAppWallpaperMint] (#D8EBE6).
 class _BubblePalette {
-  static const light = Color(0xFFD6ECE6);
-  static const mid = Color(0xFFC4E1DA);
-  static const deep = Color(0xFFBADAD3);
-  static const accent = Color(0xFF70A697);
-  static const shadow = Color(0xFFB1D6CC);
+  static const light = Color(0xFFC5E0DA);
+  static const mid = Color(0xFFB0D5CC);
+  static const deep = Color(0xFF9AC9BE);
+  static const accent = Color(0xFF74AA9C);
+  static const shadow = Color(0xFF88BFB3);
 
   static const tones = [shadow, deep, mid, light, accent];
-  static const tierRadii = [8.0, 17.0, 27.0, 38.0];
+  static const tierRadii = [10.0, 22.0, 34.0, 48.0];
   static const tierCount = 4;
 }
 
@@ -272,7 +272,7 @@ class _BubbleField {
     final radius = _BubblePalette.tierRadii[resolvedLayer];
     final color =
         _BubblePalette.tones[_random.nextInt(_BubblePalette.tones.length)];
-    final opacity = 0.20 + _random.nextDouble() * 0.46;
+    final opacity = 0.30 + _random.nextDouble() * 0.40;
 
     return _Bubble(
       x: _random.nextDouble() * size.width,
@@ -280,7 +280,9 @@ class _BubbleField {
       radius: radius,
       riseSpeed: _riseSpeedForRadius(radius),
       wobblePhase: _random.nextDouble() * math.pi * 2,
-      wobbleAmplitude: 8 + (radius / 38) * 14 + _random.nextDouble() * 10,
+      wobbleAmplitude: 8 +
+          (radius / _BubblePalette.tierRadii.last) * 14 +
+          _random.nextDouble() * 10,
       wobbleSpeed: 0.012 + _random.nextDouble() * 0.01,
       fillColor: color.withValues(alpha: opacity),
       layer: resolvedLayer,

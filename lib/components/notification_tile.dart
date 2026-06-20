@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:nitmgpt/components/app_icon.dart';
-import 'package:nitmgpt/components/frosted_glass_surface.dart';
+import 'package:nitmgpt/components/tile_surface.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/theme/app_theme.dart';
 
@@ -43,11 +43,10 @@ class NotificationTitle extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RepaintBoundary(
-      child: FrostedGlassSurface(
+      child: TileSurface(
         margin: const EdgeInsets.only(bottom: 8),
-        blurred: false,
-        fillColor: tileGlassOverlayFillColor(isDark: isDark),
-        borderColor: tileFrostBorderColor(isDark: isDark),
+        fillColor: tileFillColor(isDark: isDark),
+        borderColor: tileBorderColor(isDark: isDark),
         child: Theme(
           data: Theme.of(context).copyWith(
             dividerColor: Colors.transparent,

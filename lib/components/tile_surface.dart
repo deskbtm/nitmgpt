@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nitmgpt/core/frosted_glass.dart';
 import 'package:nitmgpt/theme/app_theme.dart';
 
-/// Frosted surface — [BackdropFilter] blur plus semi-opaque fill and soft border.
-class FrostedGlassSurface extends StatelessWidget {
-  const FrostedGlassSurface({
+/// Semi-opaque rounded surface for grouped settings and notification tiles.
+class TileSurface extends StatelessWidget {
+  const TileSurface({
     super.key,
     required this.child,
     this.borderRadius = kTileBorderRadiusAll,
@@ -13,7 +12,6 @@ class FrostedGlassSurface extends StatelessWidget {
     this.clipBehavior = Clip.antiAlias,
     this.fillColor,
     this.borderColor,
-    this.blurred = false,
   });
 
   final Widget child;
@@ -23,7 +21,8 @@ class FrostedGlassSurface extends StatelessWidget {
   final Clip clipBehavior;
   final Color? fillColor;
   final Color? borderColor;
-  final bool blurred;
+
+  static const _borderWidth = 1.5;
 
   static Color _defaultFillColor(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -38,16 +37,26 @@ class FrostedGlassSurface extends StatelessWidget {
     return Colors.white.withValues(alpha: isDark ? 0.12 : 0.5);
   }
 
+  BorderRadius _innerRadius(BorderRadius outer) {
+    return BorderRadius.lerp(
+      outer,
+      BorderRadius.zero,
+      _borderWidth / kTileBorderRadius,
+    )!;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final resolvedFill = fillColor ?? _defaultFillColor(context);
     final resolvedBorder = borderColor ?? _defaultBorderColor(context);
     final resolvedRadius = borderRadius.resolve(Directionality.of(context));
+    final innerRadius = _innerRadius(resolvedRadius);
 
-    final inner = padding == null ? child : Padding(padding: padding!, child: child);
+    final inner =
+        padding == null ? child : Padding(padding: padding!, child: child);
 
-    Widget filledContent = Stack(
+    final filledContent = Stack(
       fit: StackFit.passthrough,
       children: [
         Positioned.fill(
@@ -57,27 +66,39 @@ class FrostedGlassSurface extends StatelessWidget {
       ],
     );
 
+    // Inset fill so wallpaper shows in the ring; border is painted on top.
     Widget surface = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        border: Border.all(color: resolvedBorder, width: 1),
-        boxShadow: blurred ? tileFrostShadows(isDark: isDark) : null,
+        boxShadow: tileShadows(isDark: isDark),
       ),
-      child: ClipRRect(
-        borderRadius: resolvedRadius,
-        clipBehavior: clipBehavior,
-        child: blurred
-            ? BackdropFilter(
-                filter: kTileFrostBlurFilter,
-                child: filledContent,
-              )
-            : filledContent,
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(_borderWidth),
+            child: ClipRRect(
+              borderRadius: innerRadius,
+              clipBehavior: clipBehavior,
+              child: filledContent,
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: borderRadius,
+                  border: Border.all(
+                    color: resolvedBorder,
+                    width: _borderWidth,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
-
-    if (blurred) {
-      surface = RepaintBoundary(child: surface);
-    }
 
     if (margin != null) {
       surface = Padding(padding: margin!, child: surface);
