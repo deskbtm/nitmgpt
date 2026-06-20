@@ -133,6 +133,8 @@ class Utils {
                 map["actions"] = marshal(v.actions)
                 map["when"] = v.`when`
                 map["tickerText"] = marshal(v.tickerText)
+                map["flags"] = v.flags
+                map["isOngoing"] = (v.flags and Notification.FLAG_ONGOING_EVENT) != 0
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     map["tickerText"] = marshal(v.settingsText)
                 }

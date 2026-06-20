@@ -15,6 +15,9 @@ const Map<String, String> en_US = {
   'Home': 'Home',
   'Search notifications': 'Search notifications',
   'No matching notifications': 'No matching notifications',
+  'No matching notifications hint': 'Try a different keyword.',
+  'No records yet': 'No records yet',
+  'Empty records hint': 'Worthy notices will find their way here.',
   'Select app': 'Select app',
   'Match rule': 'Matching rules',
   'Enter regular expression': 'Enter a regular expression',
@@ -190,6 +193,9 @@ const Map<String, String> en_US = {
   'Sends a system notification and injects into the filter.':
       'Posts a notification for the listener to pick up.',
   'Notification listener is not running': 'Notification listener is not running',
+  'Failed to start listener service': 'Failed to start listener service',
+  'Notification permission is required to keep the listener running':
+      'Notification permission is required to keep the listener running',
   'Dev ad: Flash sale': 'Flash sale',
   'Dev ad: Coupon': 'Coupon',
   'Dev ad: Loan promo': 'Loan promo',

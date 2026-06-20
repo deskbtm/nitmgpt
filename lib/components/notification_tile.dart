@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/frosted_glass_surface.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/theme/app_theme.dart';
 
 class NotificationTitle extends StatelessWidget {
   const NotificationTitle({
@@ -39,9 +40,14 @@ class NotificationTitle extends StatelessWidget {
     final adPercent = (adProbability ?? 0) * 100;
     final spamPercent = (spamProbability ?? 0) * 100;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return RepaintBoundary(
       child: FrostedGlassSurface(
         margin: const EdgeInsets.only(bottom: 8),
+        blurred: false,
+        fillColor: tileGlassOverlayFillColor(isDark: isDark),
+        borderColor: tileFrostBorderColor(isDark: isDark),
         child: Theme(
           data: Theme.of(context).copyWith(
             dividerColor: Colors.transparent,

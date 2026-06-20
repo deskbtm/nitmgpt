@@ -15,6 +15,9 @@ Map<String, String> zh_CN = {
   'Home': '首页',
   'Search notifications': '搜索通知',
   'No matching notifications': '没有匹配的通知',
+  'No matching notifications hint': '试试其他关键词。',
+  'No records yet': '暂无记录',
+  'Empty records hint': '值得留下的通知，会在这里慢慢聚集。',
   'Select app': '选择应用',
   'Match rule': '匹配规则',
   'Enter regular expression': '输入正则表达式',
@@ -187,5 +190,8 @@ Map<String, String> zh_CN = {
   'Dev ad: Security alert': '安全提醒',
   'Dev ad: Delivery notice': '快递通知',
   'Notification listener is not running': '通知监听服务未运行',
+  'Failed to start listener service': '监听服务启动失败',
+  'Notification permission is required to keep the listener running':
+      '需要通知权限才能显示常驻监听通知',
   'Ad notification sent': '广告通知已发送',
 };

@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_background_service/flutter_background_service.dart'
+    show AndroidServiceInstance, ServiceInstance;
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:nitmgpt/services/permanent_listener/notification_handler.dart';
 import 'package:nitmgpt/services/permanent_listener/permanent_listener_actions.dart';
@@ -20,6 +20,7 @@ void sendUpdateRecordsToMain() {
 
 @pragma('vm:entry-point')
 void permanentListenerServiceMain(ServiceInstance service) async {
+  // Required so Gemma, Realm, and notification listener plugins work in this isolate.
   DartPluginRegistrant.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
   _backgroundService = service;
@@ -73,9 +74,8 @@ void permanentListenerServiceMain(ServiceInstance service) async {
 }
 
 @pragma('vm:entry-point')
+/// Native notification listener callback — must stay synchronous; enqueue for work.
 void handleNotificationListener(NotificationEvent event) {
   logNotificationReceived(event);
-  unawaited(
-    handlePermanentListenerNotification(event, sendUpdateRecordsToMain),
-  );
+  enqueuePermanentListenerNotification(event, sendUpdateRecordsToMain);
 }

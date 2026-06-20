@@ -5,6 +5,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:intl/intl.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/app_icon.dart';
+import 'package:nitmgpt/components/empty.dart';
 import 'package:nitmgpt/components/notification_tile.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/services/device_apps.dart';
@@ -79,7 +80,10 @@ class _HomePageState extends State<HomePage> {
               builder: (context) {
                 final apps = _watcher.detectedApps.value;
                 if (apps.isEmpty) {
-                  return const SizedBox.shrink();
+                  return AppEmptyState(
+                    title: 'No records yet'.tr,
+                    subtitle: 'Empty records hint'.tr,
+                  );
                 }
 
                 final safeIndex =
@@ -190,17 +194,9 @@ class _HomeSearchResultsList extends StatelessWidget {
         watcher.recordsRevision.value;
         final records = watcher.getRecordsMatchingSearch(searchQuery);
         if (records.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'No matching notifications'.tr,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ),
+          return AppEmptyState(
+            title: 'No matching notifications'.tr,
+            subtitle: 'No matching notifications hint'.tr,
           );
         }
 
@@ -259,6 +255,13 @@ class _HomeRecordsList extends StatelessWidget {
         watcher.recordsRevision.value;
         final records =
             watcher.getRecords(packageName: selectedApp.packageName);
+
+        if (records.isEmpty) {
+          return AppEmptyState(
+            title: 'No records yet'.tr,
+            subtitle: 'Empty records hint'.tr,
+          );
+        }
 
         return ListView.builder(
           padding: EdgeInsets.only(

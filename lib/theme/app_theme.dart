@@ -23,6 +23,11 @@ Color tileFrostFillColor({required bool isDark}) {
   return isDark ? const Color(0xCC2C2C2E) : const Color(0xD9FFFFFF);
 }
 
+/// Light overlay on top of [FrostedGlassLayer] — keep tiles mostly transparent.
+Color tileGlassOverlayFillColor({required bool isDark}) {
+  return isDark ? const Color(0x402C2C2E) : const Color(0x45FFFFFF);
+}
+
 Color tileFrostBorderColor({required bool isDark}) {
   return Colors.white.withValues(alpha: isDark ? 0.12 : 0.5);
 }

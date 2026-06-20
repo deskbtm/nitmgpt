@@ -14,6 +14,8 @@ class PermanentListenerGemmaClassifier {
   ActiveLocalModelContext? _context;
   bool _ready = false;
 
+  /// Second line of defense: serializes Gemma inference even if classify is
+  /// invoked outside [enqueuePermanentListenerNotification].
   Future<void> _inferenceQueue = Future<void>.value();
 
   bool get isReady => _ready;
@@ -63,6 +65,7 @@ class PermanentListenerGemmaClassifier {
 
   Future<GPTResponse?> _enqueue(Future<GPTResponse?> Function() task) {
     final completer = Completer<GPTResponse?>();
+    // Chain onto the previous inference so only one chat session runs at a time.
     _inferenceQueue = _inferenceQueue.then((_) async {
       if (completer.isCompleted) {
         return;

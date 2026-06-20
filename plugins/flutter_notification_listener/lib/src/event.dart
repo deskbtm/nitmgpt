@@ -156,7 +156,15 @@ class NotificationEvent {
 
   bool? isGroup;
 
-  /// the raw notifaction data from android
+  /// Whether the notification is ongoing (persistent), e.g. foreground service
+  /// or media playback. Mapped from [StatusBarNotification.isOngoing].
+  bool? isOngoing;
+
+  /// Whether the user can dismiss this notification. Ongoing notifications are
+  /// typically not clearable.
+  bool? isClearable;
+
+  /// The raw notifaction data from android
   dynamic _data;
 
   NotificationEvent({
@@ -177,7 +185,24 @@ class NotificationEvent {
     this.canTap,
     this.flags,
     this.isGroup,
+    this.isOngoing,
+    this.isClearable,
   });
+
+  /// Android [Notification.FLAG_ONGOING_EVENT].
+  static const int flagOngoingEvent = 0x2;
+
+  /// Whether this is a persistent / ongoing notification that should not be
+  /// treated like a normal dismissible alert (foreground services, music, etc.).
+  bool get isPersistent {
+    if (isOngoing == true) return true;
+    final notificationFlags = flags;
+    if (notificationFlags != null &&
+        (notificationFlags & flagOngoingEvent) != 0) {
+      return true;
+    }
+    return false;
+  }
 
   Map<dynamic, dynamic>? get raw => _data;
 
@@ -203,6 +228,8 @@ class NotificationEvent {
       canTap: map["canTap"],
       flags: map["flags"],
       isGroup: map["isGroup"],
+      isOngoing: map["isOngoing"],
+      isClearable: map["isClearable"],
     );
 
     // set the raw data
@@ -236,6 +263,9 @@ class NotificationEvent {
     return NotificationsListener.getFullNotification(uniqueId!);
   }
 }
+
+/// Whether [event] is an ongoing / persistent notification.
+bool isPersistentNotification(NotificationEvent event) => event.isPersistent;
 
 /// newEvent package level function create event from map
 NotificationEvent newEvent(Map<dynamic, dynamic> data) {

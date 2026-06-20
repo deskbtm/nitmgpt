@@ -32,6 +32,8 @@ class NotificationEvent(context: Context, sbn: StatusBarNotification) {
         private const val NOTIFICATION_UNIQUE_ID = "_id"
         private const val NOTIFICATION_FLAGS = "flags"
         private const val NOTIFICATION_IS_GROUP = "isGroup"
+        private const val NOTIFICATION_IS_ONGOING = "isOngoing"
+        private const val NOTIFICATION_IS_CLEARABLE = "isClearable"
 
         fun genKey(vararg items: Any?): String {
             return Utils.md5(items.joinToString(separator="-"){ "$it" }).slice(IntRange(0, 12))
@@ -55,6 +57,9 @@ class NotificationEvent(context: Context, sbn: StatusBarNotification) {
 
             map[NOTIFICATION_FLAGS] = notify.flags
             map[NOTIFICATION_IS_GROUP] = (notify.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+            // Persistent notifications (foreground service, media, downloads, …).
+            map[NOTIFICATION_IS_ONGOING] = sbn.isOngoing
+            map[NOTIFICATION_IS_CLEARABLE] = sbn.isClearable
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 map[NOTIFICATION_UID] = sbn.uid

@@ -20,17 +20,23 @@ import 'package:nitmgpt/services/app_icon_loader.dart';
 import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/models/realm.dart';
 import 'package:nitmgpt/models/settings.dart';
-import 'package:nitmgpt/mock/home_mock_data.dart';
 import 'package:nitmgpt/utils/notification_search.dart';
 import 'package:nitmgpt/services/permanent_listener/background_service_host.dart';
 import 'package:nitmgpt/app/app_navigator.dart';
 import 'package:nitmgpt/state/settings_store.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:signals/signals.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart';
 
 class WatcherStore {
   WatcherStore(this._settingsStore);
+
+  static const _legacyMockPackageNames = [
+    'com.nitmgpt.mock.wechat',
+    'com.nitmgpt.mock.shopping',
+    'com.nitmgpt.mock.news',
+  ];
 
   final SettingsStore _settingsStore;
 
@@ -54,7 +60,7 @@ class WatcherStore {
   Future<void> init() async {
     settings = _settingsStore.settings;
 
-    await seedHomeMockDataIfEmpty();
+    await _purgeLegacyMockRecords();
     refreshDetectedApps();
 
     scheduleIdleStartupTask(_initHeavy);
@@ -104,26 +110,21 @@ class WatcherStore {
     // );
   }
 
-  Future<void> seedHomeMockDataIfEmpty() async {
-    final seeded = await HomeMockData.seedIfEmpty(
-      registerApp: _registerDeviceApp,
-    );
-    _ensureMockAppsRegistered();
-    if (seeded) {
-      recordsRevision.value++;
+  Future<void> _purgeLegacyMockRecords() async {
+    final mockApps = realm
+        .all<RecordedApp>()
+        .where((app) => _legacyMockPackageNames.contains(app.packageName))
+        .toList();
+    if (mockApps.isEmpty) {
+      return;
     }
-  }
 
-  void _registerDeviceApp(ApplicationWithIcon app) {
-    final map = Map<String, ApplicationWithIcon>.from(deviceAppsMap.value);
-    map[app.packageName] = app;
-    deviceAppsMap.value = map;
-  }
-
-  void _ensureMockAppsRegistered() {
-    final map = Map<String, ApplicationWithIcon>.from(deviceAppsMap.value);
-    HomeMockData.mergeMockAppsInto(map);
-    deviceAppsMap.value = map;
+    await realm.writeAsync(() {
+      for (final app in mockApps) {
+        realm.delete(app);
+      }
+    });
+    recordsRevision.value++;
   }
 
   ApplicationWithIcon? _resolveRecordedApp(RecordedApp recordedApp) {
@@ -133,10 +134,6 @@ class WatcherStore {
     if (recordedApp.records.isEmpty) return null;
 
     final first = recordedApp.records.first;
-    if (HomeMockData.isMockPackage(recordedApp.packageName)) {
-      return HomeMockData.applicationFor(recordedApp.packageName);
-    }
-
     return ApplicationWithIcon(
       appName: first.appName ?? recordedApp.packageName,
       packageName: recordedApp.packageName,
@@ -267,7 +264,6 @@ class WatcherStore {
       list.add(app);
     }
 
-    HomeMockData.mergeMockAppsInto(map);
     deviceAppsMap.value = map;
     deviceApps.value = list;
 
@@ -362,6 +358,13 @@ class WatcherStore {
         'Notification listener not started — no active local model',
         name: 'NotificationService',
       );
+      Fluttertoast.showToast(msg: 'No active model'.tr);
+      isListening.value = false;
+      return;
+    }
+
+    if (Platform.isAndroid && !await _ensureNotificationPostPermission()) {
+      isListening.value = false;
       return;
     }
 
@@ -369,6 +372,17 @@ class WatcherStore {
       autoStartOnBoot: _settingsStore.bootAutoStart.value,
     );
     await syncPermanentListenerBackgroundService();
+
+    final backgroundRunning = await FlutterBackgroundService().isRunning();
+    if (!backgroundRunning) {
+      log(
+        'Background service failed to stay running',
+        name: 'NotificationService',
+      );
+      Fluttertoast.showToast(msg: 'Failed to start listener service'.tr);
+      isListening.value = false;
+      return;
+    }
 
     final isRunning = await NotificationsListener.isRunning ?? false;
 
@@ -380,9 +394,32 @@ class WatcherStore {
           false;
       if (isSuccess) {
         log('Start listening', name: 'NotificationService');
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Notification listener is not running'.tr,
+        );
+        isListening.value = false;
+        return;
       }
     }
     isListening.value = true;
+  }
+
+  Future<bool> _ensureNotificationPostPermission() async {
+    final status = await Permission.notification.status;
+    if (status.isGranted) {
+      return true;
+    }
+
+    final result = await Permission.notification.request();
+    if (result.isGranted) {
+      return true;
+    }
+
+    Fluttertoast.showToast(
+      msg: 'Notification permission is required to keep the listener running'.tr,
+    );
+    return false;
   }
 
   Future<void> exportXlsx() async {
@@ -494,7 +531,6 @@ class WatcherStore {
   }
 
   List<ApplicationWithIcon> getDetectedApps() {
-    _ensureMockAppsRegistered();
     final result = realm.all<RecordedApp>();
     final apps = <ApplicationWithIcon>[];
 
@@ -564,12 +600,7 @@ class WatcherStore {
 
   ApplicationWithIcon? appIconForPackage(String? packageName) {
     if (packageName == null) return null;
-    final mapped = deviceAppsMap.value[packageName];
-    if (mapped != null) return mapped;
-    if (HomeMockData.isMockPackage(packageName)) {
-      return HomeMockData.applicationFor(packageName);
-    }
-    return null;
+    return deviceAppsMap.value[packageName];
   }
 
   void refreshDetectedApps() {

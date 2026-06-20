@@ -28,6 +28,7 @@ void logNotificationReceived(NotificationEvent event) {
     'uid=${event.uid} '
     'key=${event.key} '
     'channel=${event.channelId} '
+    'ongoing=${event.isOngoing} '
     'title=${_truncateLog(event.title)} '
     'text=${_truncateLog(event.text)}',
   );
@@ -41,6 +42,42 @@ void _logNotificationSkipped(String reason, {String? packageName}) {
 final PermanentListenerGemmaClassifier permanentListenerGemmaClassifier =
     PermanentListenerGemmaClassifier();
 final Map<String, bool> _systemAppCache = {};
+
+/// Serializes notification handling (filter → classify → persist).
+/// Chained on [_notificationQueue] so bursts are processed FIFO, one at a time.
+Future<void> _notificationQueue = Future<void>.value();
+
+/// Count of events not yet dequeued (includes the one currently processing).
+int _notificationsWaiting = 0;
+
+/// Public entry: append [event] to the processing queue.
+///
+/// Android may deliver many notifications at once; the on-device model and Realm
+/// writes must not run concurrently. Call this from the listener callback instead
+/// of invoking [_processPermanentListenerNotification] directly.
+void enqueuePermanentListenerNotification(
+  NotificationEvent event,
+  void Function() onRecordsUpdated,
+) {
+  _notificationsWaiting++;
+  if (_notificationsWaiting > 1) {
+    logPermanentListener(
+      'Notification queued: package=${event.packageName} waiting=$_notificationsWaiting',
+    );
+  }
+
+  _notificationQueue = _notificationQueue.then((_) async {
+    _notificationsWaiting--;
+    try {
+      await _processPermanentListenerNotification(event, onRecordsUpdated);
+    } catch (error, stackTrace) {
+      logPermanentListener(
+        'Notification processing error: $error',
+        stackTrace: stackTrace,
+      );
+    }
+  });
+}
 
 Future<void> initPermanentListenerRuntime() async {
   await permanentListenerGemmaClassifier.init();
@@ -83,7 +120,8 @@ bool _determineRemove(GPTResponse answer) {
   return answer.isAd == true || answer.isSpam == true;
 }
 
-Future<void> handlePermanentListenerNotification(
+/// Runs one notification through the full pipeline (called only from the queue).
+Future<void> _processPermanentListenerNotification(
   NotificationEvent event,
   void Function() onRecordsUpdated,
 ) async {
@@ -96,8 +134,16 @@ Future<void> handlePermanentListenerNotification(
       return;
     }
 
+    // --- fast filters (no model call) ---
+
     if (settings.ignoredApps.contains(packageName)) {
       _logNotificationSkipped('ignored app', packageName: packageName);
+      return;
+    }
+
+    // Ongoing / foreground-service notifications — skip by default.
+    if (isPersistentNotification(event)) {
+      _logNotificationSkipped('ongoing notification', packageName: packageName);
       return;
     }
 
@@ -123,6 +169,8 @@ Future<void> handlePermanentListenerNotification(
       'Notification processing: package=$packageName '
       'text=${_truncateLog(notificationText)}',
     );
+
+    // --- on-device classification (also serialized inside classifier) ---
 
     final answer = await permanentListenerGemmaClassifier.classifyNotification(
       notificationText: notificationText,
@@ -152,6 +200,8 @@ Future<void> handlePermanentListenerNotification(
     if (!isRemoved) {
       return;
     }
+
+    // --- ad/spam: cancel shade notification and persist record ---
 
     final key = event.key;
     if (key != null) {

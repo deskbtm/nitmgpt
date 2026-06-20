@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:nitmgpt/app/app_scope.dart';
 import 'package:nitmgpt/components/bottom_bar/bottom_bar_models.dart';
 import 'package:nitmgpt/components/bottom_bar/frosted_searchable_bottom_bar.dart';
-import 'package:nitmgpt/core/idle_scheduler.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
 import 'package:nitmgpt/components/double_pop_exit.dart';
 import 'package:nitmgpt/state/watcher_store.dart';
@@ -23,19 +22,7 @@ class IndexPage extends StatefulWidget {
 class _IndexPageState extends State<IndexPage> {
   final _searchController = TextEditingController();
   bool _isSearchActive = false;
-  bool _bottomBarReady = false;
   WatcherStore? _watcher;
-
-  @override
-  void initState() {
-    super.initState();
-    scheduleIdleStartupTask(
-      () async {
-        if (mounted) setState(() => _bottomBarReady = true);
-      },
-      delay: const Duration(milliseconds: 600),
-    );
-  }
 
   @override
   void didChangeDependencies() {
@@ -92,13 +79,9 @@ class _IndexPageState extends State<IndexPage> {
             body: RepaintBoundary(
               child: widget.navigationShell,
             ),
-            bottomNavigationBar: _bottomBarReady
-                ? RepaintBoundary(
-                    child: _buildBottomBar(context),
-                  )
-                : SizedBox(
-                    height: kBottomBarHeight + kBottomBarVerticalPadding * 2,
-                  ),
+            bottomNavigationBar: RepaintBoundary(
+              child: _buildBottomBar(context),
+            ),
           ),
         ],
       ),
@@ -145,7 +128,6 @@ class _IndexPageState extends State<IndexPage> {
           autocorrect: false,
           enableSuggestions: false,
           textInputAction: TextInputAction.search,
-          // searchIconColor: Colors.transparent,
           searchIcon: Icon(
             UniconsLine.search,
             color: unselectedIconColor,
