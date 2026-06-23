@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 /// Soft mint wallpaper base behind app content.
-const kAppWallpaperMint = Color.fromARGB(255, 196, 219, 213);
+const kAppWallpaperMint = Color.fromARGB(255, 209, 230, 225);
 
 /// Full-screen wallpaper — light mint fill + flat rising bubbles.
 const Widget kAppGlassBackground = RepaintBoundary(
@@ -144,7 +144,7 @@ class _BubblePalette {
   static const shadow = Color(0xFF88BFB3);
 
   static const tones = [shadow, deep, mid, light, accent];
-  static const tierRadii = [10.0, 22.0, 34.0, 48.0];
+  static const tierRadii = [8.0, 17.0, 27.0, 38.0];
   static const tierCount = 4;
 }
 
@@ -227,15 +227,6 @@ class _BubbleField {
         continue;
       }
 
-      if (!_intersectsViewport(bubble, size)) {
-        if (bubble.y + bubble.radius < -_kOffScreenCull ||
-            bubble.y - bubble.radius > size.height + _kOffScreenCull) {
-          _releaseSlot(i, respawnStagger);
-          changed = true;
-        }
-        continue;
-      }
-
       final accel = bubble.riseSpeed *
           0.18 *
           (1 - (bubble.y / size.height).clamp(0.0, 1.0));
@@ -245,12 +236,20 @@ class _BubbleField {
           dt;
       changed = true;
 
-      if (bubble.y + bubble.radius < -_kOffScreenCull) {
+      if (_isOffScreen(bubble, size)) {
         _releaseSlot(i, respawnStagger);
       }
     }
 
     return changed;
+  }
+
+  /// Fully outside the viewport — vertical or horizontal (wobble can drift x off-screen).
+  static bool _isOffScreen(_Bubble bubble, Size size) {
+    return bubble.y + bubble.radius < -_kOffScreenCull ||
+        bubble.y - bubble.radius > size.height + _kOffScreenCull ||
+        bubble.x + bubble.radius < -_kOffScreenCull ||
+        bubble.x - bubble.radius > size.width + _kOffScreenCull;
   }
 
   void _releaseSlot(int index, double respawnStagger) {
@@ -260,7 +259,8 @@ class _BubbleField {
 
   double _respawnStaggerSeconds(Size size) {
     const avgSpeed = 28.0;
-    return (size.height / avgSpeed).clamp(8.0, 36.0);
+    final crossingTime = size.height / avgSpeed;
+    return (crossingTime * 0.1).clamp(1.0, 5.0);
   }
 
   _Bubble _spawnBubble(
@@ -280,9 +280,7 @@ class _BubbleField {
       radius: radius,
       riseSpeed: _riseSpeedForRadius(radius),
       wobblePhase: _random.nextDouble() * math.pi * 2,
-      wobbleAmplitude: 8 +
-          (radius / _BubblePalette.tierRadii.last) * 14 +
-          _random.nextDouble() * 10,
+      wobbleAmplitude: 8 + (radius / 38) * 14 + _random.nextDouble() * 10,
       wobbleSpeed: 0.012 + _random.nextDouble() * 0.01,
       fillColor: color.withValues(alpha: opacity),
       layer: resolvedLayer,
@@ -290,10 +288,7 @@ class _BubbleField {
   }
 
   static bool _intersectsViewport(_Bubble bubble, Size size) {
-    return bubble.y + bubble.radius >= -_kOffScreenCull &&
-        bubble.y - bubble.radius <= size.height + _kOffScreenCull &&
-        bubble.x + bubble.radius >= -_kOffScreenCull &&
-        bubble.x - bubble.radius <= size.width + _kOffScreenCull;
+    return !_isOffScreen(bubble, size);
   }
 
   double _riseSpeedForRadius(double radius) {
