@@ -604,12 +604,68 @@ class WatcherStore {
   }
 
   void refreshDetectedApps() {
-    detectedApps.value = getDetectedApps();
+    final nextApps = getDetectedApps();
+    final current = detectedApps.value;
+    if (current.length != nextApps.length ||
+        !_sameAppPackages(current, nextApps)) {
+      detectedApps.value = nextApps;
+    }
     final missingIcons = detectedApps.value
         .map((app) => app.packageName)
         .where((packageName) => !_appHasIcon(packageName));
     if (missingIcons.isNotEmpty) {
       unawaited(_loadMissingIconsFor(missingIcons));
+    }
+  }
+
+  /// Reloads detected apps and record lists for pull-to-refresh on Home.
+  Future<void> refreshHomeRecords() async {
+    refreshDetectedApps();
+    recordsRevision.value++;
+  }
+
+  Future<void> deleteRecord(Record record) async {
+    final packageName = record.packageName;
+    if (packageName == null || packageName.isEmpty) {
+      Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
+      recordsRevision.value++;
+      return;
+    }
+
+    final apps =
+        realm.query<RecordedApp>('packageName == \$0', [packageName]);
+    if (apps.isEmpty) {
+      Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
+      recordsRevision.value++;
+      return;
+    }
+
+    var removed = false;
+    await realm.writeAsync(() {
+      final app = apps.first;
+      final index = app.records.indexWhere((item) => item.id == record.id);
+      if (index < 0) {
+        return;
+      }
+      app.records.removeAt(index);
+      removed = true;
+      if (app.records.isEmpty) {
+        realm.delete(app);
+      }
+    });
+
+    if (!removed) {
+      Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
+      recordsRevision.value++;
+      return;
+    }
+
+    recordsRevision.value++;
+    final nextApps = getDetectedApps();
+    final current = detectedApps.value;
+    if (current.length != nextApps.length ||
+        !_sameAppPackages(current, nextApps)) {
+      detectedApps.value = nextApps;
     }
   }
 

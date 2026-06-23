@@ -1,10 +1,11 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nitmgpt/components/app_icon.dart';
 import 'package:nitmgpt/components/tile_surface.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/models/record.dart';
 import 'package:nitmgpt/theme/app_theme.dart';
+import 'package:unicons/unicons.dart';
 
 class NotificationTitle extends StatelessWidget {
   const NotificationTitle({
@@ -17,6 +18,7 @@ class NotificationTitle extends StatelessWidget {
     this.dateTime,
     this.adProbability = .0,
     this.spamProbability = .0,
+    this.margin = const EdgeInsets.only(bottom: 8),
   });
 
   final String? title;
@@ -27,6 +29,7 @@ class NotificationTitle extends StatelessWidget {
   final double? adProbability;
   final double? spamProbability;
   final Uint8List? icon;
+  final EdgeInsetsGeometry? margin;
 
   static const _subtitleStyle = TextStyle(fontSize: 12, color: Colors.black87);
   static const _dateTimeStyle = TextStyle(color: Color.fromARGB(255, 0, 53, 2));
@@ -44,7 +47,7 @@ class NotificationTitle extends StatelessWidget {
 
     return RepaintBoundary(
       child: TileSurface(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: margin,
         fillColor: tileFillColor(isDark: isDark),
         borderColor: tileBorderColor(isDark: isDark),
         child: Theme(
@@ -119,7 +122,8 @@ class NotificationTitle extends StatelessWidget {
                         children: [
                           Text('${'Ad'.tr}: $adPercent%', style: _boldStyle),
                           const SizedBox(width: 20),
-                          Text('${'Spam'.tr}: $spamPercent%', style: _boldStyle),
+                          Text('${'Spam'.tr}: $spamPercent%',
+                              style: _boldStyle),
                         ],
                       ),
                     ],
@@ -141,4 +145,108 @@ class NotificationTitle extends StatelessWidget {
           style: style,
         ),
       );
+}
+
+class DismissibleNotificationTile extends StatefulWidget {
+  const DismissibleNotificationTile({
+    super.key,
+    required this.record,
+    required this.onDelete,
+    required this.child,
+  });
+
+  final Record record;
+  final Future<void> Function(Record record) onDelete;
+  final Widget child;
+
+  @override
+  State<DismissibleNotificationTile> createState() =>
+      _DismissibleNotificationTileState();
+}
+
+class _DismissibleNotificationTileState
+    extends State<DismissibleNotificationTile> {
+  static const _deleteColor = Color(0xFFE53935);
+  static const _itemSpacing = 8.0;
+
+  double _dragProgress = 0;
+
+  void _onDismissUpdate(DismissUpdateDetails details) {
+    if (details.reached && !details.previousReached) {
+      HapticFeedback.lightImpact();
+    }
+    final nextProgress = details.progress.clamp(0.0, 1.0);
+    if ((nextProgress - _dragProgress).abs() < 0.01) {
+      return;
+    }
+    setState(() => _dragProgress = nextProgress);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reveal = Curves.easeOutCubic.transform(_dragProgress);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: _itemSpacing),
+      child: Stack(
+        fit: StackFit.passthrough,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: kTileBorderRadiusAll,
+              clipBehavior: Clip.antiAlias,
+              child: ColoredBox(
+                color: _deleteColor,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 22),
+                    child: Opacity(
+                      opacity: (reveal * 1.15).clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset((1 - reveal) * 14, 0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              UniconsLine.trash_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Delete'.tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Dismissible(
+            key: ValueKey(widget.record.id),
+            direction: DismissDirection.endToStart,
+            movementDuration: const Duration(milliseconds: 220),
+            resizeDuration: const Duration(milliseconds: 260),
+            dismissThresholds: const {
+              DismissDirection.endToStart: 0.32,
+            },
+            background: const ColoredBox(color: Colors.transparent),
+            onUpdate: _onDismissUpdate,
+            onDismissed: (_) => widget.onDelete(widget.record),
+            child: widget.child,
+          ),
+        ],
+      ),
+    );
+  }
 }

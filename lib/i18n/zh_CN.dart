@@ -25,6 +25,8 @@ Map<String, String> zh_CN = {
   'Http method': 'HTTP 方法',
   'Update': '更新',
   'Done': '完成',
+  'Delete': '删除',
+  'Failed to delete notification': '删除通知失败',
   'Note Bene! This app requires notification listener permission and battery optimization turned off to work.':
       'NITM 需要在后台过滤通知，请授予通知访问权限并关闭电池优化。',
   'Battery Optimization !': '电池优化',

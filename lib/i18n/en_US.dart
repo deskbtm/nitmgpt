@@ -25,6 +25,8 @@ const Map<String, String> en_US = {
   'Http method': 'HTTP method',
   'Update': 'Update',
   'Done': 'Done',
+  'Delete': 'Delete',
+  'Failed to delete notification': 'Failed to delete notification',
   'Note Bene! This app requires notification listener permission and battery optimization turned off to work.':
       'NITM needs notification access and battery optimization disabled to filter notifications in the background.',
   'Battery Optimization !': 'Battery optimization',
