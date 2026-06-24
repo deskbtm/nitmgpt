@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -310,20 +311,20 @@ class _HomeSearchResultsList extends StatefulWidget {
   State<_HomeSearchResultsList> createState() => _HomeSearchResultsListState();
 }
 
-class _HomeSearchResultsListState extends State<_HomeSearchResultsList> {
+class _HomeSearchResultsListState extends State<_HomeSearchResultsList>
+    with _RecordsRevisionListener {
   late List<Record> _records;
-  VoidCallback? _recordsSub;
 
   @override
   void initState() {
     super.initState();
     _records = _loadRecords();
-    _recordsSub = widget.watcher.recordsRevision.subscribe((_) => _syncRecords());
+    listenRecordsRevision(widget.watcher, _syncRecords);
   }
 
   @override
   void dispose() {
-    _recordsSub?.call();
+    disposeRecordsRevisionListener();
     super.dispose();
   }
 
@@ -335,13 +336,11 @@ class _HomeSearchResultsListState extends State<_HomeSearchResultsList> {
     }
   }
 
-  List<Record> _loadRecords() =>
-      widget.watcher.getRecordsMatchingSearch(widget.searchQuery);
+  List<Record> _loadRecords() => _loadRecordsSafely(
+        () => widget.watcher.getRecordsMatchingSearch(widget.searchQuery),
+      );
 
   void _syncRecords() {
-    if (!mounted) {
-      return;
-    }
     final next = _loadRecords();
     if (_sameRecordSnapshot(_records, next)) {
       return;
@@ -360,10 +359,12 @@ class _HomeSearchResultsListState extends State<_HomeSearchResultsList> {
       itemBuilder: (record) {
         final app = widget.watcher.appIconForPackage(record.packageName);
         return DismissibleNotificationTile(
+          key: ValueKey(record.id),
           record: record,
           onDelete: widget.watcher.deleteRecord,
           child: NotificationTitle(
             margin: EdgeInsets.zero,
+            pageStorageId: record.uid ?? record.id.toString(),
             title: record.notificationTitle,
             subtitle: record.notificationText,
             appName: record.appName ?? app?.appName,
@@ -399,9 +400,8 @@ class _HomeRecordsList extends StatefulWidget {
 }
 
 class _HomeRecordsListState extends State<_HomeRecordsList>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, _RecordsRevisionListener {
   late List<Record> _records;
-  VoidCallback? _recordsSub;
 
   @override
   bool get wantKeepAlive => true;
@@ -410,12 +410,12 @@ class _HomeRecordsListState extends State<_HomeRecordsList>
   void initState() {
     super.initState();
     _records = _loadRecords();
-    _recordsSub = widget.watcher.recordsRevision.subscribe((_) => _syncRecords());
+    listenRecordsRevision(widget.watcher, _syncRecords);
   }
 
   @override
   void dispose() {
-    _recordsSub?.call();
+    disposeRecordsRevisionListener();
     super.dispose();
   }
 
@@ -427,13 +427,13 @@ class _HomeRecordsListState extends State<_HomeRecordsList>
     }
   }
 
-  List<Record> _loadRecords() =>
-      widget.watcher.getRecords(packageName: widget.selectedApp.packageName);
+  List<Record> _loadRecords() => _loadRecordsSafely(
+        () => widget.watcher.getRecords(
+          packageName: widget.selectedApp.packageName,
+        ),
+      );
 
   void _syncRecords() {
-    if (!mounted) {
-      return;
-    }
     final next = _loadRecords();
     if (_sameRecordSnapshot(_records, next)) {
       return;
@@ -454,10 +454,12 @@ class _HomeRecordsListState extends State<_HomeRecordsList>
       emptySubtitle: 'Empty records hint'.tr,
       itemBuilder: (record) {
         return DismissibleNotificationTile(
+          key: ValueKey(record.id),
           record: record,
           onDelete: widget.watcher.deleteRecord,
           child: NotificationTitle(
             margin: EdgeInsets.zero,
+            pageStorageId: record.uid ?? record.id.toString(),
             title: record.notificationTitle,
             subtitle: record.notificationText,
             appName: record.appName,
@@ -568,4 +570,45 @@ bool _sameRecordSnapshot(List<Record> previous, List<Record> next) {
     }
   }
   return true;
+}
+
+List<Record> _loadRecordsSafely(List<Record> Function() load) {
+  try {
+    return load();
+  } catch (e, st) {
+    developer.log(
+      'Failed to load home notification records',
+      name: 'nitmgpt.home',
+      error: e,
+      stackTrace: st,
+    );
+    return const [];
+  }
+}
+
+mixin _RecordsRevisionListener<T extends StatefulWidget> on State<T> {
+  VoidCallback? _recordsRevisionSub;
+
+  void listenRecordsRevision(WatcherStore watcher, VoidCallback sync) {
+    _recordsRevisionSub = watcher.recordsRevision.subscribe((_) {
+      scheduleRecordsSync(sync);
+    });
+  }
+
+  void scheduleRecordsSync(VoidCallback sync) {
+    if (!mounted) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      sync();
+    });
+  }
+
+  void disposeRecordsRevisionListener() {
+    _recordsRevisionSub?.call();
+    _recordsRevisionSub = null;
+  }
 }

@@ -15,6 +15,7 @@ import 'package:nitmgpt/core/constants.dart';
 import 'package:nitmgpt/core/gemma_bootstrap.dart';
 import 'package:nitmgpt/core/idle_scheduler.dart';
 import 'package:nitmgpt/core/localization/app_locale.dart';
+import 'package:nitmgpt/core/safe_signal_write.dart';
 import 'package:nitmgpt/services/device_apps.dart';
 import 'package:nitmgpt/services/app_icon_loader.dart';
 import 'package:nitmgpt/models/record.dart';
@@ -52,6 +53,7 @@ class WatcherStore {
   final Map<String, List<Record>> _recordsByPackageCache = {};
   String? _searchCacheQuery;
   List<Record>? _searchResultsCache;
+  final Set<String> _deletingRecordIds = {};
 
   late Settings settings;
   int _iconLoadToken = 0;
@@ -124,7 +126,7 @@ class WatcherStore {
         realm.delete(app);
       }
     });
-    recordsRevision.value++;
+    _bumpRecordsRevision();
   }
 
   ApplicationWithIcon? _resolveRecordedApp(RecordedApp recordedApp) {
@@ -417,7 +419,8 @@ class WatcherStore {
     }
 
     Fluttertoast.showToast(
-      msg: 'Notification permission is required to keep the listener running'.tr,
+      msg:
+          'Notification permission is required to keep the listener running'.tr,
     );
     return false;
   }
@@ -556,6 +559,24 @@ class WatcherStore {
     _searchCacheQuery = null;
   }
 
+  void _bumpRecordsRevision() {
+    safeSignalWrite(() => recordsRevision.value++);
+  }
+
+  void _refreshDetectedAppsIfChanged() {
+    final nextApps = getDetectedApps();
+    final current = detectedApps.value;
+    if (current.length != nextApps.length ||
+        !_sameAppPackages(current, nextApps)) {
+      detectedApps.value = nextApps;
+    }
+  }
+
+  void _notifyDeleteFailed() {
+    Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
+    _bumpRecordsRevision();
+  }
+
   List<Record> getRecords({String? packageName}) {
     _ensureRecordsCacheFresh();
 
@@ -566,9 +587,19 @@ class WatcherStore {
           .toList();
     }
 
-    return _recordsByPackageCache.putIfAbsent(packageName, () {
-      final result =
-          realm.query<RecordedApp>('packageName == \$0', [packageName]);
+    final normalizedPackage = packageName.trim();
+    if (normalizedPackage.isEmpty) {
+      return const [];
+    }
+
+    return _recordsByPackageCache.putIfAbsent(normalizedPackage, () {
+      final result = realm.query<RecordedApp>(
+        'packageName == \$0',
+        [normalizedPackage],
+      );
+      if (result.isEmpty) {
+        return const [];
+      }
       return result.first.records.toList();
     });
   }
@@ -621,62 +652,69 @@ class WatcherStore {
   /// Reloads detected apps and record lists for pull-to-refresh on Home.
   Future<void> refreshHomeRecords() async {
     refreshDetectedApps();
-    recordsRevision.value++;
+    _bumpRecordsRevision();
   }
 
   Future<void> deleteRecord(Record record) async {
-    final packageName = record.packageName;
-    if (packageName == null || packageName.isEmpty) {
-      Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
-      recordsRevision.value++;
+    if (!_deletingRecordIds.add(record.id.toString())) {
       return;
     }
 
-    final apps =
-        realm.query<RecordedApp>('packageName == \$0', [packageName]);
-    if (apps.isEmpty) {
-      Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
-      recordsRevision.value++;
-      return;
-    }
-
-    var removed = false;
-    await realm.writeAsync(() {
-      final app = apps.first;
-      final index = app.records.indexWhere((item) => item.id == record.id);
-      if (index < 0) {
+    try {
+      final recordId = record.id;
+      final packageName = record.packageName?.trim();
+      if (packageName == null || packageName.isEmpty) {
+        _notifyDeleteFailed();
         return;
       }
-      app.records.removeAt(index);
-      removed = true;
-      if (app.records.isEmpty) {
-        realm.delete(app);
+
+      var removed = false;
+      try {
+        await realm.writeAsync(() {
+          final apps =
+              realm.query<RecordedApp>('packageName == \$0', [packageName]);
+          if (apps.isEmpty) {
+            return;
+          }
+
+          final app = apps.first;
+          final index =
+              app.records.indexWhere((item) => item.id == recordId);
+          if (index < 0) {
+            return;
+          }
+
+          app.records.removeAt(index);
+          removed = true;
+          if (app.records.isEmpty) {
+            realm.delete(app);
+          }
+        });
+      } catch (e, st) {
+        log('deleteRecord failed', error: e, stackTrace: st);
+        _notifyDeleteFailed();
+        return;
       }
-    });
 
-    if (!removed) {
-      Fluttertoast.showToast(msg: 'Failed to delete notification'.tr);
-      recordsRevision.value++;
-      return;
-    }
+      if (!removed) {
+        _notifyDeleteFailed();
+        return;
+      }
 
-    recordsRevision.value++;
-    final nextApps = getDetectedApps();
-    final current = detectedApps.value;
-    if (current.length != nextApps.length ||
-        !_sameAppPackages(current, nextApps)) {
-      detectedApps.value = nextApps;
+      safeSignalWrite(() {
+        recordsRevision.value++;
+        _refreshDetectedAppsIfChanged();
+      });
+    } finally {
+      _deletingRecordIds.remove(record.id.toString());
     }
   }
 
   void onBackgroundServiceRecordsUpdated() {
-    final nextApps = getDetectedApps();
-    final current = detectedApps.value;
-    if (current.length != nextApps.length ||
-        !_sameAppPackages(current, nextApps)) {
-      detectedApps.value = nextApps;
-    }
-    recordsRevision.value++;
+    safeSignalWrite(() {
+      _refreshDetectedAppsIfChanged();
+      recordsRevision.value++;
+    });
   }
 
   bool _sameAppPackages(
