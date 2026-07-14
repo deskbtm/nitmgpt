@@ -62,8 +62,9 @@ class Action {
 
   Future<bool> postInputs(Map<String, dynamic> map) async {
     if (_evt == null) throw Exception("The notification is null");
-    if (inputs == null || inputs!.length == 0)
+    if (inputs == null || inputs!.isEmpty) {
       throw Exception("No inputs were provided");
+    }
 
     // check if we have set the data
     var hasData = false;
@@ -245,7 +246,7 @@ class NotificationEvent {
 
   @override
   String toString() {
-    var tmp = Map<dynamic, dynamic>.from(this._data)
+    var tmp = Map<dynamic, dynamic>.from(_data)
       ..remove('icon')
       ..remove('largeIcon');
     return json.encode(tmp).toString();
@@ -253,8 +254,9 @@ class NotificationEvent {
 
   /// tap the notification return false if not exits
   Future<bool> tap() {
-    if (canTap == null || canTap == false)
+    if (canTap == null || canTap == false) {
       throw Exception("The notification can not be tapped");
+    }
     return NotificationsListener.tapNotification(uniqueId!);
   }
 

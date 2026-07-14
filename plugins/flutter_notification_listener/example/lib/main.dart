@@ -11,6 +11,8 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -23,19 +25,21 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       home: NotificationsLog(),
     );
   }
 }
 
 class NotificationsLog extends StatefulWidget {
+  const NotificationsLog({Key? key}) : super(key: key);
+
   @override
   _NotificationsLogState createState() => _NotificationsLogState();
 }
 
 class _NotificationsLogState extends State<NotificationsLog> {
-  List<NotificationEvent> _log = [];
+  final List<NotificationEvent> _log = [];
   bool started = false;
   bool _loading = false;
 
@@ -166,12 +170,12 @@ class _NotificationsLogState extends State<NotificationsLog> {
                                     // semantic is 1 means reply quick
                                     if (act.semantic == 1) {
                                       Map<String, dynamic> map = {};
-                                      (act.inputs ?? []).forEach((e) {
+                                      for (var e in (act.inputs ?? [])) {
                                         print(
                                             "set inputs: ${e.label}<${e.resultKey}>");
                                         map[e.resultKey ?? 'null'] =
                                             "Auto reply from me";
-                                      });
+                                      }
                                       act.postInputs(map);
                                     } else {
                                       // just tap

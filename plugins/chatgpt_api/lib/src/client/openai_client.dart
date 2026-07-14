@@ -32,7 +32,7 @@ class OpenAIClient extends OpenAIWrapper {
         throw RequestError(
             message: "${rawData.data}", code: rawData.statusCode);
       }
-    } on DioError catch (err) {
+    } on DioException catch (err) {
       throw RequestError(
           message: "${err.message}", code: err.response?.statusCode);
     }
@@ -54,7 +54,7 @@ class OpenAIClient extends OpenAIWrapper {
         throw RequestError(
             message: "${rawData.data}", code: rawData.statusCode);
       }
-    } on DioError catch (err) {
+    } on DioException catch (err) {
       throw RequestError(
           message: "${err.message} \ndata:${err.response?.data}",
           code: err.response?.statusCode);

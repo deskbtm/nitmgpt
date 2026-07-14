@@ -15,10 +15,10 @@ class NotificationsListener {
   static const SEND_PORT_NAME = "notifications_send_port";
 
   static const MethodChannel _methodChannel =
-      const MethodChannel('$CHANNELID/method');
+      MethodChannel('$CHANNELID/method');
 
   static const MethodChannel _bgMethodChannel =
-      const MethodChannel('$CHANNELID/bg_method');
+      MethodChannel('$CHANNELID/bg_method');
 
   static MethodChannel get bgMethodChannel => _bgMethodChannel;
 
@@ -50,10 +50,10 @@ class NotificationsListener {
   static Future<void> initialize({
     EventCallbackFunc callbackHandle = _defaultCallbackHandle,
   }) async {
-    final CallbackHandle _callbackDispatch =
+    final CallbackHandle callbackDispatch =
         PluginUtilities.getCallbackHandle(callbackDispatcher)!;
     await _methodChannel.invokeMethod(
-        'plugin.initialize', _callbackDispatch.toRawHandle());
+        'plugin.initialize', callbackDispatch.toRawHandle());
 
     // call this call back in the current engine
     // this is important to use ui flutter engine access `service.channel`
@@ -66,10 +66,10 @@ class NotificationsListener {
 
   /// Register a new event handler
   static Future<void> registerEventHandle(EventCallbackFunc callback) async {
-    final CallbackHandle _callback =
+    final CallbackHandle callback0 =
         PluginUtilities.getCallbackHandle(callback)!;
     await _methodChannel.invokeMethod(
-        'plugin.registerEventHandle', _callback.toRawHandle());
+        'plugin.registerEventHandle', callback0.toRawHandle());
   }
 
   /// check the service running or not
@@ -173,11 +173,12 @@ class NotificationsListener {
   }
 
   static void _defaultCallbackHandle(NotificationEvent evt) {
-    final SendPort? _send = IsolateNameServer.lookupPortByName(SEND_PORT_NAME);
+    final SendPort? send = IsolateNameServer.lookupPortByName(SEND_PORT_NAME);
     print("[default callback handler] [send isolate nameserver]");
-    if (_send == null)
+    if (send == null) {
       print("IsolateNameServer: can not find send $SEND_PORT_NAME");
-    _send?.send(evt);
+    }
+    send?.send(evt);
   }
 }
 
@@ -217,6 +218,7 @@ void callbackDispatcher({inited = true}) {
   });
 
   // if start the ui first, this will cause method not found error
-  if (inited)
+  if (inited) {
     NotificationsListener._bgMethodChannel.invokeMethod('service.initialized');
+  }
 }

@@ -134,7 +134,7 @@ class OpenAI {
           ..add(CTResponse.fromJson(rawData.data));
       }
     }).onError((err) {
-      if (err is DioError) {
+      if (err is DioException) {
         _completeControl
           ?..sink
           ..addError(
@@ -179,7 +179,7 @@ class OpenAI {
           ..add(ChatCTResponse.fromJson(rawData.data));
       }
     }).onError((err) {
-      if (err is DioError) {
+      if (err is DioException) {
         _chatCompleteControl
           ?..sink
           ..addError(
@@ -220,7 +220,7 @@ class OpenAI {
           ..add(GenImgResponse.fromJson(rawData.data));
       }
     }).onError((err) => {
-              if (err is DioError)
+              if (err is DioException)
                 {
                   _genImgController
                     ..sink
